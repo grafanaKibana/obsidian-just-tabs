@@ -82,8 +82,6 @@ Just Tabs sends raw tab bodies through Obsidian's Markdown renderer. It does not
 
 Visited panels stay mounted while current. When a hidden panel becomes stale after a relevant public vault or metadata event, Just Tabs rebuilds it once on reactivation. This keeps a hidden Dataview panel current after indexed vault changes. Visible processors continue to manage their normal refresh behavior; network-, clock-, or private-state-driven updates remain that processor's responsibility.
 
-The [`0.1.0` validation record](docs/compatibility.md#010-beta-validation) covers desktop and iPhone behavior, Dataview freshness, Tracker, Templater, themes, optional-plugin absence, and BRAT installation.
-
 ## Style Settings
 
 Just Tabs works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes exactly five appearance controls:
@@ -135,7 +133,7 @@ First test the same Markdown outside a `tabs` block in the same note. Just Tabs 
 
 ### A community-plugin block does not render or refresh
 
-Test it outside Just Tabs, then follow the [compatibility fixture](docs/compatibility.md). Reactivate a hidden stale tab after a vault or metadata change. Just Tabs does not force visible processors to refresh or add plugin-specific adapters.
+Test it outside Just Tabs. Reactivate a hidden stale tab after a vault or metadata change. Just Tabs does not force visible processors to refresh or add plugin-specific adapters.
 
 ### Tabs overflow on a small screen
 
@@ -144,8 +142,6 @@ Scroll the tab list horizontally. The list should contain its own overflow witho
 ## Development and releases
 
 - [Contributing and local development](CONTRIBUTING.md)
-- [Compatibility checks](docs/compatibility.md)
-- [Security policy](SECURITY.md)
 - [Issues](https://github.com/grafanaKibana/obsidian-just-tabs/issues)
 - [Releases and changelog](https://github.com/grafanaKibana/obsidian-just-tabs/releases)
 
