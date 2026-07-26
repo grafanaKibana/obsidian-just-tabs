@@ -1,0 +1,224 @@
+/* @settings
+
+name: Just Tabs
+id: just-tabs
+settings:
+  -
+    id: just-tabs-density
+    title: Density
+    type: class-select
+    allowEmpty: false
+    default: just-tabs-density-default
+    options:
+      -
+        label: Compact
+        value: just-tabs-density-compact
+      -
+        label: Default
+        value: just-tabs-density-default
+      -
+        label: Comfortable
+        value: just-tabs-density-comfortable
+  -
+    id: just-tabs-alignment
+    title: Alignment
+    type: class-select
+    allowEmpty: false
+    default: just-tabs-alignment-start
+    options:
+      -
+        label: Start
+        value: just-tabs-alignment-start
+      -
+        label: Center
+        value: just-tabs-alignment-center
+      -
+        label: Equal width
+        value: just-tabs-alignment-equal-width
+  -
+    id: just-tabs-gap
+    title: Gap between tabs
+    type: variable-number-slider
+    default: 4
+    min: 0
+    max: 24
+    step: 1
+    format: px
+  -
+    id: just-tabs-radius
+    title: Corner radius
+    type: variable-number-slider
+    default: 4
+    min: 0
+    max: 24
+    step: 1
+    format: px
+  -
+    id: just-tabs-content-spacing
+    title: Content spacing
+    description: Space between the tab list and its content
+    type: variable-number-slider
+    default: 12
+    min: 0
+    max: 48
+    step: 1
+    format: px
+
+*/
+
+.just-tabs {
+	--just-tabs-tab-padding-block: 0.5rem;
+	--just-tabs-tab-padding-inline: 0.75rem;
+
+	box-sizing: border-box;
+	max-inline-size: 100%;
+	min-inline-size: 0;
+	color: var(--text-normal);
+}
+
+.just-tabs__tablist {
+	display: flex;
+	align-items: stretch;
+	justify-content: flex-start;
+	box-sizing: border-box;
+	inline-size: 100%;
+	max-inline-size: 100%;
+	min-inline-size: 0;
+	margin-block-end: var(--just-tabs-content-spacing, 0.75rem);
+	padding: var(--border-width);
+	gap: var(--just-tabs-gap, 0.25rem);
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-inline: contain;
+	scroll-behavior: smooth;
+	scrollbar-width: thin;
+	-webkit-overflow-scrolling: touch;
+}
+
+.just-tabs__tab {
+	flex: 0 0 auto;
+	box-sizing: border-box;
+	height: auto;
+	max-height: none;
+	min-inline-size: 44px;
+	min-block-size: 44px;
+	padding: var(--just-tabs-tab-padding-block)
+		var(--just-tabs-tab-padding-inline);
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--just-tabs-radius, var(--radius-s));
+	background-color: var(--interactive-normal);
+	color: var(--text-normal);
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-medium);
+	line-height: var(--line-height-tight);
+	text-align: center;
+	cursor: pointer;
+	transition:
+		background-color var(--anim-duration-fast) var(--anim-motion-swing),
+		border-color var(--anim-duration-fast) var(--anim-motion-swing),
+		color var(--anim-duration-fast) var(--anim-motion-swing);
+}
+
+.just-tabs__tab:hover {
+	border-color: var(--background-modifier-border-hover);
+	background-color: var(--interactive-hover);
+}
+
+.just-tabs__tab[aria-selected="true"] {
+	border-color: var(--interactive-accent);
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.just-tabs__tab[aria-selected="true"]:hover {
+	border-color: var(--interactive-accent-hover);
+	background-color: var(--interactive-accent-hover);
+}
+
+.just-tabs__tab:focus-visible,
+.just-tabs__panel:focus-visible {
+	outline: var(--border-width) solid var(--background-modifier-border-focus);
+	outline-offset: var(--border-width);
+}
+
+.just-tabs__panel,
+.just-tabs__content {
+	max-inline-size: 100%;
+	min-inline-size: 0;
+}
+
+.just-tabs__panel[hidden] {
+	display: none;
+}
+
+.just-tabs__diagnostic,
+.just-tabs__panel-error {
+	box-sizing: border-box;
+	max-inline-size: 100%;
+	padding: 0.75rem;
+	border: var(--border-width) solid var(--background-modifier-border);
+	border-radius: var(--just-tabs-radius, var(--radius-s));
+	background-color: var(--background-primary-alt);
+	color: var(--text-normal);
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-small);
+}
+
+.just-tabs__panel-error {
+	border-color: var(--background-modifier-error);
+	color: var(--text-error);
+}
+
+.just-tabs__diagnostic-title {
+	display: block;
+	margin-block-end: 0.25rem;
+}
+
+.just-tabs__diagnostic-location {
+	margin-block-end: 0.5rem;
+	color: var(--text-muted);
+}
+
+.just-tabs__diagnostic-source {
+	max-inline-size: 100%;
+	overflow: auto;
+}
+
+body.just-tabs-density-compact .just-tabs {
+	--just-tabs-tab-padding-block: 0.25rem;
+	--just-tabs-tab-padding-inline: 0.625rem;
+}
+
+body.just-tabs-density-default .just-tabs {
+	--just-tabs-tab-padding-block: 0.5rem;
+	--just-tabs-tab-padding-inline: 0.75rem;
+}
+
+body.just-tabs-density-comfortable .just-tabs {
+	--just-tabs-tab-padding-block: 0.75rem;
+	--just-tabs-tab-padding-inline: 1rem;
+}
+
+body.just-tabs-alignment-start .just-tabs__tablist {
+	justify-content: flex-start;
+}
+
+body.just-tabs-alignment-center .just-tabs__tablist {
+	justify-content: safe center;
+}
+
+body.just-tabs-alignment-equal-width .just-tabs__tab {
+	flex: 1 0 7rem;
+	white-space: normal;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.just-tabs__tablist {
+		scroll-behavior: auto;
+	}
+
+	.just-tabs__tab {
+		transition: none;
+	}
+}
