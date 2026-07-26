@@ -4,7 +4,7 @@ Just Tabs passes each tab body to Obsidian's Markdown renderer with the containi
 
 The compatibility promise is broad pipeline compatibility, not universal certification. Fix incompatibilities at the shared parser, renderer, lifecycle, or source-path boundary when possible. Otherwise, record the limitation here. Do not add an adapter for one plugin.
 
-This document is a manual test procedure, not a statement that the checks have passed.
+This document separates one recorded development snapshot from the manual matrix required for each release.
 
 ## Freshness behavior
 
@@ -25,7 +25,29 @@ Visible processors keep responsibility for their normal live refresh behavior. N
 
 Tracker is the planned additional code-block processor. At each compatibility milestone, revalidate that [Tracker](https://github.com/pyrochlore/obsidian-tracker) is maintained and installable. Record its version if selected. If it is no longer suitable, choose another maintained community code-block processor and replace only that fixture block; the no-adapter policy does not change.
 
-No Dataview or Tracker result is claimed until the matrix evidence is recorded.
+The development snapshot below records one Dataview and Tracker result. Both must be rerun against the exact release candidate before certification.
+
+## Development validation snapshot
+
+This is an isolated development result, not release certification. The complete manual matrix remains required against the exact release candidate.
+
+- Date: 2026-07-26
+- Build: Just Tabs `0.1.0` from commit `65b1076`
+- Runtime: Obsidian `1.12.7` on macOS with an isolated profile and vault
+- Optional plugins: Dataview `0.5.68`, Style Settings `1.0.9`, Tracker `1.19.0`, Templater `2.20.6`
+
+| Status | Surface | Recorded result |
+| --- | --- | --- |
+| PASS | Reading View | Rendered 3 independent groups with 9 tabs; pointer selection remained independent; ArrowRight moved focus and Enter manually activated the focused tab. |
+| PASS | Source Mode | Showed raw source with 0 Just Tabs widgets. |
+| PASS | Live Preview outside the block | Rendered 3 widgets with 9 tabs. |
+| PASS | Dataview freshness | A hidden panel refreshed from `1` to `2` after a real vault change and reactivation. |
+| PASS | Tracker | Rendered one matching entry. |
+| PARTIAL | Mobile-sized layout | At `390 × 844`, document containment and CSS metrics for 44 px targets and tab-list overflow were observed; no actual mobile, touch, or real scrolling was exercised. |
+| PARTIAL | Style Settings | Plugin loaded and default classes were present; the five UI controls were not exercised. |
+| PARTIAL | Templater | Plugin loaded; template generation was not executed. |
+| GAP | Live Preview inside-block transition | macOS input authority was unavailable, so moving the editing locus inside the block could not be exercised. |
+| GAP | Remaining release surfaces | Actual mobile/touch/real scrolling, light/dark/custom themes, optional plugins absent, and unload/rerender were not exercised. |
 
 ## Fixture source
 
@@ -172,6 +194,20 @@ Second body.
 First body.
 
 --- tab: Duplicate
+
+Second body.
+```
+````
+
+### Empty label
+
+````markdown
+```tabs
+--- tab: First
+
+First body.
+
+--- tab:
 
 Second body.
 ```

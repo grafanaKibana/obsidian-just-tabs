@@ -24,13 +24,15 @@ export type TabsParseResult =
 	| { ok: false; diagnostic: TabsDiagnostic };
 
 const markerPrefix = "--- tab:";
-const nestedTabsFence = /^ {0,3}(?:`{3,}|~{3,})tabs[ \t]*$/;
+const backtickFence = /^ {0,3}(`{3,})([^`]*)$/;
+const tildeFence = /^ {0,3}(~{3,})(.*)$/;
 
 export function parseTabs(source: string): TabsParseResult {
 	const tabs: ParsedTab[] = [];
 	const labels = new Set<string>();
 	const lines = source.split("\n");
 	let current: ParsedTab | undefined;
+	let openFence: string | undefined;
 
 	const fail = (
 		code: TabsDiagnosticCode,
@@ -48,14 +50,6 @@ export function parseTabs(source: string): TabsParseResult {
 		const ending = hasNewline ? (hasCarriageReturn ? "\r\n" : "\n") : "";
 		const lineNumber = index + 1;
 
-		if (nestedTabsFence.test(line)) {
-			return fail(
-				"nested-tabs",
-				"Nested tabs blocks are not supported.",
-				lineNumber,
-			);
-		}
-
 		if (line.startsWith(markerPrefix)) {
 			const label = line.slice(markerPrefix.length).trim();
 			if (label === "") {
@@ -72,7 +66,32 @@ export function parseTabs(source: string): TabsParseResult {
 			current = { label, body: "" };
 			tabs.push(current);
 			labels.add(label);
+			openFence = undefined;
 			continue;
+		}
+
+		const fenceMatch = backtickFence.exec(line) ?? tildeFence.exec(line);
+		const fenceRun = fenceMatch?.[1];
+		const fenceInfo = fenceMatch?.[2] ?? "";
+		if (openFence) {
+			if (
+				fenceRun?.startsWith(openFence) &&
+				/^[ \t]*$/.test(fenceInfo)
+			) {
+				openFence = undefined;
+			}
+		} else {
+			const infoToken = /^[ \t]*([^ \t]*)/.exec(fenceInfo)?.[1];
+			if (fenceRun && infoToken === "tabs") {
+				return fail(
+					"nested-tabs",
+					"Nested tabs blocks are not supported.",
+					lineNumber,
+				);
+			}
+			if (fenceRun) {
+				openFence = fenceRun;
+			}
 		}
 
 		if (current === undefined) {

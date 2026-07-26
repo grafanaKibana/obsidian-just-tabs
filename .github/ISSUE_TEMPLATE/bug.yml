@@ -84,6 +84,14 @@ body:
       required: true
 
   - type: textarea
+    id: fixed-criteria
+    attributes:
+      label: Fixed criteria
+      description: What observable conditions must be true for this bug to be considered fixed?
+    validations:
+      required: true
+
+  - type: textarea
     id: environment
     attributes:
       label: Relevant plugins and theme

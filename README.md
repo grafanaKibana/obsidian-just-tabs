@@ -4,7 +4,7 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 
 > Screenshot pending. A real Obsidian screenshot will replace this note after the interface and release build have been validated.
 
-> **Pre-release status:** this README describes the contract for the first public beta. Manual compatibility results will be recorded before publication.
+> **Pre-release status:** this README describes the contract for the first public beta. An isolated development snapshot is recorded, but the complete release matrix remains required before publication.
 
 ## Features
 
@@ -84,7 +84,7 @@ Just Tabs sends raw tab bodies through Obsidian's Markdown renderer. It does not
 
 Visited panels stay mounted while current. When a hidden panel becomes stale after a relevant public vault or metadata event, Just Tabs rebuilds it once on reactivation. This keeps a hidden Dataview panel current after indexed vault changes. Visible processors continue to manage their normal refresh behavior; network-, clock-, or private-state-driven updates remain that processor's responsibility.
 
-See the [compatibility policy, fixture, and manual matrix](docs/compatibility.md). Published documentation does not imply that an unrecorded manual check passed.
+An [isolated development snapshot](docs/compatibility.md#development-validation-snapshot) records successful desktop rendering, keyboard/pointer behavior, Dataview stale refresh, and Tracker rendering alongside its partial checks and gaps. It is not release certification; the complete release matrix still applies.
 
 ## Style Settings
 

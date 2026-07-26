@@ -63,6 +63,135 @@ describe("parseTabs", () => {
 		}
 	});
 
+	test("preserves a shorter tabs fence inside a longer static code fence", () => {
+		const source = [
+			"--- tab: Code",
+			"````text",
+			"```tabs",
+			"literal fenced source",
+			"```",
+			"````",
+			"--- tab: Other",
+		].join("\n");
+
+		const result = parseTabs(source);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.tabs[0]?.body).toBe(
+				"````text\n```tabs\nliteral fenced source\n```\n````\n",
+			);
+		}
+	});
+
+	test("treats an unescaped marker inside a static fence as structural", () => {
+		const result = parseTabs(
+			[
+				"--- tab: One",
+				"````text",
+				"--- tab: Two",
+				"Second body",
+			].join("\n"),
+		);
+
+		expect(result).toEqual({
+			ok: true,
+			tabs: [
+				{ label: "One", body: "````text\n" },
+				{ label: "Two", body: "Second body" },
+			],
+		});
+	});
+
+	test("keeps an escaped marker inside a static fence as literal body content", () => {
+		const result = parseTabs(
+			[
+				"--- tab: One",
+				"````text",
+				"\\--- tab: literal",
+				"````",
+				"--- tab: Two",
+			].join("\n"),
+		);
+
+		expect(result).toEqual({
+			ok: true,
+			tabs: [
+				{ label: "One", body: "````text\n--- tab: literal\n````\n" },
+				{ label: "Two", body: "" },
+			],
+		});
+	});
+
+	test("rejects top-level nested tabs after an invalid backtick fence opener", () => {
+		const source = [
+			"--- tab: One",
+			"```text`invalid",
+			"```tabs",
+			"--- tab: Two",
+		].join("\n");
+
+		expect(parseTabs(source)).toEqual({
+			ok: false,
+			diagnostic: {
+				code: "nested-tabs",
+				message: "Nested tabs blocks are not supported.",
+				line: 3,
+				source,
+			},
+		});
+	});
+
+	test("rejects nested tabs with leading ASCII whitespace in the info string", () => {
+		const source = [
+			"--- tab: One",
+			"``` tabs",
+			"\\--- tab: Nested one",
+			"\\--- tab: Nested two",
+			"```",
+			"--- tab: Two",
+		].join("\n");
+
+		expect(parseTabs(source)).toEqual({
+			ok: false,
+			diagnostic: {
+				code: "nested-tabs",
+				message: "Nested tabs blocks are not supported.",
+				line: 2,
+				source,
+			},
+		});
+	});
+
+	test("does not close a static fence when its suffix is NBSP", () => {
+		const invalidClose = "````\u00a0";
+		const source = [
+			"--- tab: Code",
+			"````text",
+			invalidClose,
+			"```tabs",
+			"literal fenced source",
+			"```",
+			"````",
+			"--- tab: Other",
+		].join("\n");
+
+		const result = parseTabs(source);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.tabs[0]?.body).toBe(
+				[
+					"````text",
+					invalidClose,
+					"```tabs",
+					"literal fenced source",
+					"```",
+					"````",
+					"",
+				].join("\n"),
+			);
+		}
+	});
+
 	test("unescapes one leading backslash from marker-looking body lines", () => {
 		const result = parseTabs(
 			"--- tab: One\r\n\\--- tab: literal\r\n--- tab: Two",
