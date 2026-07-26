@@ -2,7 +2,7 @@ import { readFileSync, statSync } from "node:fs";
 import process from "node:process";
 import { resolve } from "node:path";
 
-const SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+const SEMVER = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
 const root = process.cwd();
 const tag = process.argv[2];
 
@@ -39,7 +39,7 @@ if (typeof manifest.isDesktopOnly !== "boolean") {
 if (
 	!/^[a-z]+(?:-[a-z]+)*$/.test(manifest.id) ||
 	manifest.id.includes("obsidian") ||
-	manifest.id.endsWith("-plugin")
+	manifest.id.endsWith("plugin")
 ) {
 	throw new Error("manifest.json.id violates Obsidian community plugin rules.");
 }

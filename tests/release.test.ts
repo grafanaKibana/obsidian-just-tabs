@@ -2,13 +2,15 @@
 
 import { execFileSync, spawnSync } from "node:child_process";
 import {
+	chmodSync,
 	mkdtempSync,
+	mkdirSync,
 	readFileSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { delimiter, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, expect, test } from "vitest";
 
@@ -26,7 +28,13 @@ interface LockFixture {
 }
 
 interface ManifestFixture {
+	id: string;
+	name: string;
 	version: string;
+	minAppVersion: string;
+	description: string;
+	author: string;
+	isDesktopOnly: boolean;
 }
 
 type VersionsFixture = Record<string, string>;
@@ -78,8 +86,8 @@ function createFixture(): string {
 	return root;
 }
 
-function runVerify(root: string): ReturnType<typeof spawnSync> {
-	return spawnSync(process.execPath, [verifyScript], {
+function runVerify(root: string, tag?: string): ReturnType<typeof spawnSync> {
+	return spawnSync(process.execPath, [verifyScript, ...(tag ? [tag] : [])], {
 		cwd: root,
 		encoding: "utf8",
 	});
@@ -108,12 +116,14 @@ test("updates package, lockfile, manifest, and versions together", () => {
 	expect(runVerify(root).status).toBe(0);
 });
 
-test("rejects invalid versions without modifying release metadata", () => {
+test.each(["v0.2.0", "01.2.3", "1.02.3", "1.2.03"])(
+	"rejects invalid version %s without modifying release metadata",
+	(version) => {
 	const root = createFixture();
 	const before = ["package.json", "package-lock.json", "manifest.json", "versions.json"]
 		.map((name) => readFileSync(resolve(root, name), "utf8"));
 
-	const result = spawnSync(process.execPath, [versionScript, "v0.2.0"], {
+	const result = spawnSync(process.execPath, [versionScript, version], {
 		cwd: root,
 		encoding: "utf8",
 	});
@@ -123,7 +133,50 @@ test("rejects invalid versions without modifying release metadata", () => {
 		["package.json", "package-lock.json", "manifest.json", "versions.json"]
 			.map((name) => readFileSync(resolve(root, name), "utf8")),
 	).toEqual(before);
-});
+	},
+);
+
+test.runIf(process.platform !== "win32")(
+	"rolls back all metadata when npm mutates files and fails",
+	() => {
+		const root = createFixture();
+		const before = ["package.json", "package-lock.json", "manifest.json", "versions.json"]
+			.map((name) => readFileSync(resolve(root, name)));
+		const bin = resolve(root, "bin");
+		mkdirSync(bin);
+		const fakeNpm = resolve(bin, "npm");
+		writeFileSync(
+			fakeNpm,
+			[
+				"#!/usr/bin/env node",
+				'const fs = require("node:fs");',
+				'for (const name of ["package.json", "package-lock.json"]) {',
+				"  const value = JSON.parse(fs.readFileSync(name, \"utf8\"));",
+				'  value.version = "9.9.9";',
+				'  if (value.packages?.[""]) value.packages[""].version = "9.9.9";',
+				"  fs.writeFileSync(name, JSON.stringify(value));",
+				"}",
+				"process.exit(1);",
+			].join("\n"),
+		);
+		chmodSync(fakeNpm, 0o755);
+
+		const result = spawnSync(process.execPath, [versionScript, "0.2.0"], {
+			cwd: root,
+			encoding: "utf8",
+			env: {
+				...process.env,
+				PATH: `${bin}${delimiter}${process.env.PATH ?? ""}`,
+			},
+		});
+
+		expect(result.status).not.toBe(0);
+		expect(
+			["package.json", "package-lock.json", "manifest.json", "versions.json"]
+				.map((name) => readFileSync(resolve(root, name))),
+		).toEqual(before);
+	},
+);
 
 test.each([
 	"package.json",
@@ -155,8 +208,64 @@ test.each([
 	expect(runVerify(root).status).not.toBe(0);
 });
 
-test("rejects missing release assets", () => {
+test.each(["main.js", "manifest.json", "styles.css"])(
+	"rejects missing release asset %s",
+	(asset) => {
 	const root = createFixture();
-	rmSync(resolve(root, "styles.css"));
+	rmSync(resolve(root, asset));
 	expect(runVerify(root).status).not.toBe(0);
+	},
+);
+
+test.each(["main.js", "styles.css"])(
+	"rejects empty release asset %s",
+	(asset) => {
+		const root = createFixture();
+		writeFileSync(resolve(root, asset), "");
+		expect(runVerify(root).status).not.toBe(0);
+	},
+);
+
+test("rejects aligned metadata with leading-zero SemVer", () => {
+	const root = createFixture();
+	const packageJson = readJson<PackageFixture>(resolve(root, "package.json"));
+	const lock = readJson<LockFixture>(resolve(root, "package-lock.json"));
+	const manifest = readJson<ManifestFixture>(resolve(root, "manifest.json"));
+	const versions = readJson<VersionsFixture>(resolve(root, "versions.json"));
+	packageJson.version = "01.2.3";
+	lock.version = "01.2.3";
+	lock.packages[""].version = "01.2.3";
+	manifest.version = "01.2.3";
+	versions["01.2.3"] = manifest.minAppVersion;
+	writeJson(resolve(root, "package.json"), packageJson);
+	writeJson(resolve(root, "package-lock.json"), lock);
+	writeJson(resolve(root, "manifest.json"), manifest);
+	writeJson(resolve(root, "versions.json"), versions);
+	expect(runVerify(root).status).not.toBe(0);
+});
+
+test("rejects missing manifest fields", () => {
+	const root = createFixture();
+	const manifest = readJson<Partial<ManifestFixture>>(
+		resolve(root, "manifest.json"),
+	);
+	delete manifest.author;
+	writeJson(resolve(root, "manifest.json"), manifest);
+	expect(runVerify(root).status).not.toBe(0);
+});
+
+test.each(["obsidian-tabs", "tabs-plugin", "Tabs"])(
+	"rejects invalid plugin id %s",
+	(id) => {
+		const root = createFixture();
+		const manifest = readJson<ManifestFixture>(resolve(root, "manifest.json"));
+		manifest.id = id;
+		writeJson(resolve(root, "manifest.json"), manifest);
+		expect(runVerify(root).status).not.toBe(0);
+	},
+);
+
+test.each(["v0.1.0", "0.2.0"])("rejects mismatched tag %s", (tag) => {
+	const root = createFixture();
+	expect(runVerify(root, tag).status).not.toBe(0);
 });

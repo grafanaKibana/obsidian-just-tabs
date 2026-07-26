@@ -33,9 +33,16 @@ export default defineConfig(
 			"esbuild.config.mjs",
 			"scripts/**/*.mjs",
 			"tests/**/*.ts",
+			"vitest.config.ts",
 		],
 		rules: {
 			"obsidianmd/no-nodejs-modules": "off",
+		},
+	},
+	{
+		files: ["src/render.ts", "tests/**/*.ts"],
+		rules: {
+			"obsidianmd/prefer-create-el": "off",
 		},
 	},
 );

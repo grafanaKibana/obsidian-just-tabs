@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import process from "node:process";
 import { resolve } from "node:path";
 
-const SEMVER = /^[0-9]+\.[0-9]+\.[0-9]+$/;
+const SEMVER = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
 const version = process.argv[2];
 const root = process.cwd();
 const paths = {

@@ -31,7 +31,7 @@ jobs:
       - name: Validate tag and ancestry
         shell: bash
         run: |
-          [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$GITHUB_REF_NAME" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
           git fetch --no-tags origin main
           git merge-base --is-ancestor "${GITHUB_SHA}^{commit}" origin/main
 
@@ -69,9 +69,26 @@ jobs:
         shell: bash
         run: |
           {
-            echo "## Verification pending"
+            echo "## Automated evidence"
             echo
-            echo "Publish only after clean-vault installation and the manual release matrix."
+            echo "- Tag: \`$GITHUB_REF_NAME\`"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- CI run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Package, root lockfile, manifest, and versions mapping parity: PASS"
+            echo "- Release asset contract: PASS"
+            echo
+            echo "## Manual release gate"
+            echo
+            echo "- [ ] Install these three draft assets in a clean vault."
+            echo "- [ ] Link the completed compatibility matrix."
+            echo "- [ ] Record actual-mobile PASS or an explicit GAP with reason."
+            echo "- [ ] Record known incompatibilities or state that none were observed."
+            echo "- [ ] Confirm prerelease for 0.x or stable for 1.0.0."
+            echo "- [ ] For beta, append the BRAT result after publication."
+            echo
+            echo "Publish only after every applicable pre-publication item is complete."
+            echo
+            echo "## SHA-256"
             echo
             echo '```text'
             cat SHA256SUMS.txt
