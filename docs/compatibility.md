@@ -4,7 +4,7 @@ Just Tabs passes each tab body to Obsidian's Markdown renderer with the containi
 
 The compatibility promise is broad pipeline compatibility, not universal certification. Fix incompatibilities at the shared parser, renderer, lifecycle, or source-path boundary when possible. Otherwise, record the limitation here. Do not add an adapter for one plugin.
 
-This document separates one recorded development snapshot from the manual matrix required for each release.
+This document records the `0.1.0` beta validation and the manual matrix required for later releases.
 
 ## Freshness behavior
 
@@ -25,15 +25,12 @@ Visible processors keep responsibility for their normal live refresh behavior. N
 
 Tracker is the planned additional code-block processor. At each compatibility milestone, revalidate that [Tracker](https://github.com/pyrochlore/obsidian-tracker) is maintained and installable. Record its version if selected. If it is no longer suitable, choose another maintained community code-block processor and replace only that fixture block; the no-adapter policy does not change.
 
-The development snapshot below records Dataview and Tracker results. Both must be rerun against the exact downloaded draft-release assets before certification.
-
-## Development validation snapshot
-
-This is an isolated development result, not release certification. The final matrix still must be repeated with the exact downloaded draft-release assets.
+## 0.1.0 beta validation
 
 - Date: 2026-07-26
-- Build: Just Tabs `0.1.0` from the `codex/release-readiness` candidate, before its final commit
-- Runtime: Obsidian `1.12.7` on macOS with an isolated profile and vault
+- Release: [`0.1.0`](https://github.com/grafanaKibana/obsidian-just-tabs/releases/tag/0.1.0), commit `4ee3a813e9a184c61efe88b3de25135f6c797d77`
+- Desktop runtimes: Obsidian `1.12.7` in an isolated macOS profile and Obsidian `1.13.3` on macOS Tahoe `26.5.1`
+- Mobile runtime: Obsidian `1.13.3` on iPhone 14 Pro with iOS `26.5.2`
 - Optional plugins: Dataview `0.5.68`, Style Settings `1.0.9`, Tracker `1.19.0`, Templater `2.20.6`
 - Themes: default light, default dark, and Minimal `9.0.0`
 
@@ -49,17 +46,16 @@ This is an isolated development result, not release certification. The final mat
 | PASS | Style Settings | Exercised density, alignment, gap, corner radius, and content spacing; the expected classes, CSS variables, and layout changes were applied. |
 | PASS | Templater | Templater `2.20.6` generated and rendered the static recipe. The prompt recipe produced valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. |
 | PASS | Unload/rerender | Disabling removed all widgets; re-enabling, changing view modes, and editing/restoring the fixture rebuilt exactly 3 groups with 9 tabs and no errors. |
-| PARTIAL | Mobile-sized layout | At `390 × 844`, document containment and CSS metrics for 44 px targets and tab-list overflow were observed; no actual mobile, touch, or real scrolling was exercised. |
+| PASS | Mobile | Reading View, touch interaction, horizontal overflow, and Live Preview editing passed on an iPhone 14 Pro after the Live Preview tap fix. |
+| PASS | BRAT | BRAT `2.2.0` installed and enabled the published release in a disposable vault; 6 rendered groups with 18 tabs switched without diagnostics. |
 
-## Open release gates
+## 1.0.0 release gate
 
-Before publishing a stable release:
+Before publishing `1.0.0`:
 
 - keep `minAppVersion: 1.12.7` aligned with the earliest verified public runtime until an older version passes the same release matrix;
-- exercise actual mobile Reading View, touch input, real horizontal scrolling, and Live Preview transitions; and
-- repeat the complete matrix with the exact assets downloaded from the draft GitHub Release, recording their commit SHA and hashes in the release issue.
-
-Desktop viewport simulation does not close the actual-mobile gate.
+- install the exact assets downloaded from the draft GitHub Release; and
+- repeat the desktop and mobile smoke checks, recording the tag, commit, and asset hashes in the release issue.
 
 ## Fixture source
 
