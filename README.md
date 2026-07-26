@@ -118,6 +118,7 @@ Keyboard focus remains visible, hidden panels stay out of the accessibility tree
 - Enable Just Tabs under **Settings → Community plugins**.
 - Reading View renders tabs. Source Mode intentionally stays raw.
 - In Live Preview, move the editing locus outside the fenced block.
+- Tap or click non-interactive tab content to move the editing locus back into the fenced source; tab buttons, links, media, and embedded controls remain interactive.
 - Confirm the fence identifier is exactly `tabs`.
 
 ### I see a diagnostic

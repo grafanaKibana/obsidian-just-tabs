@@ -79,6 +79,8 @@ export class MarkdownRenderChild extends Component {
 
 export const MarkdownRenderer = { render: renderMock };
 
+export class MarkdownView {}
+
 export class Plugin extends Component {
 	constructor(public readonly app: unknown) {
 		super();

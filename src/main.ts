@@ -1,6 +1,9 @@
-import { Plugin } from "obsidian";
+import { MarkdownRenderChild, MarkdownView, Plugin } from "obsidian";
 import { parseTabs } from "./parser";
 import { TabBlockRenderChild, renderTabsDiagnostic } from "./render";
+
+const INTERACTIVE_SELECTOR =
+	'a, audio, button, iframe, input, label, select, summary, textarea, video, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"]), [role="button"], [role="checkbox"], [role="link"], [role="menuitem"], [role="switch"]';
 
 export default class JustTabsPlugin extends Plugin {
 	private freshnessGeneration = 0;
@@ -19,13 +22,52 @@ export default class JustTabsPlugin extends Plugin {
 		);
 
 		this.registerMarkdownCodeBlockProcessor("tabs", (source, element, context) => {
+			const renderedSection = context.getSectionInfo(element);
+			const addRenderChild = (child: MarkdownRenderChild): void => {
+				child.registerDomEvent(element, "click", (event) => {
+					const target = event.target;
+					if (event.defaultPrevented || !(target instanceof Element)) {
+						return;
+					}
+
+					const interactive = target.closest(INTERACTIVE_SELECTOR);
+					if (interactive && element.contains(interactive)) {
+						return;
+					}
+
+					const view =
+						this.app.workspace.getActiveViewOfType(MarkdownView);
+					if (
+						!view ||
+						view.getMode() !== "source" ||
+						view.file?.path !== context.sourcePath
+					) {
+						return;
+					}
+
+					const section =
+						context.getSectionInfo(element) ?? renderedSection;
+					if (!section) {
+						return;
+					}
+
+					view.editor.setCursor({
+						line: Math.min(section.lineStart + 1, section.lineEnd),
+						ch: 0,
+					});
+					view.editor.focus();
+				});
+				context.addChild(child);
+			};
+
 			const result = parseTabs(source);
 			if (!result.ok) {
 				renderTabsDiagnostic(element, result.diagnostic);
+				addRenderChild(new MarkdownRenderChild(element));
 				return;
 			}
 
-			context.addChild(
+			addRenderChild(
 				new TabBlockRenderChild(
 					this.app,
 					element,
