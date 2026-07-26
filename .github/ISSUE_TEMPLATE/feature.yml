@@ -1,0 +1,58 @@
+name: Feature request
+description: Propose a focused improvement to the existing tab workflow.
+title: "[Feature]: "
+labels:
+  - type:feature
+  - needs:triage
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Which note-authoring or reading problem needs improvement?
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected workflow
+      description: Include the Obsidian mode, device, syntax, and content type.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest user-visible change that solves the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility and accessibility impact
+      description: Explain effects on Markdown ownership, keyboard use, themes, mobile, and third-party content.
+    validations:
+      required: true
+
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true

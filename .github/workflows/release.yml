@@ -1,0 +1,91 @@
+name: Draft release
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Validate tag and ancestry
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "${GITHUB_SHA}^{commit}" origin/main
+
+      - run: npm ci
+      - run: npm run check
+      - run: node scripts/verify-release.mjs "$GITHUB_REF_NAME"
+      - run: shasum -a 256 main.js manifest.json styles.css > SHA256SUMS.txt
+
+      - name: Store inspected release inputs
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: release-${{ github.ref_name }}
+          path: |
+            main.js
+            manifest.json
+            styles.css
+            SHA256SUMS.txt
+          retention-days: 7
+
+  draft-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download inspected release inputs
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: release-${{ github.ref_name }}
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          {
+            echo "## Verification pending"
+            echo
+            echo "Publish only after clean-vault installation and the manual release matrix."
+            echo
+            echo '```text'
+            cat SHA256SUMS.txt
+            echo '```'
+          } > release-notes.md
+
+          prerelease=()
+          if [[ "$GITHUB_REF_NAME" == 0.* ]]; then
+            prerelease=(--prerelease)
+          fi
+
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            "${prerelease[@]}" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            main.js manifest.json styles.css

@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"inlineSourceMap": true,
+		"inlineSources": true,
+		"isolatedModules": true,
+		"lib": [
+			"ES2021",
+			"DOM"
+		],
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitReturns": true,
+		"noUncheckedIndexedAccess": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ES2021",
+		"types": [
+			"node",
+			"vitest/globals"
+		]
+	},
+	"include": [
+		"src/**/*.ts",
+		"tests/**/*.ts",
+		"vitest.config.ts"
+	]
+}

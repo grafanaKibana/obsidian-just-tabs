@@ -1,0 +1,96 @@
+name: Bug report
+description: Report reproducible behavior that is not working as expected.
+title: "[Bug]: "
+labels:
+  - type:bug
+  - needs:triage
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and why is it a problem?
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Just Tabs version
+      placeholder: 0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: obsidian-version
+    attributes:
+      label: Obsidian version
+      placeholder: 1.x.x
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Reading View
+        - Live Preview
+        - Source Mode
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Include operating system, device, and desktop or mobile.
+      placeholder: macOS 15, desktop
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Minimal tabs block
+      description: Remove private content and provide the smallest Markdown source that reproduces the issue.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open...
+        2. Switch...
+        3. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Relevant plugins and theme
+      description: Include Dataview, Style Settings, other code-block processors, and the active theme when relevant.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Remove vault paths, note contents, and other private information before attaching evidence.

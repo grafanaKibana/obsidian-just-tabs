@@ -1,0 +1,42 @@
+{
+	"name": "obsidian-just-tabs",
+	"version": "0.1.0",
+	"description": "Accessible, theme-native tabbed blocks for Obsidian.",
+	"main": "main.js",
+	"type": "module",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+		"lint": "eslint .",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit --skipLibCheck",
+		"verify-release": "node scripts/verify-release.mjs",
+		"check": "npm run lint && npm run typecheck && npm test && npm run build && npm run verify-release",
+		"version": "node scripts/version.mjs"
+	},
+	"keywords": [
+		"obsidian",
+		"obsidian-plugin",
+		"markdown",
+		"tabs"
+	],
+	"author": "grafanaKibana",
+	"license": "MIT",
+	"engines": {
+		"node": ">=22"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.4",
+		"@types/node": "^22.15.17",
+		"esbuild": "0.25.5",
+		"eslint": "^9.39.4",
+		"eslint-plugin-obsidianmd": "^0.4.0",
+		"globals": "^17.6.1",
+		"jiti": "^2.6.1",
+		"jsdom": "^29.1.1",
+		"obsidian": "latest",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.59.1",
+		"vitest": "^4.1.10"
+	}
+}

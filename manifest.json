@@ -1,0 +1,10 @@
+{
+	"id": "just-tabs",
+	"name": "Just Tabs",
+	"version": "0.1.0",
+	"minAppVersion": "1.0.0",
+	"description": "Create accessible, theme-native tabbed blocks for Markdown-renderable content.",
+	"author": "grafanaKibana",
+	"authorUrl": "https://github.com/grafanaKibana",
+	"isDesktopOnly": false
+}

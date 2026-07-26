@@ -1,0 +1,38 @@
+name: Maintenance task
+description: Track repository, documentation, testing, or release work.
+title: "[Task]: "
+labels:
+  - type:maintenance
+  - needs:triage
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Affected
+      description: List the files, workflows, product surfaces, or release stages involved.
+    validations:
+      required: true
+
+  - type: textarea
+    id: plan
+    attributes:
+      label: Plan
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
