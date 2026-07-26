@@ -25,29 +25,41 @@ Visible processors keep responsibility for their normal live refresh behavior. N
 
 Tracker is the planned additional code-block processor. At each compatibility milestone, revalidate that [Tracker](https://github.com/pyrochlore/obsidian-tracker) is maintained and installable. Record its version if selected. If it is no longer suitable, choose another maintained community code-block processor and replace only that fixture block; the no-adapter policy does not change.
 
-The development snapshot below records one Dataview and Tracker result. Both must be rerun against the exact release candidate before certification.
+The development snapshot below records Dataview and Tracker results. Both must be rerun against the exact downloaded draft-release assets before certification.
 
 ## Development validation snapshot
 
-This is an isolated development result, not release certification. The complete manual matrix remains required against the exact release candidate.
+This is an isolated development result, not release certification. The final matrix still must be repeated with the exact downloaded draft-release assets.
 
 - Date: 2026-07-26
-- Build: Just Tabs `0.1.0` from commit `65b1076`
+- Build: Just Tabs `0.1.0` from the `codex/release-readiness` candidate, before its final commit
 - Runtime: Obsidian `1.12.7` on macOS with an isolated profile and vault
 - Optional plugins: Dataview `0.5.68`, Style Settings `1.0.9`, Tracker `1.19.0`, Templater `2.20.6`
+- Themes: default light, default dark, and Minimal `9.0.0`
 
 | Status | Surface | Recorded result |
 | --- | --- | --- |
 | PASS | Reading View | Rendered 3 independent groups with 9 tabs; pointer selection remained independent; ArrowRight moved focus and Enter manually activated the focused tab. |
 | PASS | Source Mode | Showed raw source with 0 Just Tabs widgets. |
-| PASS | Live Preview outside the block | Rendered 3 widgets with 9 tabs. |
-| PASS | Dataview freshness | A hidden panel refreshed from `1` to `2` after a real vault change and reactivation. |
-| PASS | Tracker | Rendered one matching entry. |
+| PASS | Live Preview transitions | Moving the editing locus inside the first block replaced that widget with raw source; moving outside restored all 3 widgets with 9 tabs and no duplicate output. |
+| PASS | Dataview freshness | A hidden panel refreshed from `2` to `3` after a real vault change and returned to `2` after restoring the fixture. |
+| PASS | Tracker | Rendered one matching entry in a tab. |
+| PASS | Themes | Default light, default dark, and Minimal `9.0.0` inherited theme colors with no note-wide overflow. A Minimal fixed-height clipping conflict was found and corrected in the candidate CSS. |
+| PASS | Optional plugins absent | Just Tabs rendered 3 groups with 9 tabs after disabling Style Settings, Templater, Dataview, and Tracker and reloading the isolated profile. |
+| PASS | Style Settings | Exercised density, alignment, gap, corner radius, and content spacing; the expected classes, CSS variables, and layout changes were applied. |
+| PASS | Templater | Templater `2.20.6` generated and rendered the static recipe. The prompt recipe produced valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. |
+| PASS | Unload/rerender | Disabling removed all widgets; re-enabling, changing view modes, and editing/restoring the fixture rebuilt exactly 3 groups with 9 tabs and no errors. |
 | PARTIAL | Mobile-sized layout | At `390 × 844`, document containment and CSS metrics for 44 px targets and tab-list overflow were observed; no actual mobile, touch, or real scrolling was exercised. |
-| PARTIAL | Style Settings | Plugin loaded and default classes were present; the five UI controls were not exercised. |
-| PARTIAL | Templater | Plugin loaded; template generation was not executed. |
-| GAP | Live Preview inside-block transition | macOS input authority was unavailable, so moving the editing locus inside the block could not be exercised. |
-| GAP | Remaining release surfaces | Actual mobile/touch/real scrolling, light/dark/custom themes, optional plugins absent, and unload/rerender were not exercised. |
+
+## Open release gates
+
+Before publishing a stable release:
+
+- keep `minAppVersion: 1.12.7` aligned with the earliest verified public runtime until an older version passes the same release matrix;
+- exercise actual mobile Reading View, touch input, real horizontal scrolling, and Live Preview transitions; and
+- repeat the complete matrix with the exact assets downloaded from the draft GitHub Release, recording their commit SHA and hashes in the release issue.
+
+Desktop viewport simulation does not close the actual-mobile gate.
 
 ## Fixture source
 
@@ -249,6 +261,7 @@ Use `PASS`, `FAIL`, `GAP`, or `N/A`. A viewport simulation does not replace an a
 | Themes | Test default light, default dark, and one representative custom theme; inspect inherited colors, visible computed focus, reduced-motion behavior, and overflow | Theme names/versions, platform, computed observations, and screenshots |
 | Optional plugins absent | Disable Style Settings, Templater, Dataview, and the selected additional processor; reload Just Tabs | Plugin list/state and confirmation that Just Tabs loads without errors |
 | Optional plugins present | Exercise all five Style Settings controls; render Dataview and the selected processor | Optional-plugin versions, settings used, source, and result |
+| Templater | Execute both recipes in [`templater.md`](templater.md); verify valid output, invalid-label rejection, and cancellation without partial output | Templater version, recipe used, generated source, and result |
 | Lifecycle | Visit the Dataview panel, hide it, change indexed vault data, wait for metadata to update, and reactivate it | Before/after query result and confirmation of one fresh rebuild |
 | Unload/rerender | Disable and re-enable Just Tabs; edit a source block to force rerender; repeat switching | Console observation, duplicate-handler/duplicate-output check, and result |
 
@@ -270,6 +283,7 @@ The release issue and draft GitHub Release body are the canonical record. Copy t
 - Dataview version: `<version or absent>`
 - Additional processor and version: `<name/version or absent>`
 - Style Settings version: `<version or absent>`
+- Templater version: `<version or absent>`
 - Custom theme and version: `<name/version or N/A>`
 - Actual mobile: `<tested device or GAP with reason>`
 - Known incompatibilities: `<none observed or precise list>`
@@ -284,6 +298,7 @@ The release issue and draft GitHub Release body are the canonical record. Copy t
 | Themes | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
 | Optional plugins absent | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
 | Optional plugins present | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
+| Templater | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
 | Lifecycle | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
 | Unload/rerender | `<PASS/FAIL/GAP/N/A>` | `<link or observation>` |
 ```

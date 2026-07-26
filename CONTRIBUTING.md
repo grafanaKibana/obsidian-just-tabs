@@ -49,4 +49,8 @@ Run `npm run version -- <x.y.z>` and commit all four version authorities:
 - `manifest.json`
 - `versions.json`
 
-The exact unprefixed tag creates a draft release. Publish it only after clean-vault installation and the manual release matrix.
+The exact unprefixed tag creates a draft release. Publish it only after installing the draft assets in a clean vault and completing the manual release matrix. Do not replace a published tag or its assets; corrections require a higher version.
+
+Submit only a published stable release through the current [Obsidian Community site](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin): sign in, link the GitHub owner, open **Plugins → New plugin**, enter this repository URL, accept the policies and maintenance commitment, and submit. Do not open a manual submission pull request to `obsidianmd/obsidian-releases`. Only the initial release is submitted through the Community site; later versions are discovered from published GitHub Releases.
+
+Automated-review changes require a higher patch release and the same release gates before using **Retry**. Do not claim Community Plugins availability until review passes and the listing is published.

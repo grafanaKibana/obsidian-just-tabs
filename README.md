@@ -2,8 +2,6 @@
 
 Put related Markdown, queries, and embeds into compact, accessible tabs without turning your Obsidian notes into custom pages.
 
-> Screenshot pending. A real Obsidian screenshot will replace this note after the interface and release build have been validated.
-
 > **Pre-release status:** this README describes the contract for the first public beta. An isolated development snapshot is recorded, but the complete release matrix remains required before publication.
 
 ## Features
@@ -150,7 +148,7 @@ Scroll the tab list horizontally. The list should contain its own overflow witho
 - [Issues](https://github.com/grafanaKibana/obsidian-just-tabs/issues)
 - [Releases and changelog](https://github.com/grafanaKibana/obsidian-just-tabs/releases)
 
-Just Tabs runs locally. It has no telemetry, network requests, external accounts, or access outside the Obsidian vault.
+Just Tabs runs locally. It makes no network requests, collects no client-side or server-side telemetry, requires no external account or payment, displays no advertising, accesses no files outside the Obsidian vault, and includes no closed-source components.
 
 ## License
 

@@ -98,6 +98,8 @@ settings:
 .just-tabs__tab {
 	flex: 0 0 auto;
 	box-sizing: border-box;
+	height: auto;
+	max-height: none;
 	min-inline-size: 44px;
 	min-block-size: 44px;
 	padding: var(--just-tabs-tab-padding-block)

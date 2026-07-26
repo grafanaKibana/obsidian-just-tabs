@@ -4,6 +4,10 @@
 
 These recipes use Templater's documented JavaScript execution command, output variable `tR`, and [`tp.system.prompt`](https://silentvoid13.github.io/Templater/internal-functions/internal-modules/system-module.html).
 
+## Validation status
+
+The release-readiness desktop pass executed both recipes with Templater `2.20.6`. The static recipe generated and rendered ordinary tabs. The prompt recipe generated valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. Repeat both recipes with the exact downloaded draft-release assets before publishing.
+
 ## Static template
 
 Save this as a Templater template file:
