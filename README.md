@@ -2,7 +2,7 @@
 
 Put related Markdown, queries, and embeds into compact, accessible tabs without turning your Obsidian notes into custom pages.
 
-> **Release status:** the public `0.1.0` beta passed desktop, iPhone, and BRAT installation checks. `1.0.0` is the next stable release.
+![DevBook homepage in light and dark theme](docs/assets/just-tabs-showcase.gif)
 
 ## Features
 
@@ -84,7 +84,7 @@ Visited panels stay mounted while current. When a hidden panel becomes stale aft
 
 ## Style Settings
 
-Just Tabs works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes exactly five appearance controls:
+Just Tabs works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes appearance controls like:
 
 - Density: compact, default, or comfortable
 - Tab alignment: start, center, or equal width
@@ -92,7 +92,7 @@ Just Tabs works without [Style Settings](https://github.com/mgmeyers/obsidian-st
 - Corner radius
 - Content spacing below the tab list
 
-Colors, typography, borders, accents, and focus styling continue to come from the active Obsidian theme. Just Tabs has no separate settings screen.
+Colors, typography, borders, accents, and focus styling continue to come from the active Obsidian theme.
 
 ## Templater
 
