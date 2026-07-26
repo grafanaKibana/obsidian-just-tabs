@@ -14,7 +14,7 @@ Just Tabs is intentionally small: Markdown remains the source of truth, Obsidian
    npm run check
    ```
 
-5. Complete the relevant manual checks from [Compatibility](docs/compatibility.md).
+5. Test the affected behavior in the relevant Obsidian modes and platforms.
 
 ## Development
 
