@@ -2,7 +2,7 @@
 
 Put related Markdown, queries, and embeds into compact, accessible tabs without turning your Obsidian notes into custom pages.
 
-> **Pre-release status:** this README describes the contract for the first public beta. An isolated development snapshot is recorded, but the complete release matrix remains required before publication.
+> **Release status:** the public `0.1.0` beta passed desktop, iPhone, and BRAT installation checks. `1.0.0` is the next stable release.
 
 ## Features
 
@@ -55,9 +55,9 @@ Use this route after Just Tabs is listed in Obsidian's Community Plugins directo
 2. Select **Browse**, search for **Just Tabs**, then select **Install**.
 3. Select **Enable**.
 
-### BRAT beta
+### BRAT
 
-Published prereleases can be installed with [BRAT](https://github.com/TfTHacker/obsidian42-brat):
+Published releases and prereleases can be installed with [BRAT](https://github.com/TfTHacker/obsidian42-brat):
 
 1. Install and enable **Obsidian42 - BRAT** from Community Plugins.
 2. Run **BRAT: Add a beta plugin for testing** from the command palette.
@@ -82,7 +82,7 @@ Just Tabs sends raw tab bodies through Obsidian's Markdown renderer. It does not
 
 Visited panels stay mounted while current. When a hidden panel becomes stale after a relevant public vault or metadata event, Just Tabs rebuilds it once on reactivation. This keeps a hidden Dataview panel current after indexed vault changes. Visible processors continue to manage their normal refresh behavior; network-, clock-, or private-state-driven updates remain that processor's responsibility.
 
-An [isolated development snapshot](docs/compatibility.md#development-validation-snapshot) records successful desktop rendering, keyboard/pointer behavior, Dataview stale refresh, and Tracker rendering alongside its partial checks and gaps. It is not release certification; the complete release matrix still applies.
+The [`0.1.0` validation record](docs/compatibility.md#010-beta-validation) covers desktop and iPhone behavior, Dataview freshness, Tracker, Templater, themes, optional-plugin absence, and BRAT installation.
 
 ## Style Settings
 

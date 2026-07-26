@@ -6,7 +6,7 @@ These recipes use Templater's documented JavaScript execution command, output va
 
 ## Validation status
 
-The release-readiness desktop pass executed both recipes with Templater `2.20.6`. The static recipe generated and rendered ordinary tabs. The prompt recipe generated valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. Repeat both recipes with the exact downloaded draft-release assets before publishing.
+The `0.1.0` beta pass executed both recipes with Templater `2.20.6`. The static recipe generated and rendered ordinary tabs. The prompt recipe generated valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. Repeat both recipes with the exact downloaded `1.0.0` draft-release assets before publishing the stable release.
 
 ## Static template
 

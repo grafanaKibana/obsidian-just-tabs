@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-just-tabs",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Accessible, theme-native tabbed blocks for Obsidian.",
 	"main": "main.js",
 	"type": "module",
