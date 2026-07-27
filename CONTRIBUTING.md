@@ -35,8 +35,8 @@ Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → 
 
 ## Pull requests
 
-- Use one short-lived branch per issue, named `feature/<issue>-<slug>`.
-- Link the issue in the pull request body with a closing keyword, such as `Closes #17`. CI rejects a pull request into `dev` without one.
+- Use one short-lived branch per issue, named `feature/<issue>-<slug>`. CI rejects any other branch name into `dev`, apart from Dependabot's.
+- Link the issue in the pull request body with a closing keyword, such as `Closes #17`. The issue must exist, and its number must match the branch.
 - Prefer one independently verifiable issue per squash-merged pull request.
 - Include command output and manual test evidence.
 - Treat inaccessible focus, leaked render children, source mutation, and release-contract failures as blockers.
@@ -64,11 +64,13 @@ A release is produced by promoting `dev` to `main`. There is no manual tag step,
    - `package-lock.json`
    - `manifest.json`
    - `versions.json`
-2. Open a pull request from `dev` into `main`. CI fails it before merge if the version is already tagged.
+2. Open a pull request from `dev` into `main`. CI fails it before merge if the version is already tagged, or if it does not increase on the version already on `main`.
 3. Merging it creates the exact unprefixed tag at the merge commit and a **draft** release carrying `main.js`, `manifest.json`, `styles.css`, checksums, the manual gate, and the pull requests merged into `dev` since the previous release.
 4. Publish the draft only after installing its assets in a clean vault and completing the manual release matrix.
 
-Publish or delete a draft before cutting the next release — the notes window starts at the last *published* release, so an abandoned draft causes the next one to repeat its entries.
+The notes window runs from the previous release tag to the promotion's merge time, so an unpublished draft does not distort the next release and work merged into `dev` after the promotion is not advertised as shipped.
+
+If the tagging step succeeds and a later step fails, re-run the job. Tagging is idempotent while the tag points at the promoted commit, and refuses to proceed when it points anywhere else.
 
 Do not replace a published tag or its assets; corrections require a higher version.
 
