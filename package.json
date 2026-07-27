@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-tabsdown",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Accessible, theme-native tabbed blocks for Obsidian.",
 	"main": "main.js",
 	"type": "module",
