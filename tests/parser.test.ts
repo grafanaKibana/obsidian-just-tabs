@@ -42,11 +42,11 @@ describe("parseTabs", () => {
 		}
 	});
 
-	test("accepts parenthesized per-tab configuration as part of the label", () => {
+	test("parses parenthesized configuration without including it in the label", () => {
 		expect(parseTabs("tab: Python (top, multi)\ntab: JavaScript")).toEqual({
 			ok: true,
 			tabs: [
-				{ label: "Python (top, multi)", body: "" },
+				{ label: "Python", body: "", configuration: ["top", "multi"] },
 				{ label: "JavaScript", body: "" },
 			],
 		});

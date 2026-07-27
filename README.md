@@ -16,7 +16,7 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 
 ## Syntax
 
-Start each tab with a column-zero `tab: <label>` marker. A block needs at least two non-empty, unique labels. Add optional per-tab configuration in parentheses after the label, such as `tab: Python (top, multi)`.
+Start each tab with a column-zero `tab: <label>` marker. A block needs at least two non-empty, unique labels. Put optional block configuration in parentheses after any label, such as `tab: Python (top, multi)`; later position or layout tokens win.
 
 `````markdown
 ````tabsdown
@@ -35,7 +35,17 @@ FROM "Algorithms"
 
 Use matching backtick or tilde fences. The outer fence must be longer than every same-character Markdown fence inside it. The example uses four backticks outside and three around the Dataview query. Increase the outer fence again if a tab body contains a longer fence.
 
-The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks and per-block configuration are not supported.
+````markdown
+~~~tabsdown
+tab: Python (top, multi)
+print("Hello Tabsdown")
+
+tab: JavaScript
+console.log("Hello Tabsdown");
+~~~
+````
+
+`top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks are not supported.
 
 ## Obsidian modes
 

@@ -82,7 +82,7 @@ test("registers one processor, forwards sourcePath, and advances freshness event
 	plugin.onload();
 
 	expect(processorRegistrationMock).toHaveBeenCalledOnce();
-	expect(processorRegistrationMock.mock.calls[0]?.[0]).toBe("tabs");
+	expect(processorRegistrationMock.mock.calls[0]?.[0]).toBe("tabsdown");
 	expect(events.map((event) => event.name)).toEqual([
 		"create",
 		"modify",
@@ -93,11 +93,11 @@ test("registers one processor, forwards sourcePath, and advances freshness event
 	expect(trigger).toHaveBeenCalledWith("parse-style-settings");
 
 	const handler = processorRegistrationMock.mock.calls[0]?.[1];
-	if (!handler) throw new Error("Expected a tabs processor.");
+	if (!handler) throw new Error("Expected a tabsdown processor.");
 	const container = document.createElement("div");
 	const addChild = vi.fn((child: { load(): void }) => child.load());
 	void handler(
-		"--- tab: One\nFirst\n--- tab: Two\nSecond",
+		"tab: One\nFirst\ntab: Two\nSecond",
 		container,
 		{
 			sourcePath: "Folder/Note.md",
@@ -132,7 +132,7 @@ test("renders invalid source as text with only the edit bridge", () => {
 	const { plugin } = createPlugin();
 	plugin.onload();
 	const handler = processorRegistrationMock.mock.calls[0]?.[1];
-	if (!handler) throw new Error("Expected a tabs processor.");
+	if (!handler) throw new Error("Expected a tabsdown processor.");
 	const container = document.createElement("div");
 	const addChild = vi.fn();
 
@@ -151,7 +151,7 @@ test("moves the Live Preview editing locus into a tapped block", async () => {
 	const { editor, getMode, plugin } = createPlugin();
 	plugin.onload();
 	const handler = processorRegistrationMock.mock.calls[0]?.[1];
-	if (!handler) throw new Error("Expected a tabs processor.");
+	if (!handler) throw new Error("Expected a tabsdown processor.");
 	const container = document.createElement("div");
 	const editorRoot = document.createElement("div");
 	editorRoot.setAttribute("contenteditable", "true");
@@ -165,7 +165,7 @@ test("moves the Live Preview editing locus into a tapped block", async () => {
 	const getSectionInfo = vi.fn<() => typeof section | null>(() => section);
 
 	void handler(
-		"--- tab: One\nFirst\n--- tab: Two\nSecond",
+		"tab: One\nFirst\ntab: Two\nSecond",
 		container,
 		{ sourcePath: "Folder/Note.md", addChild, getSectionInfo },
 	);

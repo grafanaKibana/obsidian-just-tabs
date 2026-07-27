@@ -1,9 +1,12 @@
 export interface ParsedTab {
 	label: string;
 	body: string;
+	configuration?: TabConfiguration[];
 }
 
 export type TabDefinition = ParsedTab;
+
+export type TabConfiguration = "top" | "left" | "right" | "bottom" | "one" | "multi";
 
 export type TabsDiagnosticCode =
 	| "content-before-first-tab"
@@ -24,8 +27,36 @@ export type TabsParseResult =
 	| { ok: false; diagnostic: TabsDiagnostic };
 
 const markerPrefix = "tab:";
+const configurationValues = new Set<TabConfiguration>([
+	"top",
+	"left",
+	"right",
+	"bottom",
+	"one",
+	"multi",
+]);
 const backtickFence = /^ {0,3}(`{3,})([^`]*)$/;
 const tildeFence = /^ {0,3}(~{3,})(.*)$/;
+
+function parseTabHeader(value: string): {
+	configuration: TabConfiguration[];
+	label: string;
+} {
+	const label = value.trim();
+	const match = /^(.*)\s+\(([^()]*)\)$/.exec(label);
+	if (!match) {
+		return { configuration: [], label };
+	}
+
+	const [, rawLabel = "", rawConfiguration = ""] = match;
+	const configuration = rawConfiguration
+		.split(",")
+		.map((item) => item.trim())
+		.filter((item): item is TabConfiguration => configurationValues.has(item as TabConfiguration));
+	return configuration.length === rawConfiguration.split(",").length
+		? { configuration, label: rawLabel.trim() }
+		: { configuration: [], label };
+}
 
 export function parseTabs(source: string): TabsParseResult {
 	const tabs: ParsedTab[] = [];
@@ -51,7 +82,9 @@ export function parseTabs(source: string): TabsParseResult {
 		const lineNumber = index + 1;
 
 		if (line.startsWith(markerPrefix)) {
-			const label = line.slice(markerPrefix.length).trim();
+			const { configuration, label } = parseTabHeader(
+				line.slice(markerPrefix.length),
+			);
 			if (label === "") {
 				return fail("empty-label", "Tab labels must not be empty.", lineNumber);
 			}
@@ -63,7 +96,11 @@ export function parseTabs(source: string): TabsParseResult {
 				);
 			}
 
-			current = { label, body: "" };
+			current = {
+				label,
+				body: "",
+				...(configuration.length > 0 ? { configuration } : {}),
+			};
 			tabs.push(current);
 			labels.add(label);
 			openFence = undefined;

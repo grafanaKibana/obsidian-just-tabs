@@ -5,6 +5,7 @@ import {
 	TabBlockRenderChild,
 	renderTabsDiagnostic,
 } from "../src/render";
+import type { TabDefinition } from "../src/parser";
 import { renderMock } from "./obsidian.mock";
 
 const tabs = [
@@ -187,4 +188,27 @@ test("diagnostics preserve raw source through text-only DOM APIs", () => {
 	expect(container.textContent).toContain('<img src=x onerror="alert(1)">');
 	expect(container.querySelector("img")).toBeNull();
 	expect(container.querySelector('[role="alert"]')).not.toBeNull();
+});
+
+test("applies the final position and layout configuration without showing it in labels", () => {
+	const configuredTabs = [
+		{ label: "Python", body: "First", configuration: ["left", "multi"] },
+		{ label: "JavaScript", body: "Second", configuration: ["bottom", "one"] },
+	] satisfies TabDefinition[];
+	const container = document.createElement("div");
+	const child = new TabBlockRenderChild(
+		{} as App,
+		container,
+		"Folder/Note.md",
+		configuredTabs,
+		() => 0,
+	);
+
+	child.load();
+
+	expect(container.classList.contains("tabsdown--bottom")).toBe(true);
+	expect(container.classList.contains("tabsdown--one")).toBe(true);
+	expect(container.classList.contains("tabsdown--left")).toBe(false);
+	expect(container.classList.contains("tabsdown--multi")).toBe(false);
+	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
 });

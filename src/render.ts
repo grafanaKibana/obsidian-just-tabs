@@ -4,7 +4,7 @@ import {
 	MarkdownRenderChild,
 	MarkdownRenderer,
 } from "obsidian";
-import type { TabDefinition, TabsDiagnostic } from "./parser";
+import type { TabConfiguration, TabDefinition, TabsDiagnostic } from "./parser";
 
 interface PanelState {
 	panelEl: HTMLElement;
@@ -69,6 +69,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	onload(): void {
 		this.containerEl.replaceChildren();
 		this.containerEl.classList.add("tabsdown");
+		for (const configuration of this.resolveConfiguration()) {
+			this.containerEl.classList.add(`tabsdown--${configuration}`);
+		}
 
 	const tabList = createElement(this.containerEl, "div", "tabsdown__tablist");
 		tabList.setAttribute("role", "tablist");
@@ -115,6 +118,21 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.containerEl.append(tabList, panels);
 		this.updateState();
 		this.ensureRendered(0);
+	}
+
+	private resolveConfiguration(): TabConfiguration[] {
+		let position: TabConfiguration = "top";
+		let layout: TabConfiguration = "one";
+		for (const tab of this.tabs) {
+			for (const configuration of tab.configuration ?? []) {
+				if (["top", "left", "right", "bottom"].includes(configuration)) {
+					position = configuration;
+				} else {
+					layout = configuration;
+				}
+			}
+		}
+		return [position, layout];
 	}
 
 	onunload(): void {
