@@ -2,13 +2,13 @@ version: 2
 
 multi-ecosystem-groups:
   all-dependencies:
+    target-branch: dev
     schedule:
       interval: weekly
 
 updates:
   - package-ecosystem: npm
     directory: /
-    target-branch: dev
     patterns:
       - "*"
     ignore:
@@ -19,7 +19,6 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
-    target-branch: dev
     patterns:
       - "*"
     multi-ecosystem-group: all-dependencies
