@@ -91,14 +91,14 @@ test("does not rebuild a stale panel while it remains visible", async () => {
 	const firstButton =
 		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[0];
 	await flush();
-	const originalContent = container.querySelector(".just-tabs__content");
+	const originalContent = container.querySelector(".tabsdown__content");
 
 	generation.value = 1;
 	firstButton?.click();
 	await flush();
 
 	expect(renderMock).toHaveBeenCalledOnce();
-	expect(container.querySelector(".just-tabs__content")).toBe(originalContent);
+	expect(container.querySelector(".tabsdown__content")).toBe(originalContent);
 });
 
 test("does not cancel a still-owned visible render on generation change", async () => {
@@ -166,7 +166,7 @@ test("contains nested renderer rejection to one panel", async () => {
 	const { container } = setup(generation);
 	await flush();
 
-	const error = container.querySelector<HTMLElement>(".just-tabs__panel-error");
+	const error = container.querySelector<HTMLElement>(".tabsdown__panel-error");
 	expect(error?.textContent).toContain("<render failed>");
 	expect(error?.querySelector("render")).toBeNull();
 
@@ -186,7 +186,7 @@ test("removes attempt containers before late completion after unload", async () 
 	const { child, container } = setup(generation);
 
 	child.unload();
-	expect(container.querySelector(".just-tabs__content")).toBeNull();
+	expect(container.querySelector(".tabsdown__content")).toBeNull();
 	pending.resolve();
 	await flush();
 	expect(container.textContent).not.toContain("First");

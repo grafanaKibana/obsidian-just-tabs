@@ -53,27 +53,27 @@ function readJson<T>(path: string): T {
 }
 
 function createFixture(): string {
-	const root = mkdtempSync(resolve(tmpdir(), "just-tabs-release-"));
+	const root = mkdtempSync(resolve(tmpdir(), "tabsdown-release-"));
 	fixtures.push(root);
 	writeJson(resolve(root, "package.json"), {
-		name: "obsidian-just-tabs",
+		name: "obsidian-tabsdown",
 		version: "0.1.0",
 	});
 	writeJson(resolve(root, "package-lock.json"), {
-		name: "obsidian-just-tabs",
+		name: "obsidian-tabsdown",
 		version: "0.1.0",
 		lockfileVersion: 3,
 		requires: true,
 		packages: {
 			"": {
-				name: "obsidian-just-tabs",
+				name: "obsidian-tabsdown",
 				version: "0.1.0",
 			},
 		},
 	});
 	writeJson(resolve(root, "manifest.json"), {
-		id: "just-tabs",
-		name: "Just Tabs",
+		id: "tabsdown",
+		name: "Tabsdown",
 		version: "0.1.0",
 		minAppVersion: "1.0.0",
 		description: "Tabbed blocks.",
@@ -82,7 +82,7 @@ function createFixture(): string {
 	});
 	writeJson(resolve(root, "versions.json"), { "0.1.0": "1.0.0" });
 	writeFileSync(resolve(root, "main.js"), "module.exports = {};\n");
-	writeFileSync(resolve(root, "styles.css"), ".just-tabs {}\n");
+	writeFileSync(resolve(root, "styles.css"), ".tabsdown {}\n");
 	return root;
 }
 

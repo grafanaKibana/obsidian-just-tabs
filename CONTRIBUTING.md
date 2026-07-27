@@ -1,6 +1,6 @@
 # Contributing
 
-Just Tabs is intentionally small: Markdown remains the source of truth, Obsidian's public renderer handles panel content, and optional plugins are integrations rather than runtime dependencies.
+Tabsdown is intentionally small: Markdown remains the source of truth, Obsidian's public renderer handles panel content, and optional plugins are integrations rather than runtime dependencies.
 
 ## Before opening a pull request
 
@@ -28,10 +28,10 @@ npm run dev
 For manual testing, copy or link this repository into:
 
 ```text
-<Vault>/.obsidian/plugins/just-tabs/
+<Vault>/.obsidian/plugins/tabsdown/
 ```
 
-Build `main.js`, reload Obsidian, then enable **Just Tabs** under **Settings → Community plugins**.
+Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → Community plugins**.
 
 ## Pull requests
 

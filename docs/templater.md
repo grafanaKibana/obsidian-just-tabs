@@ -1,6 +1,6 @@
 # Templater recipes
 
-[Templater](https://github.com/SilentVoid13/Templater) expands a template into ordinary Markdown first. Just Tabs then renders the resulting fenced `tabs` block through Obsidian. Just Tabs does not detect Templater, call its API at runtime, require a load order, or execute unexpanded Templater expressions.
+[Templater](https://github.com/SilentVoid13/Templater) expands a template into ordinary Markdown first. Tabsdown then renders the resulting fenced `tabs` block through Obsidian. Tabsdown does not detect Templater, call its API at runtime, require a load order, or execute unexpanded Templater expressions.
 
 These recipes use Templater's documented JavaScript execution command, output variable `tR`, and [`tp.system.prompt`](https://silentvoid13.github.io/Templater/internal-functions/internal-modules/system-module.html).
 
@@ -96,4 +96,4 @@ The first prompt is single-line and uses its fifth argument to select the defaul
 2. Confirm the result is ordinary fenced Markdown with at least two tab markers.
 3. Move the editing locus outside the block in Live Preview, or open Reading View.
 
-If Templater is disabled or absent, existing generated `tabs` Markdown still works. If a template expression remains visible, run Templater or replace the expression manually; Just Tabs intentionally does not evaluate it.
+If Templater is disabled or absent, existing generated `tabs` Markdown still works. If a template expression remains visible, run Templater or replace the expression manually; Tabsdown intentionally does not evaluate it.

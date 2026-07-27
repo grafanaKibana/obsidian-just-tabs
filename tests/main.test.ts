@@ -1,6 +1,6 @@
 import type { App, PluginManifest } from "obsidian";
 import { beforeEach, expect, test, vi } from "vitest";
-import JustTabsPlugin from "../src/main";
+import TabsdownPlugin from "../src/main";
 import {
 	processorRegistrationMock,
 	renderMock,
@@ -20,7 +20,7 @@ function createPlugin(): {
 	events: CapturedEvent[];
 	getMode: ReturnType<typeof vi.fn>;
 	trigger: ReturnType<typeof vi.fn>;
-	plugin: JustTabsPlugin;
+	plugin: TabsdownPlugin;
 } {
 	const events: CapturedEvent[] = [];
 	const on = (name: string, callback: () => void): object => {
@@ -46,8 +46,8 @@ function createPlugin(): {
 		},
 	} as unknown as App;
 	const manifest = {
-		id: "just-tabs",
-		name: "Just Tabs",
+		id: "tabsdown",
+		name: "Tabsdown",
 		version: "0.1.0",
 		minAppVersion: "1.0.0",
 		description: "Tabbed blocks.",
@@ -61,7 +61,7 @@ function createPlugin(): {
 		events,
 		getMode,
 		trigger,
-		plugin: new JustTabsPlugin(app, manifest),
+		plugin: new TabsdownPlugin(app, manifest),
 	};
 }
 

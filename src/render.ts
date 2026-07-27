@@ -35,14 +35,14 @@ export function renderTabsDiagnostic(
 	diagnostic: TabsDiagnostic,
 ): void {
 	containerEl.replaceChildren();
-	const root = createElement("div", "just-tabs just-tabs__diagnostic");
+	const root = createElement("div", "tabsdown tabsdown__diagnostic");
 	root.setAttribute("role", "alert");
 
-	const title = createElement("strong", "just-tabs__diagnostic-title");
-	title.textContent = `Just Tabs: ${diagnostic.message}`;
-	const location = createElement("div", "just-tabs__diagnostic-location");
+	const title = createElement("strong", "tabsdown__diagnostic-title");
+	title.textContent = `Tabsdown: ${diagnostic.message}`;
+	const location = createElement("div", "tabsdown__diagnostic-location");
 	location.textContent = `Line ${diagnostic.line}`;
-	const source = createElement("pre", "just-tabs__diagnostic-source");
+	const source = createElement("pre", "tabsdown__diagnostic-source");
 	source.textContent = diagnostic.source;
 
 	root.append(title, location, source);
@@ -50,7 +50,7 @@ export function renderTabsDiagnostic(
 }
 
 export class TabBlockRenderChild extends MarkdownRenderChild {
-	private readonly blockId = `just-tabs-${++nextBlockId}`;
+	private readonly blockId = `tabsdown-${++nextBlockId}`;
 	private readonly buttons: HTMLButtonElement[] = [];
 	private readonly panels: PanelState[] = [];
 	private selectedIndex = 0;
@@ -69,25 +69,25 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onload(): void {
 		this.containerEl.replaceChildren();
-		this.containerEl.classList.add("just-tabs");
+		this.containerEl.classList.add("tabsdown");
 
-		const tabList = createElement("div", "just-tabs__tablist");
+		const tabList = createElement("div", "tabsdown__tablist");
 		tabList.setAttribute("role", "tablist");
 		tabList.setAttribute("aria-label", "Tabbed content");
 
-		const panels = createElement("div", "just-tabs__panels");
+		const panels = createElement("div", "tabsdown__panels");
 
 		this.tabs.forEach((tab, index) => {
 			const tabId = `${this.blockId}-tab-${index}`;
 			const panelId = `${this.blockId}-panel-${index}`;
-			const button = createElement("button", "just-tabs__tab");
+			const button = createElement("button", "tabsdown__tab");
 			button.type = "button";
 			button.id = tabId;
 			button.textContent = tab.label;
 			button.setAttribute("role", "tab");
 			button.setAttribute("aria-controls", panelId);
 
-			const panel = createElement("div", "just-tabs__panel");
+			const panel = createElement("div", "tabsdown__panel");
 			panel.id = panelId;
 			panel.setAttribute("role", "tabpanel");
 			panel.setAttribute("aria-labelledby", tabId);
@@ -212,7 +212,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.disposePanel(state);
 		const epoch = ++state.epoch;
 		const component = this.addChild(new Component());
-		const attemptEl = createElement("div", "just-tabs__content");
+		const attemptEl = createElement("div", "tabsdown__content");
 		state.panelEl.replaceChildren(attemptEl);
 		state.component = component;
 		state.attemptEl = attemptEl;
@@ -240,7 +240,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 					state.component = undefined;
 				}
 				attemptEl.replaceChildren();
-				const message = createElement("div", "just-tabs__panel-error");
+				const message = createElement("div", "tabsdown__panel-error");
 				message.setAttribute("role", "alert");
 				message.textContent = `This tab could not be rendered: ${errorMessage(error)}`;
 				attemptEl.append(message);

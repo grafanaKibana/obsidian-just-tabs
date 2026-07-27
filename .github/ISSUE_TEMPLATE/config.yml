@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
-    url: https://github.com/grafanaKibana/obsidian-just-tabs/security/advisories/new
+    url: https://github.com/grafanaKibana/obsidian-tabsdown/security/advisories/new
     about: Report vulnerabilities privately instead of opening a public issue.

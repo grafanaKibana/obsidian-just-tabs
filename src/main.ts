@@ -5,7 +5,7 @@ import { TabBlockRenderChild, renderTabsDiagnostic } from "./render";
 const INTERACTIVE_SELECTOR =
 	'a, audio, button, iframe, input, label, select, summary, textarea, video, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"]), [role="button"], [role="checkbox"], [role="link"], [role="menuitem"], [role="switch"]';
 
-export default class JustTabsPlugin extends Plugin {
+export default class TabsdownPlugin extends Plugin {
 	private freshnessGeneration = 0;
 
 	onload(): void {
