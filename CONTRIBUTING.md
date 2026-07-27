@@ -35,8 +35,8 @@ Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → 
 
 ## Pull requests
 
-- Use one short-lived branch per issue, named `feature/<issue>-<slug>`. CI rejects any other branch name into `dev`, apart from Dependabot's.
-- Link the issue in the pull request body with a closing keyword, such as `Closes #17`. The issue must exist, and its number must match the branch.
+- Use one short-lived branch per issue, named `feature/<name>`. CI rejects any other branch name into `dev`, apart from Dependabot's.
+- Link the issue in the pull request body with a closing keyword, such as `Closes #17`. The issue must exist.
 - Prefer one independently verifiable issue per squash-merged pull request.
 - Include command output and manual test evidence.
 - Treat inaccessible focus, leaked render children, source mutation, and release-contract failures as blockers.
@@ -45,13 +45,13 @@ Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → 
 
 | Branch | Role |
 | --- | --- |
-| `feature/<issue>-<slug>` | Short-lived, one per issue |
+| `feature/<name>` | Short-lived, one per issue |
 | `dev` | Integration branch; every feature lands here first |
 | `main` | Protected release branch; reachable only by a promotion pull request from `dev` |
 
 Pull requests into `dev` need the `quality` and `policy` checks and one approval. Pull requests into `main` need the same, and are rejected unless they come from `dev`.
 
-The repository owner may push directly to `dev` for an emergency fix. That is an exception to the delivery path, not to the issue and pull request requirements — ordinary feature work still goes through both. CI runs on the push either way.
+Issues and pull requests are for complete features. The repository owner pushes small changes — a fix, a tweak, a doc correction — straight to `dev`. CI runs on the push either way.
 
 The owner holds `admin`, which bypasses every rule. These gates are hard for contributors and a deliberate speed bump for the owner; owner-authored merges are recorded as bypasses in the repository rule-suite log. The one-approval requirement exists so that contributor pull requests get a review — it is satisfied by the owner approving someone else's work, and bypassed on the owner's own.
 

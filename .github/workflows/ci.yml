@@ -122,27 +122,20 @@ jobs:
             exit 0
           fi
 
-          if [[ ! "$HEAD_REF" =~ ^feature/([0-9]+)-[a-z0-9-]+$ ]]; then
-            echo "::error::Branches into $BASE_REF must be named feature/<issue>-<slug>, for example feature/22-harden-policy. Got '$HEAD_REF'."
+          if [[ ! "$HEAD_REF" =~ ^feature/.+ ]]; then
+            echo "::error::Branches into $BASE_REF must be named feature/<name>, for example feature/relax-branch-naming. Got '$HEAD_REF'."
             exit 1
           fi
-
-          branch_issue="${BASH_REMATCH[1]}"
 
           # [[ =~ ]] is case-sensitive, and the pull request template ships "Closes #".
           body=$(printf '%s' "$PR_BODY" | tr '[:upper:]' '[:lower:]')
 
           if [[ ! "$body" =~ (close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#([0-9]+) ]]; then
-            echo "::error::Link an issue in the pull request body, for example 'Closes #$branch_issue'."
+            echo "::error::Link an issue in the pull request body, for example 'Closes #26'."
             exit 1
           fi
 
           issue="${BASH_REMATCH[3]}"
-
-          if [[ "$branch_issue" != "$issue" ]]; then
-            echo "::error::Branch '$HEAD_REF' is for issue #$branch_issue but the body closes #$issue."
-            exit 1
-          fi
 
           case "$(http_status "repos/$GH_REPO/issues/$issue")" in
             *" 200"*)
