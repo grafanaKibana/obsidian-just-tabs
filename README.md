@@ -94,6 +94,30 @@ Just Tabs works without [Style Settings](https://github.com/mgmeyers/obsidian-st
 
 Colors, typography, borders, accents, and focus styling continue to come from the active Obsidian theme.
 
+## CSS snippets
+
+For further customization, open **Settings → Appearance → CSS snippets**, select the folder icon, and create `just-tabs.css`. Add only the rules you want to override:
+
+```css
+.just-tabs {
+	--just-tabs-gap: 0.5rem;
+	--just-tabs-radius: 999px;
+	--just-tabs-content-spacing: 1rem;
+}
+
+.just-tabs__tab {
+	background-color: var(--background-secondary);
+	color: var(--text-muted);
+}
+
+.just-tabs__tab[aria-selected="true"] {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+```
+
+Return to **CSS snippets**, select **Reload snippets**, and enable `just-tabs`. Theme changes may require adjusting these overrides.
+
 ## Templater
 
 Templater can generate ordinary `tabs` Markdown before Just Tabs renders it. There is no runtime integration or load-order adapter. Copy the [static or prompt-driven templates](docs/templater.md).
