@@ -23,7 +23,7 @@
 	"author": "grafanaKibana",
 	"license": "MIT",
 	"engines": {
-		"node": ">=22"
+		"node": ">=22.13.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.4",
