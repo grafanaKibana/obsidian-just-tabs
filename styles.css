@@ -5,7 +5,7 @@ id: tabsdown
 settings:
   -
     id: tabsdown-density
-    title: Density
+    title: Size
     type: class-select
     allowEmpty: false
     default: tabsdown-density-default
@@ -16,9 +16,50 @@ settings:
       -
         label: Default
         value: tabsdown-density-default
+  -
+    id: tabsdown-personality
+    title: Personality
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-personality-default
+    options:
       -
-        label: Comfortable
-        value: tabsdown-density-comfortable
+        label: Default
+        value: tabsdown-personality-default
+      -
+        label: Underline
+        value: tabsdown-personality-underline
+  -
+    id: tabsdown-overflow
+    title: Overflow behavior
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-overflow-scroll
+    options:
+      -
+        label: Scroll
+        value: tabsdown-overflow-scroll
+      -
+        label: Wrap
+        value: tabsdown-overflow-wrap
+  -
+    id: tabsdown-palette
+    title: Palette
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-palette-primary
+    options:
+      -
+        label: Primary
+        value: tabsdown-palette-primary
+      -
+        label: Secondary
+        value: tabsdown-palette-secondary
+  -
+    id: tabsdown-accent-override
+    title: Accent
+    description: Leave unset to use the active theme accent.
+    type: variable-color
   -
     id: tabsdown-alignment
     title: Alignment
@@ -69,6 +110,14 @@ settings:
 .tabsdown {
 	--tabsdown-tab-padding-block: 0.5rem;
 	--tabsdown-tab-padding-inline: 0.75rem;
+	--tabsdown-accent: var(--tabsdown-accent-override, var(--interactive-accent));
+	--tabsdown-tab-background: var(--interactive-normal);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-hover-background: var(--interactive-hover);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--tabsdown-accent);
+	--tabsdown-tab-selected-border: var(--tabsdown-accent);
+	--tabsdown-tab-selected-color: var(--text-on-accent);
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -144,9 +193,9 @@ settings:
 	min-block-size: 44px;
 	padding: var(--tabsdown-tab-padding-block)
 		var(--tabsdown-tab-padding-inline);
-	border: var(--border-width) solid var(--background-modifier-border);
+	border: var(--border-width) solid var(--tabsdown-tab-border);
 	border-radius: var(--tabsdown-radius, var(--radius-s));
-	background-color: var(--interactive-normal);
+	background-color: var(--tabsdown-tab-background);
 	color: var(--text-normal);
 	font-family: var(--font-interface);
 	font-size: var(--font-ui-small);
@@ -161,19 +210,19 @@ settings:
 }
 
 .tabsdown__tab:hover {
-	border-color: var(--background-modifier-border-hover);
-	background-color: var(--interactive-hover);
+	border-color: var(--tabsdown-tab-hover-border);
+	background-color: var(--tabsdown-tab-hover-background);
 }
 
 .tabsdown__tab[aria-selected="true"] {
-	border-color: var(--interactive-accent);
-	background-color: var(--interactive-accent);
-	color: var(--text-on-accent);
+	border-color: var(--tabsdown-tab-selected-border);
+	background-color: var(--tabsdown-tab-selected-background);
+	color: var(--tabsdown-tab-selected-color);
 }
 
 .tabsdown__tab[aria-selected="true"]:hover {
-	border-color: var(--interactive-accent-hover);
-	background-color: var(--interactive-accent-hover);
+	border-color: var(--tabsdown-tab-selected-border);
+	background-color: var(--tabsdown-tab-selected-background);
 }
 
 .tabsdown__tab:focus-visible,
@@ -228,16 +277,50 @@ settings:
 body.tabsdown-density-compact .tabsdown {
 	--tabsdown-tab-padding-block: 0.25rem;
 	--tabsdown-tab-padding-inline: 0.625rem;
+	--tabsdown-content-spacing: 0.5rem;
 }
 
 body.tabsdown-density-default .tabsdown {
 	--tabsdown-tab-padding-block: 0.5rem;
 	--tabsdown-tab-padding-inline: 0.75rem;
+	--tabsdown-content-spacing: 0.75rem;
 }
 
-body.tabsdown-density-comfortable .tabsdown {
-	--tabsdown-tab-padding-block: 0.75rem;
-	--tabsdown-tab-padding-inline: 1rem;
+body.tabsdown-personality-underline .tabsdown__tab {
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+}
+
+body.tabsdown-personality-underline .tabsdown__tab:hover {
+	border-color: transparent;
+	background-color: transparent;
+}
+
+body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
+	border-block-end-color: var(--tabsdown-accent);
+	background-color: transparent;
+	color: var(--tabsdown-accent);
+}
+
+body.tabsdown-overflow-wrap .tabsdown__tablist {
+	flex-wrap: wrap;
+	overflow-x: visible;
+}
+
+body.tabsdown-overflow-scroll .tabsdown__tablist {
+	flex-wrap: nowrap;
+	overflow-x: auto;
+}
+
+body.tabsdown-palette-secondary .tabsdown {
+	--tabsdown-tab-background: var(--background-secondary);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-hover-background: var(--background-secondary-alt);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--background-secondary-alt);
+	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-color: var(--text-normal);
 }
 
 body.tabsdown-alignment-start .tabsdown__tablist {
