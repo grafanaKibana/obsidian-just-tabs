@@ -1,5 +1,23 @@
 import { vi } from "vitest";
 
+Object.defineProperty(Node.prototype, "createEl", {
+	configurable: true,
+	value<K extends keyof HTMLElementTagNameMap>(
+		this: HTMLElement,
+		tag: K,
+		options?: { cls?: string | string[] },
+	): HTMLElementTagNameMap[K] {
+		const element = document.createElement(tag);
+		if (options?.cls) {
+			const classes =
+				typeof options.cls === "string" ? options.cls.split(" ") : options.cls;
+			element.classList.add(...classes);
+		}
+		this.append(element);
+		return element;
+	},
+});
+
 type RenderFunction = (
 	app: unknown,
 	markdown: string,
