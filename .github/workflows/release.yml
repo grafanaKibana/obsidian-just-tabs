@@ -83,15 +83,24 @@ jobs:
         with:
           name: release-${{ needs.build.outputs.version }}
 
+      # The release tags ruleset blocks creation, and a user-owned repository cannot
+      # grant the GitHub Actions app a bypass. This step alone runs as the owner, who
+      # does hold a bypass; every other step keeps the default token.
       - name: Tag the promoted commit
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.build.outputs.version }}
           MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         shell: bash
         run: |
           set -euo pipefail
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::RELEASE_TOKEN is not set. Create a fine-grained token with Contents: Read and write on this repository and store it as the RELEASE_TOKEN secret. See CONTRIBUTING.md."
+            exit 1
+          fi
+
           gh api -X POST "repos/$GH_REPO/git/refs" \
             -f ref="refs/tags/$VERSION" \
             -f sha="$MERGE_SHA"

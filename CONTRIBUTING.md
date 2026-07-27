@@ -72,6 +72,16 @@ Publish or delete a draft before cutting the next release — the notes window s
 
 Do not replace a published tag or its assets; corrections require a higher version.
 
+### The release token
+
+Tag creation is blocked by the `release tags` ruleset for every actor except the repository owner, and a user-owned repository cannot grant the GitHub Actions app a bypass. The tagging step therefore runs as the owner, using a fine-grained personal access token stored as the `RELEASE_TOKEN` secret:
+
+- Scope it to **this repository only**, with `Contents: Read and write` and nothing else.
+- Only the tagging step uses it. Every other step runs on the default `GITHUB_TOKEN`.
+- Set an expiry and rotate it. Once it lapses, promotions fail at the tagging step with an explicit error.
+
+Repository secrets are readable by workflows running on same-repo pull requests, so a workflow change merged into `dev` could read this token. Review workflow diffs in promotion pull requests deliberately.
+
 Never add `build` or `draft-release` to a required-status-check list. They only run on a merged promotion, so they would never report on an open pull request and would block every merge permanently.
 
 Submit only a published stable release through the current [Obsidian Community site](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin): sign in, link the GitHub owner, open **Plugins → New plugin**, enter this repository URL, accept the policies and maintenance commitment, and submit. Do not open a manual submission pull request to `obsidianmd/obsidian-releases`. Only the initial release is submitted through the Community site; later versions are discovered from published GitHub Releases.
