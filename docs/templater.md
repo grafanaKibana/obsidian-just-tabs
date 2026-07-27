@@ -1,24 +1,24 @@
 # Templater recipes
 
-[Templater](https://github.com/SilentVoid13/Templater) expands a template into ordinary Markdown first. Tabsdown then renders the resulting fenced `tabs` block through Obsidian. Tabsdown does not detect Templater, call its API at runtime, require a load order, or execute unexpanded Templater expressions.
+[Templater](https://github.com/SilentVoid13/Templater) expands a template into ordinary Markdown first. Tabsdown then renders the resulting fenced `tabsdown` block through Obsidian. Tabsdown does not detect Templater, call its API at runtime, require a load order, or execute unexpanded Templater expressions.
 
 These recipes use Templater's documented JavaScript execution command, output variable `tR`, and [`tp.system.prompt`](https://silentvoid13.github.io/Templater/internal-functions/internal-modules/system-module.html).
 
 ## Validation status
 
-The `0.1.0` beta pass executed both recipes with Templater `2.20.6`. The static recipe generated and rendered ordinary tabs. The prompt recipe generated valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. Repeat both recipes with the exact downloaded `1.0.0` draft-release assets before publishing the stable release.
+The `0.1.0` beta pass executed both recipes with Templater `2.20.6`. The static recipe generated and rendered ordinary tabs. The prompt recipe generated valid nested-fence output with scripted prompt responses and produced no output for duplicate labels or cancellation. Repeat both recipes with the exact downloaded `1.0.1` draft-release assets before publishing the stable release.
 
 ## Static template
 
 Save this as a Templater template file:
 
 ~~~~markdown
-````tabs
---- tab: Overview
+````tabsdown
+tab: Overview
 
 Write the overview here.
 
---- tab: Example
+tab: Example
 
 ```text
 Nested fenced content is safe because the outer fence is longer.
@@ -30,7 +30,7 @@ Use an outer fence longer than every fence in a tab body. Four backticks are eno
 
 ## Prompt-driven template
 
-This template asks for comma-separated labels, then prompts for each body with a multiline field. It rejects fewer than two unique, non-empty labels. Canceling any prompt produces no partial `tabs` block.
+This template asks for comma-separated labels, then prompts for each body with a multiline field. It rejects fewer than two unique, non-empty labels. Canceling any prompt produces no partial `tabsdown` block.
 
 The template measures every run of backticks in the generated tab bodies and makes the outer fence one character longer, with a minimum of four backticks.
 
@@ -68,7 +68,7 @@ if (labelsInput !== null) {
 				break;
 			}
 
-			tabs.push(`--- tab: ${label}\n\n${body}`);
+			tabs.push(`tab: ${label}\n\n${body}`);
 		}
 
 		if (!cancelled) {
@@ -79,7 +79,7 @@ if (labelsInput !== null) {
 				3,
 			);
 			const fence = "`".repeat(longest + 1);
-			tR += `${fence}tabs\n${source}\n${fence}`;
+			tR += `${fence}tabsdown\n${source}\n${fence}`;
 		}
 	}
 }
@@ -96,4 +96,4 @@ The first prompt is single-line and uses its fifth argument to select the defaul
 2. Confirm the result is ordinary fenced Markdown with at least two tab markers.
 3. Move the editing locus outside the block in Live Preview, or open Reading View.
 
-If Templater is disabled or absent, existing generated `tabs` Markdown still works. If a template expression remains visible, run Templater or replace the expression manually; Tabsdown intentionally does not evaluate it.
+If Templater is disabled or absent, existing generated `tabsdown` Markdown still works. If a template expression remains visible, run Templater or replace the expression manually; Tabsdown intentionally does not evaluate it.

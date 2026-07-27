@@ -21,7 +21,7 @@ export default class TabsdownPlugin extends Plugin {
 			this.app.metadataCache.on("changed", markContentStale),
 		);
 
-		this.registerMarkdownCodeBlockProcessor("tabs", (source, element, context) => {
+		this.registerMarkdownCodeBlockProcessor("tabsdown", (source, element, context) => {
 			const renderedSection = context.getSectionInfo(element);
 			const addRenderChild = (child: MarkdownRenderChild): void => {
 				child.registerDomEvent(element, "click", (event) => {

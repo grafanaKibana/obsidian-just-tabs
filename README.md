@@ -6,7 +6,7 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 
 ## Features
 
-- Author tabs in ordinary Markdown with a fenced `tabs` block.
+- Author tabs in ordinary Markdown with a fenced `tabsdown` block.
 - Render Markdown, links, embeds, callouts, math, Mermaid, and compatible community-plugin processors through Obsidian's Markdown pipeline.
 - Use interactive tabs in Reading View and outside the editing locus in Live Preview; keep raw Markdown in Source Mode.
 - Preserve visited panels during normal switching and refresh stale hidden panels after relevant vault or metadata changes.
@@ -16,15 +16,15 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 
 ## Syntax
 
-Start each tab with a column-zero `--- tab: <label>` marker. A block needs at least two non-empty, unique labels.
+Start each tab with a column-zero `tab: <label>` marker. A block needs at least two non-empty, unique labels. Add optional per-tab configuration in parentheses after the label, such as `tab: Python (top, multi)`.
 
 `````markdown
-````tabs
---- tab: Greedy
+````tabsdown
+tab: Greedy
 
 Greedy chooses the largest usable coin.
 
---- tab: Dynamic programming
+tab: Dynamic programming
 
 ```dataview
 TABLE file.mtime
@@ -33,9 +33,9 @@ FROM "Algorithms"
 ````
 `````
 
-The outer fence must be longer than every Markdown fence inside it. The example uses four backticks outside and three around the Dataview query. Increase the outer fence again if a tab body contains a longer fence.
+Use matching backtick or tilde fences. The outer fence must be longer than every same-character Markdown fence inside it. The example uses four backticks outside and three around the Dataview query. Increase the outer fence again if a tab body contains a longer fence.
 
-The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\--- tab:`. Nested `tabs` blocks and per-block configuration are not supported.
+The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks and per-block configuration are not supported.
 
 ## Obsidian modes
 
@@ -120,7 +120,7 @@ Return to **CSS snippets**, select **Reload snippets**, and enable `tabsdown`. T
 
 ## Templater
 
-Templater can generate ordinary `tabs` Markdown before Tabsdown renders it. There is no runtime integration or load-order adapter. Copy the [static or prompt-driven templates](docs/templater.md).
+Templater can generate ordinary `tabsdown` Markdown before Tabsdown renders it. There is no runtime integration or load-order adapter. Copy the [static or prompt-driven templates](docs/templater.md).
 
 ## Keyboard and accessibility
 
@@ -141,19 +141,19 @@ Keyboard focus remains visible, hidden panels stay out of the accessibility tree
 - Reading View renders tabs. Source Mode intentionally stays raw.
 - In Live Preview, move the editing locus outside the fenced block.
 - Tap or click non-interactive tab content to move the editing locus back into the fenced source; tab buttons, links, media, and embedded controls remain interactive.
-- Confirm the fence identifier is exactly `tabs`.
+- Confirm the fence identifier is exactly `tabsdown`.
 
 ### I see a diagnostic
 
-Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. Nested `tabs` blocks are rejected. The diagnostic preserves the source so it can be corrected.
+Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. Nested `tabsdown` blocks are rejected. The diagnostic preserves the source so it can be corrected.
 
-### A nested code block closes the tabs block
+### A nested code block closes the Tabsdown block
 
-Make the outer backtick fence longer than the longest fence in any tab body.
+Make the outer fence longer than the longest same-character fence in any tab body. Tilde fences work too.
 
 ### A link or embed does not resolve
 
-First test the same Markdown outside a `tabs` block in the same note. Tabsdown passes the containing note's source path to Obsidian. If the outside copy also fails, fix the link or processor configuration there first.
+First test the same Markdown outside a `tabsdown` block in the same note. Tabsdown passes the containing note's source path to Obsidian. If the outside copy also fails, fix the link or processor configuration there first.
 
 ### A community-plugin block does not render or refresh
 
