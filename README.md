@@ -96,7 +96,11 @@ Visited panels stay mounted while current. When a hidden panel becomes stale aft
 
 Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes appearance controls like:
 
-- Density: compact, default, or comfortable
+- Size: default or compact
+- Personality: default or underline
+- Overflow behavior: scroll or wrap
+- Palette: primary or secondary
+- Accent: optional override, with the active theme accent used by default
 - Tab alignment: start, center, or equal width
 - Gap between tabs
 - Corner radius
