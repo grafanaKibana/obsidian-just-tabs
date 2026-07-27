@@ -12,6 +12,8 @@ updates:
       - "*"
     ignore:
       - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
     multi-ecosystem-group: all-dependencies
 
   - package-ecosystem: github-actions
