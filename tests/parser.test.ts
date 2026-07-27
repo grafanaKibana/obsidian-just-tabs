@@ -5,11 +5,11 @@ import { parseTabs } from "../src/parser";
 describe("parseTabs", () => {
 	test("parses multiple tabs, blank lines, whitespace, and empty bodies", () => {
 		const source = [
-			"--- tab: First",
+			"tab: First",
 			"",
 			"  preserved  ",
-			"--- tab: Second",
-			"--- tab: Third",
+			"tab: Second",
+			"tab: Third",
 		].join("\n");
 
 		expect(parseTabs(source)).toEqual({
@@ -25,12 +25,12 @@ describe("parseTabs", () => {
 	test.each([
 		{
 			name: "LF",
-			source: "--- tab: One\nbody\n--- tab: Two\nnext\n",
+			source: "tab: One\nbody\ntab: Two\nnext\n",
 			bodies: ["body\n", "next\n"],
 		},
 		{
 			name: "CRLF",
-			source: "--- tab: One\r\nbody\r\n--- tab: Two\r\nnext\r\n",
+			source: "tab: One\r\nbody\r\ntab: Two\r\nnext\r\n",
 			bodies: ["body\r\n", "next\r\n"],
 		},
 	])("preserves $name body bytes", ({ source, bodies }) => {
@@ -42,13 +42,23 @@ describe("parseTabs", () => {
 		}
 	});
 
+	test("accepts parenthesized per-tab configuration as part of the label", () => {
+		expect(parseTabs("tab: Python (top, multi)\ntab: JavaScript")).toEqual({
+			ok: true,
+			tabs: [
+				{ label: "Python (top, multi)", body: "" },
+				{ label: "JavaScript", body: "" },
+			],
+		});
+	});
+
 	test("allows nested non-tabs fences", () => {
 		const source = [
-			"--- tab: Code",
+			"tab: Code",
 			"```dataview",
 			"TABLE file.name",
 			"```",
-			"--- tab: Other",
+			"tab: Other",
 			"~~~js",
 			"const value = 1;",
 			"~~~",
@@ -65,20 +75,20 @@ describe("parseTabs", () => {
 
 	test("preserves a shorter tabs fence inside a longer static code fence", () => {
 		const source = [
-			"--- tab: Code",
+			"tab: Code",
 			"````text",
-			"```tabs",
+			"```tabsdown",
 			"literal fenced source",
 			"```",
 			"````",
-			"--- tab: Other",
+			"tab: Other",
 		].join("\n");
 
 		const result = parseTabs(source);
 		expect(result.ok).toBe(true);
 		if (result.ok) {
 			expect(result.tabs[0]?.body).toBe(
-				"````text\n```tabs\nliteral fenced source\n```\n````\n",
+				"````text\n```tabsdown\nliteral fenced source\n```\n````\n",
 			);
 		}
 	});
@@ -86,9 +96,9 @@ describe("parseTabs", () => {
 	test("treats an unescaped marker inside a static fence as structural", () => {
 		const result = parseTabs(
 			[
-				"--- tab: One",
+				"tab: One",
 				"````text",
-				"--- tab: Two",
+				"tab: Two",
 				"Second body",
 			].join("\n"),
 		);
@@ -105,18 +115,18 @@ describe("parseTabs", () => {
 	test("keeps an escaped marker inside a static fence as literal body content", () => {
 		const result = parseTabs(
 			[
-				"--- tab: One",
+				"tab: One",
 				"````text",
-				"\\--- tab: literal",
+				"\\tab: literal",
 				"````",
-				"--- tab: Two",
+				"tab: Two",
 			].join("\n"),
 		);
 
 		expect(result).toEqual({
 			ok: true,
 			tabs: [
-				{ label: "One", body: "````text\n--- tab: literal\n````\n" },
+				{ label: "One", body: "````text\ntab: literal\n````\n" },
 				{ label: "Two", body: "" },
 			],
 		});
@@ -124,10 +134,10 @@ describe("parseTabs", () => {
 
 	test("rejects top-level nested tabs after an invalid backtick fence opener", () => {
 		const source = [
-			"--- tab: One",
+			"tab: One",
 			"```text`invalid",
-			"```tabs",
-			"--- tab: Two",
+			"```tabsdown",
+			"tab: Two",
 		].join("\n");
 
 		expect(parseTabs(source)).toEqual({
@@ -143,12 +153,12 @@ describe("parseTabs", () => {
 
 	test("rejects nested tabs with leading ASCII whitespace in the info string", () => {
 		const source = [
-			"--- tab: One",
-			"``` tabs",
-			"\\--- tab: Nested one",
-			"\\--- tab: Nested two",
+			"tab: One",
+			"``` tabsdown",
+			"\\tab: Nested one",
+			"\\tab: Nested two",
 			"```",
-			"--- tab: Two",
+			"tab: Two",
 		].join("\n");
 
 		expect(parseTabs(source)).toEqual({
@@ -165,14 +175,14 @@ describe("parseTabs", () => {
 	test("does not close a static fence when its suffix is NBSP", () => {
 		const invalidClose = "````\u00a0";
 		const source = [
-			"--- tab: Code",
+			"tab: Code",
 			"````text",
 			invalidClose,
-			"```tabs",
+			"```tabsdown",
 			"literal fenced source",
 			"```",
 			"````",
-			"--- tab: Other",
+			"tab: Other",
 		].join("\n");
 
 		const result = parseTabs(source);
@@ -182,7 +192,7 @@ describe("parseTabs", () => {
 				[
 					"````text",
 					invalidClose,
-					"```tabs",
+					"```tabsdown",
 					"literal fenced source",
 					"```",
 					"````",
@@ -194,13 +204,13 @@ describe("parseTabs", () => {
 
 	test("unescapes one leading backslash from marker-looking body lines", () => {
 		const result = parseTabs(
-			"--- tab: One\r\n\\--- tab: literal\r\n--- tab: Two",
+			"tab: One\r\n\\tab: literal\r\ntab: Two",
 		);
 
 		expect(result).toEqual({
 			ok: true,
 			tabs: [
-				{ label: "One", body: "--- tab: literal\r\n" },
+				{ label: "One", body: "tab: literal\r\n" },
 				{ label: "Two", body: "" },
 			],
 		});
@@ -208,7 +218,7 @@ describe("parseTabs", () => {
 
 	test("keeps HTML-like labels as plain string values", () => {
 		const result = parseTabs(
-			"--- tab: <img src=x onerror=alert(1)>\n--- tab: <b>safe text</b>",
+			"tab: <img src=x onerror=alert(1)>\ntab: <b>safe text</b>",
 		);
 
 		expect(result).toEqual({
@@ -223,14 +233,14 @@ describe("parseTabs", () => {
 	test.each([
 		{
 			name: "content before the first marker",
-			source: "before\n--- tab: One\n--- tab: Two",
+			source: "before\ntab: One\ntab: Two",
 			code: "content-before-first-tab",
 			message: "Content before the first tab marker is not allowed.",
 			line: 1,
 		},
 		{
 			name: "only one tab",
-			source: "--- tab: One\nbody",
+			source: "tab: One\nbody",
 			code: "too-few-tabs",
 			message: "A tabs block must contain at least two tabs.",
 			line: 1,
@@ -244,28 +254,28 @@ describe("parseTabs", () => {
 		},
 		{
 			name: "empty label",
-			source: "--- tab: One\n--- tab:   ",
+			source: "tab: One\ntab:   ",
 			code: "empty-label",
 			message: "Tab labels must not be empty.",
 			line: 2,
 		},
 		{
 			name: "duplicate trimmed label",
-			source: "--- tab: Same\n--- tab:  Same  ",
+			source: "tab: Same\ntab:  Same  ",
 			code: "duplicate-label",
 			message: 'Duplicate tab label "Same".',
 			line: 2,
 		},
 		{
 			name: "nested backtick tabs block",
-			source: "--- tab: One\nbody\n```tabs\n--- tab: Two",
+			source: "tab: One\nbody\n```tabsdown\ntab: Two",
 			code: "nested-tabs",
 			message: "Nested tabs blocks are not supported.",
 			line: 3,
 		},
 		{
 			name: "nested tilde tabs block",
-			source: "--- tab: One\n  ~~~~tabs  \n--- tab: Two",
+			source: "tab: One\n  ~~~~tabsdown  \ntab: Two",
 			code: "nested-tabs",
 			message: "Nested tabs blocks are not supported.",
 			line: 2,
@@ -283,12 +293,26 @@ describe("parseTabs", () => {
 	});
 
 	test("treats indented markers as body content, not tab markers", () => {
-		const source = "--- tab: One\n --- tab: not a marker\n--- tab: Two";
+		const source = "tab: One\n tab: not a marker\ntab: Two";
 		const result = parseTabs(source);
 
 		expect(result.ok).toBe(true);
 		if (result.ok) {
-			expect(result.tabs[0]?.body).toBe(" --- tab: not a marker\n");
+			expect(result.tabs[0]?.body).toBe(" tab: not a marker\n");
 		}
+	});
+
+	test("does not support the previous marker syntax", () => {
+		const source = "--- tab: One\ntab: Two";
+
+		expect(parseTabs(source)).toEqual({
+			ok: false,
+			diagnostic: {
+				code: "content-before-first-tab",
+				message: "Content before the first tab marker is not allowed.",
+				line: 1,
+				source,
+			},
+		});
 	});
 });

@@ -23,7 +23,7 @@ export type TabsParseResult =
 	| { ok: true; tabs: ParsedTab[] }
 	| { ok: false; diagnostic: TabsDiagnostic };
 
-const markerPrefix = "--- tab:";
+const markerPrefix = "tab:";
 const backtickFence = /^ {0,3}(`{3,})([^`]*)$/;
 const tildeFence = /^ {0,3}(~{3,})(.*)$/;
 
@@ -82,7 +82,7 @@ export function parseTabs(source: string): TabsParseResult {
 			}
 		} else {
 			const infoToken = /^[ \t]*([^ \t]*)/.exec(fenceInfo)?.[1];
-			if (fenceRun && infoToken === "tabs") {
+			if (fenceRun && infoToken === "tabsdown") {
 				return fail(
 					"nested-tabs",
 					"Nested tabs blocks are not supported.",
