@@ -23,17 +23,17 @@
 	"author": "grafanaKibana",
 	"license": "MIT",
 	"engines": {
-		"node": ">=22"
+		"node": ">=22.13.0"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.39.4",
-		"@types/node": "^22.15.17",
-		"esbuild": "0.25.5",
-		"eslint": "^9.39.4",
+		"@eslint/js": "^10.0.1",
+		"@types/node": "^26.1.1",
+		"esbuild": "0.28.1",
+		"eslint": "^10.8.0",
 		"eslint-plugin-obsidianmd": "^0.4.0",
-		"globals": "^17.6.1",
+		"globals": "^17.8.0",
 		"jiti": "^2.6.1",
-		"jsdom": "^29.1.1",
+		"jsdom": "^30.0.0",
 		"obsidian": "latest",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.59.1",
