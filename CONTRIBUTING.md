@@ -35,21 +35,44 @@ Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → 
 
 ## Pull requests
 
-- Use one short-lived branch per issue.
+- Use one short-lived branch per issue, named `feature/<issue>-<slug>`.
+- Link the issue in the pull request body with a closing keyword, such as `Closes #17`. CI rejects a pull request into `dev` without one.
 - Prefer one independently verifiable issue per squash-merged pull request.
 - Include command output and manual test evidence.
 - Treat inaccessible focus, leaked render children, source mutation, and release-contract failures as blockers.
 
+## Branches
+
+| Branch | Role |
+| --- | --- |
+| `feature/<issue>-<slug>` | Short-lived, one per issue |
+| `dev` | Integration branch; every feature lands here first |
+| `main` | Protected release branch; reachable only by a promotion pull request from `dev` |
+
+Pull requests into `dev` need the `quality` and `policy` checks and one approval. Pull requests into `main` need the same, and are rejected unless they come from `dev`.
+
+The repository owner may push directly to `dev` for an emergency fix. That is an exception to the delivery path, not to the issue and pull request requirements — ordinary feature work still goes through both. CI runs on the push either way.
+
+The owner holds `admin`, which bypasses every rule. These gates are hard for contributors and a deliberate speed bump for the owner; owner-authored merges are recorded as bypasses in the repository rule-suite log. The one-approval requirement exists so that contributor pull requests get a review — it is satisfied by the owner approving someone else's work, and bypassed on the owner's own.
+
 ## Releases
 
-Run `npm run version -- <x.y.z>` and commit all four version authorities:
+A release is produced by promoting `dev` to `main`. There is no manual tag step, and **pushing a tag by hand no longer creates a release.**
 
-- `package.json`
-- `package-lock.json`
-- `manifest.json`
-- `versions.json`
+1. On `dev`, run `npm run version -- <x.y.z>` and commit all four version authorities:
+   - `package.json`
+   - `package-lock.json`
+   - `manifest.json`
+   - `versions.json`
+2. Open a pull request from `dev` into `main`. CI fails it before merge if the version is already tagged.
+3. Merging it creates the exact unprefixed tag at the merge commit and a **draft** release carrying `main.js`, `manifest.json`, `styles.css`, checksums, the manual gate, and the pull requests merged into `dev` since the previous release.
+4. Publish the draft only after installing its assets in a clean vault and completing the manual release matrix.
 
-The exact unprefixed tag creates a draft release. Publish it only after installing the draft assets in a clean vault and completing the manual release matrix. Do not replace a published tag or its assets; corrections require a higher version.
+Publish or delete a draft before cutting the next release — the notes window starts at the last *published* release, so an abandoned draft causes the next one to repeat its entries.
+
+Do not replace a published tag or its assets; corrections require a higher version.
+
+Never add `build` or `draft-release` to a required-status-check list. They only run on a merged promotion, so they would never report on an open pull request and would block every merge permanently.
 
 Submit only a published stable release through the current [Obsidian Community site](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin): sign in, link the GitHub owner, open **Plugins → New plugin**, enter this repository URL, accept the policies and maintenance commitment, and submit. Do not open a manual submission pull request to `obsidianmd/obsidian-releases`. Only the initial release is submitted through the Community site; later versions are discovered from published GitHub Releases.
 
