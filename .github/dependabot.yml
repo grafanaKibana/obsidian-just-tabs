@@ -1,22 +1,23 @@
 version: 2
+
+multi-ecosystem-groups:
+  all-dependencies:
+    schedule:
+      interval: weekly
+
 updates:
   - package-ecosystem: npm
     directory: /
-    schedule:
-      interval: weekly
-    groups:
-      development-dependencies:
-        dependency-type: development
+    patterns:
+      - "*"
+    ignore:
+      - dependency-name: typescript
         update-types:
-          - minor
-          - patch
-    open-pull-requests-limit: 5
+          - version-update:semver-major
+    multi-ecosystem-group: all-dependencies
 
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
-    groups:
-      github-actions:
-        patterns:
-          - "*"
+    patterns:
+      - "*"
+    multi-ecosystem-group: all-dependencies
