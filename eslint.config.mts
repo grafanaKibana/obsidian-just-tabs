@@ -38,6 +38,7 @@ export default defineConfig(
 		],
 		rules: {
 			"obsidianmd/no-nodejs-modules": "off",
+			"obsidianmd/hardcoded-config-path": "off",
 		},
 	},
 	{
