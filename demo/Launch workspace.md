@@ -55,3 +55,29 @@ This section lives outside the tab block, so it remains unchanged while the sele
 - [x] Record the product demo
 - [ ] Finish the launch page
 - [ ] Schedule the announcement
+
+## Nested tabs
+
+The outer fence is longer than the inner one, so each level keeps its own tab list.
+
+`````tabsdown
+tab: Desktop
+
+````tabsdown
+tab: macOS
+Ship the notarized build first.
+
+tab: Windows
+Confirm the installer signature.
+````
+
+tab: Mobile
+
+````tabsdown
+tab: iOS
+Check the split-view layout.
+
+tab: Android
+Verify the back gesture leaves tabs intact.
+````
+`````

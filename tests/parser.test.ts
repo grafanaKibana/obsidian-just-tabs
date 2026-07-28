@@ -132,44 +132,94 @@ describe("parseTabs", () => {
 		});
 	});
 
-	test("rejects top-level nested tabs after an invalid backtick fence opener", () => {
+	test("keeps a nested block whole and resumes markers after it closes", () => {
 		const source = [
 			"tab: One",
-			"```text`invalid",
-			"```tabsdown",
+			"````tabsdown",
+			"tab: Inner one",
+			"tab: Inner two",
+			"````",
 			"tab: Two",
 		].join("\n");
 
 		expect(parseTabs(source)).toEqual({
-			ok: false,
-			diagnostic: {
-				code: "nested-tabs",
-				message: "Nested tabs blocks are not supported.",
-				line: 3,
-				source,
-			},
+			ok: true,
+			tabs: [
+				{
+					label: "One",
+					body: "````tabsdown\ntab: Inner one\ntab: Inner two\n````\n",
+				},
+				{ label: "Two", body: "" },
+			],
 		});
 	});
 
-	test("rejects nested tabs with leading ASCII whitespace in the info string", () => {
+	test("treats a nested tilde block with a padded info string as nested", () => {
+		const source = [
+			"tab: One",
+			"  ~~~~tabsdown  ",
+			"tab: Inner",
+			"  ~~~~",
+			"tab: Two",
+		].join("\n");
+
+		const result = parseTabs(source);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.tabs.map((tab) => tab.label)).toEqual(["One", "Two"]);
+		}
+	});
+
+	test("leaves escaped markers inside a nested block for the inner parser", () => {
 		const source = [
 			"tab: One",
 			"``` tabsdown",
-			"\\tab: Nested one",
-			"\\tab: Nested two",
+			"\\tab: literal",
+			"tab: Inner",
 			"```",
 			"tab: Two",
 		].join("\n");
 
-		expect(parseTabs(source)).toEqual({
-			ok: false,
-			diagnostic: {
-				code: "nested-tabs",
-				message: "Nested tabs blocks are not supported.",
-				line: 2,
-				source,
-			},
-		});
+		const result = parseTabs(source);
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.tabs[0]?.body).toBe(
+				"``` tabsdown\n\\tab: literal\ntab: Inner\n```\n",
+			);
+		}
+	});
+
+	test("nests to three levels when each fence outgrows the one it contains", () => {
+		const source = [
+			"tab: Outer one",
+			"``````tabsdown",
+			"tab: Middle one",
+			"`````tabsdown",
+			"tab: Inner one",
+			"tab: Inner two",
+			"`````",
+			"tab: Middle two",
+			"``````",
+			"tab: Outer two",
+		].join("\n");
+
+		const result = parseTabs(source);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.tabs.map((tab) => tab.label)).toEqual([
+			"Outer one",
+			"Outer two",
+		]);
+
+		const middle = parseTabs(
+			result.tabs[0]?.body.split("\n").slice(1, -2).join("\n") ?? "",
+		);
+		expect(middle.ok).toBe(true);
+		if (!middle.ok) return;
+		expect(middle.tabs.map((tab) => tab.label)).toEqual([
+			"Middle one",
+			"Middle two",
+		]);
 	});
 
 	test("does not close a static fence when its suffix is NBSP", () => {
@@ -267,18 +317,11 @@ describe("parseTabs", () => {
 			line: 2,
 		},
 		{
-			name: "nested backtick tabs block",
+			name: "an unclosed nested block swallowing the only other marker",
 			source: "tab: One\nbody\n```tabsdown\ntab: Two",
-			code: "nested-tabs",
-			message: "Nested tabs blocks are not supported.",
-			line: 3,
-		},
-		{
-			name: "nested tilde tabs block",
-			source: "tab: One\n  ~~~~tabsdown  \ntab: Two",
-			code: "nested-tabs",
-			message: "Nested tabs blocks are not supported.",
-			line: 2,
+			code: "too-few-tabs",
+			message: "A tabs block must contain at least two tabs.",
+			line: 1,
 		},
 	])("returns a deterministic diagnostic for $name", (expected) => {
 		expect(parseTabs(expected.source)).toEqual({
