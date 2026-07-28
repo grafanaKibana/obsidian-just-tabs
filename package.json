@@ -7,6 +7,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+		"demo": "npm run build && mkdir -p demo/.obsidian/plugins/tabsdown && cp main.js manifest.json styles.css demo/.obsidian/plugins/tabsdown/",
 		"lint": "eslint .",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit --skipLibCheck",

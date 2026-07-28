@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [main]
   push:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -47,122 +47,3 @@ jobs:
             manifest.json
             styles.css
           retention-days: 7
-
-  policy:
-    name: policy
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: read
-    steps:
-      - name: Enforce branch source, issue link, and version bump
-        shell: bash
-        env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          GH_REPO: ${{ github.repository }}
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-
-          # Returns the HTTP status line for a resource, so 404 can be told apart
-          # from a permission or server error. Anything unexpected fails closed.
-          http_status() {
-            gh api "$1" --silent --include 2>/dev/null | head -1 || true
-          }
-
-          manifest_version_at() {
-            gh api "repos/$GH_REPO/contents/manifest.json?ref=$1" --jq .content |
-              base64 -d |
-              jq -r .version
-          }
-
-          if [[ "$BASE_REF" == "main" ]]; then
-            # head.ref alone is not enough: a fork can name its branch dev too, and
-            # release.yml would then refuse to release a merge that main already took.
-            if [[ "$HEAD_REPO" != "$GH_REPO" || "$HEAD_REF" != "dev" ]]; then
-              echo "::error::main accepts promotions only from $GH_REPO:dev. This pull request is from $HEAD_REPO:$HEAD_REF."
-              exit 1
-            fi
-
-            candidate=$(manifest_version_at "$HEAD_SHA")
-
-            if [[ ! "$candidate" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-              echo "::error::manifest.json version '$candidate' is not exact x.y.z SemVer."
-              exit 1
-            fi
-
-            released=$(manifest_version_at "$BASE_REF")
-
-            # Metadata parity and SemVer syntax say nothing about ordering, and a
-            # backward version is untagged, so it would otherwise pass every check.
-            if [[ "$candidate" == "$released" ]] ||
-               [[ "$(printf '%s\n%s\n' "$released" "$candidate" | sort -V | tail -1)" != "$candidate" ]]; then
-              echo "::error::Version $candidate does not increase on $released, which is the version already on $BASE_REF."
-              exit 1
-            fi
-
-            case "$(http_status "repos/$GH_REPO/git/ref/tags/$candidate")" in
-              *" 404"*)
-                echo "Promoting $released -> $candidate, which is not yet tagged."
-                ;;
-              *" 200"*)
-                echo "::error::Version $candidate is already tagged. Run 'npm run version -- <x.y.z>' before promoting."
-                exit 1
-                ;;
-              *)
-                echo "::error::Could not determine whether tag $candidate exists."
-                exit 1
-                ;;
-            esac
-
-            exit 0
-          fi
-
-          # Dependabot cannot name a branch after an issue or write a pull request
-          # body, so the delivery-path rules below cannot apply to it.
-          if [[ "$PR_AUTHOR" == "dependabot[bot]" &&
-                "$HEAD_REPO" == "$GH_REPO" &&
-                "$HEAD_REF" == dependabot/* ]]; then
-            echo "Dependabot branch '$HEAD_REF'; delivery-path policy does not apply."
-            exit 0
-          fi
-
-          if [[ ! "$HEAD_REF" =~ ^feature/.+ ]]; then
-            echo "::error::Branches into $BASE_REF must be named feature/<name>, for example feature/relax-branch-naming. Got '$HEAD_REF'."
-            exit 1
-          fi
-
-          # [[ =~ ]] is case-sensitive, and the pull request template ships "Closes #".
-          body=$(printf '%s' "$PR_BODY" | tr '[:upper:]' '[:lower:]')
-
-          if [[ ! "$body" =~ (close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#([0-9]+) ]]; then
-            echo "::error::Link an issue in the pull request body, for example 'Closes #26'."
-            exit 1
-          fi
-
-          issue="${BASH_REMATCH[3]}"
-
-          case "$(http_status "repos/$GH_REPO/issues/$issue")" in
-            *" 200"*)
-              if [[ "$(gh api "repos/$GH_REPO/issues/$issue" --jq 'has("pull_request")')" == "true" ]]; then
-                echo "::error::#$issue is a pull request, not an issue."
-                exit 1
-              fi
-              ;;
-            *" 404"*)
-              echo "::error::Issue #$issue does not exist in $GH_REPO."
-              exit 1
-              ;;
-            *)
-              echo "::error::Could not confirm that issue #$issue exists."
-              exit 1
-              ;;
-          esac
-
-          echo "Policy satisfied for '$HEAD_REF' into '$BASE_REF' (issue #$issue)."
