@@ -104,6 +104,21 @@ settings:
     max: 48
     step: 1
     format: px
+  -
+    id: tabsdown-animation-duration
+    title: Animation speed
+    type: variable-number-slider
+    default: 160
+    min: 0
+    max: 500
+    step: 20
+    format: ms
+  -
+    id: tabsdown-animations-disabled
+    title: Disable animations
+    description: Animations are enabled by default.
+    type: class-toggle
+    default: false
 
 */
 
@@ -118,6 +133,7 @@ settings:
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-animation-duration: 160ms;
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -237,8 +253,34 @@ settings:
 	min-inline-size: 0;
 }
 
+.tabsdown__panels {
+	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
+}
+
+.tabsdown__panel:not([hidden]) {
+	animation: tabsdown-panel-in var(--tabsdown-animation-duration)
+		var(--anim-motion-swing);
+}
+
 .tabsdown__panel[hidden] {
 	display: none;
+}
+
+body.tabsdown-animations-disabled .tabsdown {
+	--tabsdown-animation-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tabsdown {
+		--tabsdown-animation-duration: 0ms;
+	}
+}
+
+@keyframes tabsdown-panel-in {
+	from {
+		opacity: 0;
+		transform: translateY(-0.25rem);
+	}
 }
 
 .tabsdown__diagnostic,

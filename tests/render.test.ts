@@ -146,6 +146,17 @@ describe("tab interaction", () => {
 		expect(secondButtons[0]?.getAttribute("aria-selected")).toBe("true");
 	});
 
+	test("sets the panel container height while switching", () => {
+		const { container } = setup();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const second = container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+		if (!panels || !second) throw new Error("Expected panels and second tab.");
+
+		second.click();
+
+		expect(panels.style.height).toBe("0px");
+	});
+
 	test("scrolls an activated tab into view", () => {
 		const { container } = setup();
 		const second =
