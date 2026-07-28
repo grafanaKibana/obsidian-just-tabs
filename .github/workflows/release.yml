@@ -94,6 +94,7 @@ jobs:
         with:
           subject-path: |
             main.js
+            manifest.json
             styles.css
 
       - name: Store inspected release inputs

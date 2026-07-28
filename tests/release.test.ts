@@ -40,6 +40,7 @@ interface ManifestFixture {
 type VersionsFixture = Record<string, string>;
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const preCommitHook = resolve(repositoryRoot, ".githooks/pre-commit");
 const versionScript = resolve(repositoryRoot, "scripts/version.mjs");
 const verifyScript = resolve(repositoryRoot, "scripts/verify-release.mjs");
 const fixtures: string[] = [];
@@ -115,6 +116,45 @@ test("updates package, lockfile, manifest, and versions together", () => {
 	expect(versions["0.2.0"]).toBe("1.0.0");
 	expect(runVerify(root).status).toBe(0);
 });
+
+test.runIf(process.platform !== "win32")(
+	"pre-commit hook rejects unstaged release inputs",
+	() => {
+		const root = createFixture();
+		mkdirSync(resolve(root, "src"));
+		writeFileSync(resolve(root, "src/main.ts"), "export const value = 1;\n");
+		mkdirSync(resolve(root, ".githooks"));
+		const hook = resolve(root, ".githooks/pre-commit");
+		writeFileSync(hook, readFileSync(preCommitHook));
+		chmodSync(hook, 0o755);
+
+		execFileSync("git", ["init"], { cwd: root });
+		execFileSync("git", ["add", "."], { cwd: root });
+		execFileSync(
+			"git",
+			[
+				"-c",
+				"core.hooksPath=/dev/null",
+				"-c",
+				"user.name=Tabsdown Tests",
+				"-c",
+				"user.email=tabsdown@example.com",
+				"commit",
+				"-m",
+				"fixture",
+			],
+			{ cwd: root },
+		);
+
+		writeFileSync(resolve(root, "src/main.ts"), "export const value = 2;\n");
+		execFileSync("git", ["add", "src/main.ts"], { cwd: root });
+		writeFileSync(resolve(root, "src/main.ts"), "export const value = 3;\n");
+
+		const result = spawnSync(hook, { cwd: root, encoding: "utf8" });
+		expect(result.status).not.toBe(0);
+		expect(result.stderr).toContain("Release inputs have unstaged changes");
+	},
+);
 
 test.each(["v0.2.0", "01.2.3", "1.02.3", "1.2.03"])(
 	"rejects invalid version %s without modifying release metadata",

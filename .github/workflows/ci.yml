@@ -47,6 +47,9 @@ jobs:
     name: policy
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
     steps:
       - name: Enforce branch source, issue link, and version bump
         shell: bash
