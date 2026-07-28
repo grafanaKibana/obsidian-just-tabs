@@ -12,7 +12,8 @@ export type TabsDiagnosticCode =
 	| "content-before-first-tab"
 	| "duplicate-label"
 	| "empty-label"
-	| "too-few-tabs";
+	| "too-few-tabs"
+	| "unclosed-nested-block";
 
 export interface TabsDiagnostic {
 	code: TabsDiagnosticCode;
@@ -64,6 +65,7 @@ export function parseTabs(source: string): TabsParseResult {
 	let current: ParsedTab | undefined;
 	let openFence: string | undefined;
 	let nested = false;
+	let nestedLine = 0;
 
 	const fail = (
 		code: TabsDiagnosticCode,
@@ -96,6 +98,7 @@ export function parseTabs(source: string): TabsParseResult {
 			// outer fence to be the longer one, so the close above cannot be stolen
 			// by an inner fence.
 			nested = /^[ \t]*([^ \t]*)/.exec(fenceInfo)?.[1] === "tabsdown";
+			nestedLine = lineNumber;
 		}
 
 		if (!nested && line.startsWith(markerPrefix)) {
@@ -139,6 +142,16 @@ export function parseTabs(source: string): TabsParseResult {
 		current.body += !nested && line.startsWith(`\\${markerPrefix}`)
 			? `${line.slice(1)}${ending}`
 			: `${line}${ending}`;
+	}
+
+	// Checked before the tab count, because an unclosed nested block swallows every
+	// marker after it and would otherwise surface as a missing tab.
+	if (nested) {
+		return fail(
+			"unclosed-nested-block",
+			"A nested tabs block is never closed.",
+			nestedLine,
+		);
 	}
 
 	if (tabs.length < 2) {

@@ -163,6 +163,11 @@ settings:
 	-webkit-overflow-scrolling: touch;
 }
 
+.tabsdown .tabsdown {
+	padding-inline-start: var(--tabsdown-content-spacing, 0.75rem);
+	border-inline-start: var(--border-width) solid var(--tabsdown-tab-border);
+}
+
 .tabsdown--multi > .tabsdown__tablist {
 	flex-wrap: wrap;
 	overflow-x: visible;

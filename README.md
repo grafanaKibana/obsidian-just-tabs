@@ -177,7 +177,7 @@ Keyboard focus remains visible, hidden panels stay out of the accessibility tree
 
 ### I see a diagnostic
 
-Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. A nested block that is never closed swallows the markers after it, which usually surfaces as the two-tab minimum. The diagnostic preserves the source so it can be corrected.
+Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. A nested block that is never closed reports its opening line, because it swallows every marker after it. The diagnostic preserves the source so it can be corrected.
 
 ### A nested code block closes the Tabsdown block
 

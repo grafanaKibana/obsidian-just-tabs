@@ -319,9 +319,9 @@ describe("parseTabs", () => {
 		{
 			name: "an unclosed nested block swallowing the only other marker",
 			source: "tab: One\nbody\n```tabsdown\ntab: Two",
-			code: "too-few-tabs",
-			message: "A tabs block must contain at least two tabs.",
-			line: 1,
+			code: "unclosed-nested-block",
+			message: "A nested tabs block is never closed.",
+			line: 3,
 		},
 	])("returns a deterministic diagnostic for $name", (expected) => {
 		expect(parseTabs(expected.source)).toEqual({
