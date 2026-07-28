@@ -319,8 +319,8 @@ body.tabsdown-animations-disabled .tabsdown {
 
 body.tabsdown-density-compact .tabsdown {
 	--tabsdown-tab-min-size: 32px;
-	--tabsdown-tab-padding-block: 0.125rem;
-	--tabsdown-tab-padding-inline: 0.375rem;
+	--tabsdown-tab-padding-block: 0.375rem;
+	--tabsdown-tab-padding-inline: 0.75rem;
 }
 
 body.tabsdown-density-default .tabsdown {

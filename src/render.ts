@@ -53,6 +53,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private readonly buttons: HTMLButtonElement[] = [];
 	private readonly panels: PanelState[] = [];
 	private panelsEl?: HTMLElement;
+	private heightAnimationFrame?: number;
 	private heightResetTimer?: number;
 	private selectedIndex = 0;
 	private focusIndex = 0;
@@ -140,6 +141,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onunload(): void {
 		this.disposed = true;
+		if (this.heightAnimationFrame !== undefined) {
+			window.cancelAnimationFrame(this.heightAnimationFrame);
+		}
 		if (this.heightResetTimer !== undefined) {
 			window.clearTimeout(this.heightResetTimer);
 		}
@@ -213,15 +217,20 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		const panels = this.panelsEl;
 		if (!panels) return;
 
-		const to = panels.getBoundingClientRect().height;
-		panels.style.height = `${from}px`;
-		window.requestAnimationFrame(() => {
-			panels.style.height = `${to}px`;
-		});
-
+		if (this.heightAnimationFrame !== undefined) {
+			window.cancelAnimationFrame(this.heightAnimationFrame);
+		}
 		if (this.heightResetTimer !== undefined) {
 			window.clearTimeout(this.heightResetTimer);
 		}
+		panels.style.removeProperty("height");
+		const to = panels.getBoundingClientRect().height;
+		panels.style.height = `${from}px`;
+		this.heightAnimationFrame = window.requestAnimationFrame(() => {
+			panels.style.height = `${to}px`;
+			this.heightAnimationFrame = undefined;
+		});
+
 		const duration = Number.parseFloat(
 			getComputedStyle(panels).getPropertyValue("--tabsdown-animation-duration"),
 		);
