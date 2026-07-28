@@ -95,10 +95,12 @@ jobs:
           # A manual run has no merged_at, so the window closes at the commit itself.
           until=${MERGED_AT:-$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$MERGE_SHA")}
 
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "since=$since" >> "$GITHUB_OUTPUT"
-          echo "sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
-          echo "until=$until" >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$version"
+            echo "since=$since"
+            echo "sha=$MERGE_SHA"
+            echo "until=$until"
+          } >> "$GITHUB_OUTPUT"
 
       - run: npm ci
       - run: npm run check
