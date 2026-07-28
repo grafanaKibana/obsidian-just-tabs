@@ -142,7 +142,9 @@ jobs:
           # Idempotent, so that a failure in a later step can be retried by re-running
           # the job. Without this, re-tagging returns 422 and the release strands
           # until someone deletes the tag by hand.
-          existing=$(gh api "repos/$GH_REPO/git/ref/tags/$VERSION" --jq .object.sha 2>/dev/null || true)
+          # gh prints the error body on stdout, so a 404 has to clear the capture
+          # rather than land in it.
+          existing=$(gh api "repos/$GH_REPO/git/ref/tags/$VERSION" --jq .object.sha 2>/dev/null) || existing=""
 
           if [[ -n "$existing" ]]; then
             if [[ "$existing" != "$MERGE_SHA" ]]; then
@@ -213,7 +215,7 @@ jobs:
             prerelease=(--prerelease)
           fi
 
-          existing=$(gh release view "$VERSION" --json isDraft --jq .isDraft 2>/dev/null || true)
+          existing=$(gh release view "$VERSION" --json isDraft --jq .isDraft 2>/dev/null) || existing=""
 
           if [[ "$existing" == "false" ]]; then
             echo "::error::Release $VERSION is already published and cannot be replaced."

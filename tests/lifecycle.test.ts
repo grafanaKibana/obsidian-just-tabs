@@ -28,7 +28,13 @@ function flush(): Promise<void> {
 	return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
-function setup(generation: { value: number }): {
+function setup(
+	generation: { value: number },
+	tabs: { label: string; body: string }[] = [
+		{ label: "One", body: "First" },
+		{ label: "Two", body: "Second" },
+	],
+): {
 	child: TabBlockRenderChild;
 	container: HTMLElement;
 } {
@@ -38,10 +44,7 @@ function setup(generation: { value: number }): {
 		{} as App,
 		container,
 		"Note.md",
-		[
-			{ label: "One", body: "First" },
-			{ label: "Two", body: "Second" },
-		],
+		tabs,
 		() => generation.value,
 	);
 	child.load();
@@ -57,7 +60,39 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.useRealTimers();
 	document.body.replaceChildren();
+});
+
+test("cancels a stale height reset before pinning a lazy panel", async () => {
+	vi.useFakeTimers();
+	const pending = deferred();
+	renderMock.mockImplementation(async (_app, markdown, element) => {
+		if (markdown === "Third") await pending.promise;
+		element.textContent = markdown;
+	});
+	const { container } = setup({ value: 0 }, [
+		{ label: "One", body: "First" },
+		{ label: "Two", body: "Second" },
+		{ label: "Three", body: "Third" },
+	]);
+	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+	const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+	if (!panels) throw new Error("Expected panels.");
+	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+	await vi.advanceTimersByTimeAsync(0);
+
+	buttons[1]?.click();
+	await vi.advanceTimersByTimeAsync(0);
+
+	buttons[2]?.click();
+	expect(panels.style.height).toBe("0px");
+
+	await vi.advanceTimersByTimeAsync(300);
+	expect(panels.style.height).toBe("0px");
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+
+	pending.resolve();
 });
 
 test("renders lazily, keeps current panels, and rebuilds stale hidden panels once", async () => {
