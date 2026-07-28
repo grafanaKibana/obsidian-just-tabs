@@ -142,12 +142,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onunload(): void {
 		this.disposed = true;
-		if (this.heightAnimationFrame !== undefined) {
-			window.cancelAnimationFrame(this.heightAnimationFrame);
-		}
-		if (this.heightResetTimer !== undefined) {
-			window.clearTimeout(this.heightResetTimer);
-		}
+		this.cancelHeightAnimation();
 		for (const panel of this.panels) {
 			this.disposePanel(panel);
 		}
@@ -194,6 +189,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.updateState();
 		this.ensureRendered(index, !wasSelected);
 		if (!wasSelected && previousHeight !== undefined && state) {
+			this.cancelHeightAnimation();
 			state.animationFrom = previousHeight;
 			this.panelsEl?.style.setProperty("height", `${previousHeight}px`);
 			this.panelsEl?.classList.add("tabsdown__panels--animating");
@@ -228,16 +224,22 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		}
 	}
 
+	private cancelHeightAnimation(): void {
+		if (this.heightAnimationFrame !== undefined) {
+			window.cancelAnimationFrame(this.heightAnimationFrame);
+			this.heightAnimationFrame = undefined;
+		}
+		if (this.heightResetTimer !== undefined) {
+			window.clearTimeout(this.heightResetTimer);
+			this.heightResetTimer = undefined;
+		}
+	}
+
 	private animateHeight(from: number): void {
 		const panels = this.panelsEl;
 		if (!panels) return;
 
-		if (this.heightAnimationFrame !== undefined) {
-			window.cancelAnimationFrame(this.heightAnimationFrame);
-		}
-		if (this.heightResetTimer !== undefined) {
-			window.clearTimeout(this.heightResetTimer);
-		}
+		this.cancelHeightAnimation();
 		panels.style.removeProperty("height");
 		const to = panels.getBoundingClientRect().height;
 		panels.style.height = `${from}px`;
@@ -252,13 +254,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		);
 		this.heightResetTimer = window.setTimeout(
 			() => {
-				if (this.heightAnimationFrame !== undefined) {
-					window.cancelAnimationFrame(this.heightAnimationFrame);
-					this.heightAnimationFrame = undefined;
-				}
+				this.cancelHeightAnimation();
 				panels.style.removeProperty("height");
 				panels.classList.remove("tabsdown__panels--animating");
-				this.heightResetTimer = undefined;
 			},
 			Number.isFinite(duration) ? duration + 50 : 250,
 		);
