@@ -4,6 +4,12 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Build the notes and report what would happen, without tagging or releasing.
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -18,9 +24,10 @@ jobs:
     # head.repo.full_name is a security control, not a tidiness check: a fork can
     # also name its branch dev. Do not remove it.
     if: >-
-      github.event.pull_request.merged == true &&
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
       github.event.pull_request.head.ref == 'dev' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     permissions:
       attestations: write
@@ -29,11 +36,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       since: ${{ steps.version.outputs.since }}
+      sha: ${{ steps.version.outputs.sha }}
+      until: ${{ steps.version.outputs.until }}
     steps:
       - name: Check out the promoted commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -46,7 +55,8 @@ jobs:
       - name: Resolve and reserve the release version
         id: version
         env:
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          MERGED_AT: ${{ github.event.pull_request.merged_at }}
         shell: bash
         run: |
           set -euo pipefail
@@ -82,8 +92,13 @@ jobs:
             echo "No previous release tag; the notes will cover every merged pull request."
           fi
 
+          # A manual run has no merged_at, so the window closes at the commit itself.
+          until=${MERGED_AT:-$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$MERGE_SHA")}
+
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "since=$since" >> "$GITHUB_OUTPUT"
+          echo "sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
+          echo "until=$until" >> "$GITHUB_OUTPUT"
 
       - run: npm ci
       - run: npm run check
@@ -129,10 +144,16 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.build.outputs.version }}
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGE_SHA: ${{ needs.build.outputs.sha }}
+          DRY_RUN: ${{ inputs.dry-run }}
         shell: bash
         run: |
           set -euo pipefail
+
+          if [[ "${DRY_RUN:-}" == "true" ]]; then
+            echo "Dry run: would tag $VERSION at $MERGE_SHA."
+            exit 0
+          fi
 
           if [[ -z "${GH_TOKEN:-}" ]]; then
             echo "::error::RELEASE_TOKEN is not set. Create a fine-grained token with Contents: Read and write on this repository and store it as the RELEASE_TOKEN secret. See CONTRIBUTING.md."
@@ -164,16 +185,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.build.outputs.version }}
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGE_SHA: ${{ needs.build.outputs.sha }}
           SINCE: ${{ needs.build.outputs.since }}
-          UNTIL: ${{ github.event.pull_request.merged_at }}
+          UNTIL: ${{ needs.build.outputs.until }}
+          PROMOTION: ${{ github.event.pull_request.number }}
+          DRY_RUN: ${{ inputs.dry-run }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
           set -euo pipefail
 
-          # main is squash-only, so it gains exactly one commit per release. Commit
-          # subjects there cannot describe the release; the merged dev pull requests can.
+          # A release lands on main as a single promotion, whose commit subject cannot
+          # describe the release; the dev pull requests it carries can.
           # Bounded at both ends: an empty SINCE covers everything, and UNTIL excludes
           # work merged into dev after the promotion, which this release does not carry.
           {
@@ -187,7 +210,7 @@ jobs:
             echo
             echo "- Tag: \`$VERSION\`"
             echo "- Commit: \`$MERGE_SHA\`"
-            echo "- Promotion: #${{ github.event.pull_request.number }}"
+            if [[ -n "$PROMOTION" ]]; then echo "- Promotion: #$PROMOTION"; fi
             echo "- CI run: $RUN_URL"
             echo "- Package, root lockfile, manifest, and versions mapping parity: PASS"
             echo "- Release asset contract: PASS"
@@ -209,6 +232,12 @@ jobs:
             cat SHA256SUMS.txt
             echo '```'
           } > release-notes.md
+
+          if [[ "${DRY_RUN:-}" == "true" ]]; then
+            echo "Dry run: would draft release $VERSION with these notes."
+            cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
           prerelease=()
           if [[ "$VERSION" == 0.* ]]; then
