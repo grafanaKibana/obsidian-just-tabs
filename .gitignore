@@ -1,6 +1,8 @@
+.omc/
 .omx/
 node_modules/
 main.js
+!demo/.obsidian/plugins/tabsdown/main.js
 *.map
 data.json
 .DS_Store

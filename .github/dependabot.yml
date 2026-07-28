@@ -2,6 +2,7 @@ version: 2
 
 multi-ecosystem-groups:
   all-dependencies:
+    target-branch: dev
     schedule:
       interval: weekly
 

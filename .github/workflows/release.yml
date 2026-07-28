@@ -1,24 +1,39 @@
 name: Draft release
 
 on:
-  push:
-    tags:
-      - "*.*.*"
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
+  queue: max
   cancel-in-progress: false
 
 jobs:
   build:
+    # head.repo.full_name is a security control, not a tidiness check: a fork can
+    # also name its branch dev. Do not remove it.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.ref == 'dev' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      since: ${{ steps.version.outputs.since }}
     steps:
-      - name: Check out tagged source
+      - name: Check out the promoted commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -28,22 +43,64 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Validate tag and ancestry
+      - name: Resolve and reserve the release version
+        id: version
+        env:
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         shell: bash
         run: |
-          [[ "$GITHUB_REF_NAME" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
-          git fetch --no-tags origin main
-          git merge-base --is-ancestor "${GITHUB_SHA}^{commit}" origin/main
+          set -euo pipefail
+          version=$(jq -r .version manifest.json)
+
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::manifest.json version '$version' is not exact x.y.z SemVer."
+            exit 1
+          fi
+
+          # A tag on this very commit means an earlier attempt got as far as tagging,
+          # so this is a retry. A tag anywhere else means a missing version bump.
+          if git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+            tagged=$(git rev-list -n 1 "refs/tags/$version")
+            if [[ "$tagged" != "$MERGE_SHA" ]]; then
+              echo "::error::Tag $version already exists at $tagged. Promotions must carry a version bump."
+              exit 1
+            fi
+            echo "Tag $version already points at this commit; continuing as a retry."
+          fi
+
+          # The window starts at the previous release tag rather than the previous
+          # published release: releases/latest hides prereleases and drafts, so an
+          # unpublished or 0.x draft would silently reopen the window. HEAD^ skips a
+          # tag this run already created on a retry.
+          previous=$(git describe --tags --abbrev=0 --match '*.*.*' "$MERGE_SHA^" 2>/dev/null || true)
+
+          if [[ -n "$previous" ]]; then
+            since=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ "$previous")
+            echo "Previous release tag $previous at $since."
+          else
+            since=""
+            echo "No previous release tag; the notes will cover every merged pull request."
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "since=$since" >> "$GITHUB_OUTPUT"
 
       - run: npm ci
       - run: npm run check
-      - run: node scripts/verify-release.mjs "$GITHUB_REF_NAME"
       - run: shasum -a 256 main.js manifest.json styles.css > SHA256SUMS.txt
+
+      - name: Attest release assets
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
 
       - name: Store inspected release inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-${{ github.ref_name }}
+          name: release-${{ steps.version.outputs.version }}
           path: |
             main.js
             manifest.json
@@ -54,26 +111,82 @@ jobs:
   draft-release:
     needs: build
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: write
+      pull-requests: read
     steps:
       - name: Download inspected release inputs
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: release-${{ github.ref_name }}
+          name: release-${{ needs.build.outputs.version }}
+
+      # The release tags ruleset blocks creation, and a user-owned repository cannot
+      # grant the GitHub Actions app a bypass. This step alone runs as the owner, who
+      # does hold a bypass; every other step keeps the default token.
+      - name: Tag the promoted commit
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "::error::RELEASE_TOKEN is not set. Create a fine-grained token with Contents: Read and write on this repository and store it as the RELEASE_TOKEN secret. See CONTRIBUTING.md."
+            exit 1
+          fi
+
+          # Idempotent, so that a failure in a later step can be retried by re-running
+          # the job. Without this, re-tagging returns 422 and the release strands
+          # until someone deletes the tag by hand.
+          existing=$(gh api "repos/$GH_REPO/git/ref/tags/$VERSION" --jq .object.sha 2>/dev/null || true)
+
+          if [[ -n "$existing" ]]; then
+            if [[ "$existing" != "$MERGE_SHA" ]]; then
+              echo "::error::Tag $VERSION already points at $existing, not at the promoted commit $MERGE_SHA."
+              exit 1
+            fi
+            echo "Tag $VERSION already points at the promoted commit; nothing to do."
+            exit 0
+          fi
+
+          gh api -X POST "repos/$GH_REPO/git/refs" \
+            -f ref="refs/tags/$VERSION" \
+            -f sha="$MERGE_SHA"
 
       - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.build.outputs.version }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          SINCE: ${{ needs.build.outputs.since }}
+          UNTIL: ${{ github.event.pull_request.merged_at }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         shell: bash
         run: |
+          set -euo pipefail
+
+          # main is squash-only, so it gains exactly one commit per release. Commit
+          # subjects there cannot describe the release; the merged dev pull requests can.
+          # Bounded at both ends: an empty SINCE covers everything, and UNTIL excludes
+          # work merged into dev after the promotion, which this release does not carry.
           {
+            echo "## Changes"
+            echo
+            gh api --paginate \
+              "repos/$GH_REPO/pulls?base=dev&state=closed&sort=updated&direction=desc&per_page=100" \
+              --jq ".[] | select(.merged_at != null and .merged_at > \"$SINCE\" and .merged_at <= \"$UNTIL\") | \"- \(.title) (#\(.number))\""
+            echo
             echo "## Automated evidence"
             echo
-            echo "- Tag: \`$GITHUB_REF_NAME\`"
-            echo "- Commit: \`$GITHUB_SHA\`"
-            echo "- CI run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- Tag: \`$VERSION\`"
+            echo "- Commit: \`$MERGE_SHA\`"
+            echo "- Promotion: #${{ github.event.pull_request.number }}"
+            echo "- CI run: $RUN_URL"
             echo "- Package, root lockfile, manifest, and versions mapping parity: PASS"
             echo "- Release asset contract: PASS"
             echo
@@ -96,14 +209,29 @@ jobs:
           } > release-notes.md
 
           prerelease=()
-          if [[ "$GITHUB_REF_NAME" == 0.* ]]; then
+          if [[ "$VERSION" == 0.* ]]; then
             prerelease=(--prerelease)
           fi
 
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --draft \
-            "${prerelease[@]}" \
-            --title "$GITHUB_REF_NAME" \
-            --notes-file release-notes.md \
-            main.js manifest.json styles.css
+          existing=$(gh release view "$VERSION" --json isDraft --jq .isDraft 2>/dev/null || true)
+
+          if [[ "$existing" == "false" ]]; then
+            echo "::error::Release $VERSION is already published and cannot be replaced."
+            exit 1
+          fi
+
+          if [[ "$existing" == "true" ]]; then
+            gh release edit "$VERSION" \
+              --draft \
+              "${prerelease[@]}" \
+              --title "$VERSION" \
+              --notes-file release-notes.md
+          else
+            gh release create "$VERSION" \
+              --draft \
+              "${prerelease[@]}" \
+              --title "$VERSION" \
+              --notes-file release-notes.md
+          fi
+
+          gh release upload "$VERSION" main.js manifest.json styles.css --clobber
