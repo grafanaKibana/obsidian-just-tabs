@@ -128,11 +128,13 @@ settings:
 	--tabsdown-accent: var(--tabsdown-accent-override, var(--interactive-accent));
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
 	--tabsdown-animation-duration: var(--tabsdown-animation-speed, 160ms);
 	--tabsdown-tab-min-size: 44px;
 
@@ -213,7 +215,7 @@ settings:
 	border: var(--border-width) solid var(--tabsdown-tab-border);
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--tabsdown-tab-background);
-	color: var(--text-normal);
+	color: var(--tabsdown-tab-color);
 	font-family: var(--font-interface);
 	font-size: var(--font-ui-small);
 	font-weight: var(--font-medium);
@@ -343,7 +345,7 @@ body.tabsdown-personality-underline .tabsdown__tab:hover {
 body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
 	border-block-end-color: var(--tabsdown-tab-selected-border);
 	background-color: transparent;
-	color: var(--tabsdown-tab-selected-border);
+	color: var(--tabsdown-tab-underline-color);
 }
 
 body.tabsdown-overflow-wrap .tabsdown__tablist {
@@ -357,13 +359,15 @@ body.tabsdown-overflow-scroll .tabsdown__tablist {
 }
 
 body.tabsdown-palette-secondary .tabsdown {
-	--tabsdown-tab-background: var(--background-secondary);
+	--tabsdown-tab-background: var(--background-secondary-alt);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-hover-background: var(--background-secondary-alt);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
-	--tabsdown-tab-selected-background: var(--background-secondary-alt);
+	--tabsdown-tab-selected-background: var(--background-secondary);
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
 body.tabsdown-alignment-start .tabsdown__tablist {
