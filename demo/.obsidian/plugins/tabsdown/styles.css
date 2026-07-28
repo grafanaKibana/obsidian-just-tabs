@@ -277,6 +277,14 @@ body.tabsdown-animations-disabled .tabsdown {
 	--tabsdown-animation-duration: 0ms;
 }
 
+body.tabsdown-animations-disabled .tabsdown__tablist {
+	scroll-behavior: auto;
+}
+
+body.tabsdown-animations-disabled .tabsdown__tab {
+	transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.tabsdown {
 		--tabsdown-animation-duration: 0ms;

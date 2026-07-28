@@ -1,5 +1,5 @@
 import type { App } from "obsidian";
-import { afterEach, beforeEach, expect, test } from "vitest";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { TabBlockRenderChild } from "../src/render";
 import { componentUnloadMock, renderMock } from "./obsidian.mock";
@@ -122,6 +122,40 @@ test("does not cancel a still-owned visible render on generation change", async 
 	buttons[0]?.click();
 	await flush();
 	expect(renderMock).toHaveBeenCalledTimes(3);
+});
+
+test("measures a lazy target only after its render completes", async () => {
+	const pending = deferred();
+	renderMock
+		.mockImplementationOnce(async (_app, markdown, element) => {
+			element.textContent = markdown;
+		})
+		.mockImplementationOnce((_app, markdown, element) =>
+			pending.promise.then(() => {
+				element.textContent = markdown;
+			}),
+		);
+	const generation = { value: 0 };
+	const { container } = setup(generation);
+	await flush();
+	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+	const second =
+		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+	if (!panels || !second) throw new Error("Expected panels and second tab.");
+	const measure = vi
+		.spyOn(panels, "getBoundingClientRect")
+		.mockReturnValueOnce({ height: 80 } as DOMRect)
+		.mockReturnValueOnce({ height: 240 } as DOMRect);
+	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+
+	second.click();
+	expect(measure).toHaveBeenCalledOnce();
+	expect(panels.style.height).toBe("");
+
+	pending.resolve();
+	await flush();
+	expect(measure).toHaveBeenCalledTimes(2);
+	expect(panels.style.height).toBe("80px");
 });
 
 test("ignores a superseded hidden render and installs only its replacement", async () => {

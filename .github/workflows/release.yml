@@ -9,7 +9,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.event.pull_request.number }}
+  group: release
+  queue: max
   cancel-in-progress: false
 
 jobs:
@@ -109,6 +110,7 @@ jobs:
   draft-release:
     needs: build
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: write
       pull-requests: read
@@ -174,9 +176,9 @@ jobs:
           {
             echo "## Changes"
             echo
-            gh pr list --base dev --state merged --limit 200 \
-              --json number,title,mergedAt \
-              --jq "map(select(.mergedAt > \"$SINCE\" and .mergedAt <= \"$UNTIL\")) | .[] | \"- \(.title) (#\(.number))\""
+            gh api --paginate \
+              "repos/$GH_REPO/pulls?base=dev&state=closed&sort=updated&direction=desc&per_page=100" \
+              --jq ".[] | select(.merged_at != null and .merged_at > \"$SINCE\" and .merged_at <= \"$UNTIL\") | \"- \(.title) (#\(.number))\""
             echo
             echo "## Automated evidence"
             echo
@@ -210,9 +212,25 @@ jobs:
             prerelease=(--prerelease)
           fi
 
-          gh release create "$VERSION" \
-            --draft \
-            "${prerelease[@]}" \
-            --title "$VERSION" \
-            --notes-file release-notes.md \
-            main.js manifest.json styles.css
+          existing=$(gh release view "$VERSION" --json isDraft --jq .isDraft 2>/dev/null || true)
+
+          if [[ "$existing" == "false" ]]; then
+            echo "::error::Release $VERSION is already published and cannot be replaced."
+            exit 1
+          fi
+
+          if [[ "$existing" == "true" ]]; then
+            gh release edit "$VERSION" \
+              --draft \
+              "${prerelease[@]}" \
+              --title "$VERSION" \
+              --notes-file release-notes.md
+          else
+            gh release create "$VERSION" \
+              --draft \
+              "${prerelease[@]}" \
+              --title "$VERSION" \
+              --notes-file release-notes.md
+          fi
+
+          gh release upload "$VERSION" main.js manifest.json styles.css --clobber

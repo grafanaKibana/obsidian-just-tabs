@@ -11,6 +11,7 @@ interface PanelState {
 	component?: Component;
 	attemptEl?: HTMLElement;
 	generation?: number;
+	animationFrom?: number;
 	epoch: number;
 	status: "unrendered" | "rendering" | "rendered" | "error";
 }
@@ -187,12 +188,16 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private activate(index: number, focus: boolean): void {
 		const wasSelected = index === this.selectedIndex;
 		const previousHeight = this.panelsEl?.getBoundingClientRect().height;
+		const state = this.panels[index];
 		this.selectedIndex = index;
 		this.focusIndex = index;
 		this.updateState();
 		this.ensureRendered(index, !wasSelected);
-		if (!wasSelected && previousHeight !== undefined) {
-			this.animateHeight(previousHeight);
+		if (!wasSelected && previousHeight !== undefined && state) {
+			state.animationFrom = previousHeight;
+		}
+		if (state?.status === "rendered") {
+			this.animateRenderedPanel(index, state);
 		}
 		if (focus) {
 			this.buttons[index]?.focus();
@@ -211,6 +216,14 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.panels.forEach((panel, index) => {
 			panel.panelEl.hidden = index !== this.selectedIndex;
 		});
+	}
+
+	private animateRenderedPanel(index: number, state: PanelState): void {
+		const from = state.animationFrom;
+		state.animationFrom = undefined;
+		if (!this.disposed && this.selectedIndex === index && from !== undefined) {
+			this.animateHeight(from);
+		}
 	}
 
 	private animateHeight(from: number): void {
@@ -296,6 +309,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			.then(() => {
 				if (!this.disposed && state.epoch === epoch) {
 					state.status = "rendered";
+					this.animateRenderedPanel(index, state);
 				}
 			})
 			.catch((error: unknown) => {
@@ -312,6 +326,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 				message.textContent = `This tab could not be rendered: ${errorMessage(error)}`;
 				attemptEl.append(message);
 				state.status = "error";
+				this.animateRenderedPanel(index, state);
 			});
 	}
 
@@ -323,6 +338,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		}
 		state.attemptEl?.remove();
 		state.attemptEl = undefined;
+		state.animationFrom = undefined;
 		state.status = "unrendered";
 	}
 }

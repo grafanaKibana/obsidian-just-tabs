@@ -78,19 +78,21 @@ A release is produced by promoting `dev` to `main`. There is no manual tag step,
 
 The notes window runs from the previous release tag to the promotion's merge time, so an unpublished draft does not distort the next release and work merged into `dev` after the promotion is not advertised as shipped.
 
-If the tagging step succeeds and a later step fails, re-run the job. Tagging is idempotent while the tag points at the promoted commit, and refuses to proceed when it points anywhere else.
+If a release step fails, re-run the job. Tagging accepts an existing tag only when it points at the promoted commit, and draft creation resumes an existing draft and replaces its assets.
 
 Do not replace a published tag or its assets; corrections require a higher version.
 
 ### The release token
 
-Tag creation is blocked by the `release tags` ruleset for every actor except the repository owner, and a user-owned repository cannot grant the GitHub Actions app a bypass. The tagging step therefore runs as the owner, using a fine-grained personal access token stored as the `RELEASE_TOKEN` secret:
+Tag creation is blocked by the `release tags` ruleset for every actor except the repository owner, and a user-owned repository cannot grant the GitHub Actions app a bypass. The tagging step therefore runs as the owner, using a fine-grained personal access token stored as the `RELEASE_TOKEN` secret in a protected `release` environment:
 
 - Scope it to **this repository only**, with `Contents: Read and write` and nothing else.
+- Require the repository owner to approve the `release` environment before its job starts.
+- Store `RELEASE_TOKEN` only as an environment secret; do not leave a repository-level copy.
 - Only the tagging step uses it. Every other step runs on the default `GITHUB_TOKEN`.
 - Set an expiry and rotate it. Once it lapses, promotions fail at the tagging step with an explicit error.
 
-Repository secrets are readable by workflows running on same-repo pull requests, so a workflow change merged into `dev` could read this token. Review workflow diffs in promotion pull requests deliberately.
+The approval gate keeps the token unavailable to unapproved workflows, including workflow changes merged into `dev`.
 
 Never add `build` or `draft-release` to a required-status-check list. They only run on a merged promotion, so they would never report on an open pull request and would block every merge permanently.
 
