@@ -260,6 +260,10 @@ settings:
 	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
 }
 
+.tabsdown__panels--animating {
+	overflow: clip;
+}
+
 .tabsdown__panel:not([hidden]) {
 	animation: tabsdown-panel-in var(--tabsdown-animation-duration)
 		var(--anim-motion-swing);

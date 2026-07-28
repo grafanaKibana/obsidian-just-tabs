@@ -226,6 +226,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		panels.style.removeProperty("height");
 		const to = panels.getBoundingClientRect().height;
 		panels.style.height = `${from}px`;
+		panels.classList.add("tabsdown__panels--animating");
 		this.heightAnimationFrame = window.requestAnimationFrame(() => {
 			panels.style.height = `${to}px`;
 			this.heightAnimationFrame = undefined;
@@ -236,7 +237,12 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		);
 		this.heightResetTimer = window.setTimeout(
 			() => {
+				if (this.heightAnimationFrame !== undefined) {
+					window.cancelAnimationFrame(this.heightAnimationFrame);
+					this.heightAnimationFrame = undefined;
+				}
 				panels.style.removeProperty("height");
+				panels.classList.remove("tabsdown__panels--animating");
 				this.heightResetTimer = undefined;
 			},
 			Number.isFinite(duration) ? duration + 50 : 250,

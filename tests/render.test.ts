@@ -209,6 +209,41 @@ describe("tab interaction", () => {
 		cancel.mockRestore();
 	});
 
+	test("clips overflow and cancels a frame delayed past height cleanup", () => {
+		vi.useFakeTimers();
+		try {
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) {
+				throw new Error("Expected panels and second tab.");
+			}
+			vi.spyOn(panels, "getBoundingClientRect")
+				.mockReturnValueOnce({ height: 80 } as DOMRect)
+				.mockReturnValueOnce({ height: 240 } as DOMRect);
+			vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+			const cancel = vi
+				.spyOn(window, "cancelAnimationFrame")
+				.mockImplementation(() => undefined);
+
+			second.click();
+			expect(
+				panels.classList.contains("tabsdown__panels--animating"),
+			).toBe(true);
+
+			vi.advanceTimersByTime(250);
+			expect(cancel).toHaveBeenCalledWith(1);
+			expect(panels.style.height).toBe("");
+			expect(
+				panels.classList.contains("tabsdown__panels--animating"),
+			).toBe(false);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
 	test("scrolls an activated tab into view", () => {
 		const { container } = setup();
 		const second =
