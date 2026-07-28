@@ -21,6 +21,10 @@ jobs:
       github.event.pull_request.head.ref == 'dev' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
     outputs:
       version: ${{ steps.version.outputs.version }}
       since: ${{ steps.version.outputs.since }}
@@ -83,6 +87,13 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: shasum -a 256 main.js manifest.json styles.css > SHA256SUMS.txt
+
+      - name: Attest release assets
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: |
+            main.js
+            styles.css
 
       - name: Store inspected release inputs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
