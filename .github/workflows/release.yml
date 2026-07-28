@@ -76,6 +76,15 @@ jobs:
 
           previous=$(git describe --tags --abbrev=0 --match '*.*.*' "$GITHUB_SHA^" 2>/dev/null) || previous=""
 
+          # SemVer syntax says nothing about ordering, and an unused lower version is
+          # untagged, so it would otherwise pass every check above.
+          if [[ -n "$previous" ]] &&
+             { [[ "$version" == "$previous" ]] ||
+               [[ "$(printf '%s\n%s\n' "$previous" "$version" | sort -V | tail -1)" != "$version" ]]; }; then
+            echo "::error::Version $version does not increase on the previous release $previous."
+            exit 1
+          fi
+
           {
             echo "## Changes"
             echo
