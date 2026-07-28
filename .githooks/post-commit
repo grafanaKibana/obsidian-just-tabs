@@ -1,5 +1,0 @@
-#!/bin/sh
-
-npm run build &&
-	mkdir -p demo/.obsidian/plugins/tabsdown &&
-	cp main.js manifest.json styles.css demo/.obsidian/plugins/tabsdown/

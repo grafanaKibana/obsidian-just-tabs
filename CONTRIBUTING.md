@@ -39,7 +39,7 @@ For this repository's demo vault, enable the included hook once:
 git config core.hooksPath .githooks
 ```
 
-Each commit then builds and copies `main.js`, `manifest.json`, and `styles.css` into the demo vault.
+Before each commit, the hook builds, copies, and stages `main.js`, `manifest.json`, and `styles.css` for the demo vault so the commit remains directly testable.
 
 ## Pull requests
 
