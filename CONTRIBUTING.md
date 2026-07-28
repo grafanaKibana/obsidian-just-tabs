@@ -33,6 +33,14 @@ For manual testing, copy or link this repository into:
 
 Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → Community plugins**.
 
+For this repository's demo vault, enable the included hook once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Each commit then builds and copies `main.js`, `manifest.json`, and `styles.css` into the demo vault.
+
 ## Pull requests
 
 - Use one short-lived branch per issue, named `feature/<name>`. CI rejects any other branch name into `dev`, apart from Dependabot's.
