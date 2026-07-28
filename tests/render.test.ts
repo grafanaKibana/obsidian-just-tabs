@@ -146,15 +146,27 @@ describe("tab interaction", () => {
 		expect(secondButtons[0]?.getAttribute("aria-selected")).toBe("true");
 	});
 
-	test("sets the panel container height while switching", () => {
+	test("animates the panel container from its old height to its new height", () => {
 		const { container } = setup();
 		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
 		const second = container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
 		if (!panels || !second) throw new Error("Expected panels and second tab.");
+		const measure = vi
+			.spyOn(panels, "getBoundingClientRect")
+			.mockReturnValueOnce({ height: 240 } as DOMRect)
+			.mockReturnValueOnce({ height: 80 } as DOMRect);
+		const frame = vi
+			.spyOn(window, "requestAnimationFrame")
+			.mockImplementation((callback) => {
+				callback(0);
+				return 1;
+			});
 
 		second.click();
 
-		expect(panels.style.height).toBe("0px");
+		expect(measure).toHaveBeenCalledTimes(2);
+		expect(panels.style.height).toBe("80px");
+		frame.mockRestore();
 	});
 
 	test("scrolls an activated tab into view", () => {

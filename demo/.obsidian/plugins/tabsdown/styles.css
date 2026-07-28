@@ -105,7 +105,7 @@ settings:
     step: 1
     format: px
   -
-    id: tabsdown-animation-duration
+    id: tabsdown-animation-speed
     title: Animation speed
     type: variable-number-slider
     default: 160
@@ -133,7 +133,8 @@ settings:
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
-	--tabsdown-animation-duration: 160ms;
+	--tabsdown-animation-duration: var(--tabsdown-animation-speed, 160ms);
+	--tabsdown-tab-min-size: 44px;
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -205,8 +206,8 @@ settings:
 	box-sizing: border-box;
 	height: auto;
 	max-height: none;
-	min-inline-size: 44px;
-	min-block-size: 44px;
+	min-inline-size: var(--tabsdown-tab-min-size);
+	min-block-size: var(--tabsdown-tab-min-size);
 	padding: var(--tabsdown-tab-padding-block)
 		var(--tabsdown-tab-padding-inline);
 	border: var(--border-width) solid var(--tabsdown-tab-border);
@@ -317,9 +318,9 @@ body.tabsdown-animations-disabled .tabsdown {
 }
 
 body.tabsdown-density-compact .tabsdown {
-	--tabsdown-tab-padding-block: 0.25rem;
-	--tabsdown-tab-padding-inline: 0.625rem;
-	--tabsdown-content-spacing: 0.5rem;
+	--tabsdown-tab-min-size: 32px;
+	--tabsdown-tab-padding-block: 0.125rem;
+	--tabsdown-tab-padding-inline: 0.375rem;
 }
 
 body.tabsdown-density-default .tabsdown {
@@ -340,9 +341,9 @@ body.tabsdown-personality-underline .tabsdown__tab:hover {
 }
 
 body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
-	border-block-end-color: var(--tabsdown-accent);
+	border-block-end-color: var(--tabsdown-tab-selected-border);
 	background-color: transparent;
-	color: var(--tabsdown-accent);
+	color: var(--tabsdown-tab-selected-border);
 }
 
 body.tabsdown-overflow-wrap .tabsdown__tablist {

@@ -186,10 +186,10 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.selectedIndex = index;
 		this.focusIndex = index;
 		this.updateState();
+		this.ensureRendered(index, !wasSelected);
 		if (!wasSelected && previousHeight !== undefined) {
 			this.animateHeight(previousHeight);
 		}
-		this.ensureRendered(index, !wasSelected);
 		if (focus) {
 			this.buttons[index]?.focus();
 		}
@@ -213,9 +213,10 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		const panels = this.panelsEl;
 		if (!panels) return;
 
+		const to = panels.getBoundingClientRect().height;
 		panels.style.height = `${from}px`;
 		window.requestAnimationFrame(() => {
-			panels.style.height = `${panels.scrollHeight}px`;
+			panels.style.height = `${to}px`;
 		});
 
 		if (this.heightResetTimer !== undefined) {

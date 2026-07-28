@@ -5,6 +5,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig(
 	globalIgnores([
 		".omx",
+		"demo/**/plugins/**",
 		"main.js",
 		"node_modules",
 		"package-lock.json",
