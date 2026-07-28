@@ -10,8 +10,8 @@ owner: Studio team
 
 A calm place for the plan, the work, and the material that keeps the team moving.
 
-````tabs
---- tab: Overview
+````tabsdown
+tab: Overview (top, one)
 
 > [!success] On track
 > **74% launch ready** · 18 of 24 tasks complete · 12 days remaining
@@ -23,7 +23,7 @@ A calm place for the plan, the work, and the material that keeps the team moving
 | Launch page | Theo | 🟡 In review |
 | Announcement | Mina | ⏳ Scheduled |
 
---- tab: Timeline
+tab: Timeline
 
 > [!abstract] The final stretch
 > A focused path from content freeze to launch day.
@@ -34,7 +34,7 @@ A calm place for the plan, the work, and the material that keeps the team moving
 | July 29 | Final QA | Sign off on desktop and mobile |
 | July 31 | Launch | Publish and monitor feedback |
 
---- tab: Resources
+tab: Resources
 
 > [!info] Everything close at hand
 > The material everyone needs, without splitting context across extra pages.
