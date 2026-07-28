@@ -146,6 +146,69 @@ describe("tab interaction", () => {
 		expect(secondButtons[0]?.getAttribute("aria-selected")).toBe("true");
 	});
 
+	test("animates the panel container from its old height to its new height", () => {
+		const { container } = setup();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const second = container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+		if (!panels || !second) throw new Error("Expected panels and second tab.");
+		const measure = vi
+			.spyOn(panels, "getBoundingClientRect")
+			.mockReturnValueOnce({ height: 240 } as DOMRect)
+			.mockReturnValueOnce({ height: 80 } as DOMRect);
+		let nextFrame: FrameRequestCallback | undefined;
+		const frame = vi
+			.spyOn(window, "requestAnimationFrame")
+			.mockImplementation((callback) => {
+				nextFrame = callback;
+				return 1;
+			});
+
+		second.click();
+
+		expect(measure).toHaveBeenCalledTimes(2);
+		expect(panels.style.height).toBe("240px");
+		nextFrame?.(0);
+		expect(panels.style.height).toBe("80px");
+		frame.mockRestore();
+	});
+
+	test("cancels stale height frames during rapid tab switches", () => {
+		const { container } = setup();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+		if (!panels || !buttons[1] || !buttons[2]) {
+			throw new Error("Expected panels and tabs.");
+		}
+		vi.spyOn(panels, "getBoundingClientRect")
+			.mockReturnValueOnce({ height: 240 } as DOMRect)
+			.mockReturnValueOnce({ height: 80 } as DOMRect)
+			.mockReturnValueOnce({ height: 200 } as DOMRect)
+			.mockReturnValueOnce({ height: 120 } as DOMRect);
+		const frames = new Map<number, FrameRequestCallback>();
+		let frameId = 0;
+		const request = vi
+			.spyOn(window, "requestAnimationFrame")
+			.mockImplementation((callback) => {
+				const id = ++frameId;
+				frames.set(id, callback);
+				return id;
+			});
+		const cancel = vi
+			.spyOn(window, "cancelAnimationFrame")
+			.mockImplementation((id) => {
+				frames.delete(id);
+			});
+
+		buttons[1].click();
+		buttons[2].click();
+		frames.get(2)?.(0);
+
+		expect(cancel).toHaveBeenCalledWith(1);
+		expect(panels.style.height).toBe("120px");
+		request.mockRestore();
+		cancel.mockRestore();
+	});
+
 	test("scrolls an activated tab into view", () => {
 		const { container } = setup();
 		const second =
