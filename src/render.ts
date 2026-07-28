@@ -52,6 +52,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private readonly blockId = `tabsdown-${++nextBlockId}`;
 	private readonly buttons: HTMLButtonElement[] = [];
 	private readonly panels: PanelState[] = [];
+	private panelsEl?: HTMLElement;
+	private heightAnimationFrame?: number;
+	private heightResetTimer?: number;
 	private selectedIndex = 0;
 	private focusIndex = 0;
 	private disposed = false;
@@ -77,7 +80,8 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		tabList.setAttribute("role", "tablist");
 		tabList.setAttribute("aria-label", "Tabbed content");
 
-	const panels = createElement(this.containerEl, "div", "tabsdown__panels");
+		const panels = createElement(this.containerEl, "div", "tabsdown__panels");
+		this.panelsEl = panels;
 
 		this.tabs.forEach((tab, index) => {
 			const tabId = `${this.blockId}-tab-${index}`;
@@ -137,6 +141,12 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onunload(): void {
 		this.disposed = true;
+		if (this.heightAnimationFrame !== undefined) {
+			window.cancelAnimationFrame(this.heightAnimationFrame);
+		}
+		if (this.heightResetTimer !== undefined) {
+			window.clearTimeout(this.heightResetTimer);
+		}
 		for (const panel of this.panels) {
 			this.disposePanel(panel);
 		}
@@ -176,10 +186,14 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	private activate(index: number, focus: boolean): void {
 		const wasSelected = index === this.selectedIndex;
+		const previousHeight = this.panelsEl?.getBoundingClientRect().height;
 		this.selectedIndex = index;
 		this.focusIndex = index;
 		this.updateState();
 		this.ensureRendered(index, !wasSelected);
+		if (!wasSelected && previousHeight !== undefined) {
+			this.animateHeight(previousHeight);
+		}
 		if (focus) {
 			this.buttons[index]?.focus();
 		}
@@ -197,6 +211,36 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.panels.forEach((panel, index) => {
 			panel.panelEl.hidden = index !== this.selectedIndex;
 		});
+	}
+
+	private animateHeight(from: number): void {
+		const panels = this.panelsEl;
+		if (!panels) return;
+
+		if (this.heightAnimationFrame !== undefined) {
+			window.cancelAnimationFrame(this.heightAnimationFrame);
+		}
+		if (this.heightResetTimer !== undefined) {
+			window.clearTimeout(this.heightResetTimer);
+		}
+		panels.style.removeProperty("height");
+		const to = panels.getBoundingClientRect().height;
+		panels.style.height = `${from}px`;
+		this.heightAnimationFrame = window.requestAnimationFrame(() => {
+			panels.style.height = `${to}px`;
+			this.heightAnimationFrame = undefined;
+		});
+
+		const duration = Number.parseFloat(
+			getComputedStyle(panels).getPropertyValue("--tabsdown-animation-duration"),
+		);
+		this.heightResetTimer = window.setTimeout(
+			() => {
+				panels.style.removeProperty("height");
+				this.heightResetTimer = undefined;
+			},
+			Number.isFinite(duration) ? duration + 50 : 250,
+		);
 	}
 
 	private scrollTabIntoView(index: number): void {

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+npm run build &&
+	mkdir -p demo/.obsidian/plugins/tabsdown &&
+	cp main.js manifest.json styles.css demo/.obsidian/plugins/tabsdown/ &&
+	git add \
+		demo/.obsidian/plugins/tabsdown/main.js \
+		demo/.obsidian/plugins/tabsdown/manifest.json \
+		demo/.obsidian/plugins/tabsdown/styles.css

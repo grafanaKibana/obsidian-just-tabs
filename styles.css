@@ -104,6 +104,21 @@ settings:
     max: 48
     step: 1
     format: px
+  -
+    id: tabsdown-animation-speed
+    title: Animation speed
+    type: variable-number-slider
+    default: 160
+    min: 0
+    max: 500
+    step: 20
+    format: ms
+  -
+    id: tabsdown-animations-disabled
+    title: Disable animations
+    description: Animations are enabled by default.
+    type: class-toggle
+    default: false
 
 */
 
@@ -113,11 +128,15 @@ settings:
 	--tabsdown-accent: var(--tabsdown-accent-override, var(--interactive-accent));
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-animation-duration: var(--tabsdown-animation-speed, 160ms);
+	--tabsdown-tab-min-size: 44px;
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -189,14 +208,14 @@ settings:
 	box-sizing: border-box;
 	height: auto;
 	max-height: none;
-	min-inline-size: 44px;
-	min-block-size: 44px;
+	min-inline-size: var(--tabsdown-tab-min-size);
+	min-block-size: var(--tabsdown-tab-min-size);
 	padding: var(--tabsdown-tab-padding-block)
 		var(--tabsdown-tab-padding-inline);
 	border: var(--border-width) solid var(--tabsdown-tab-border);
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--tabsdown-tab-background);
-	color: var(--text-normal);
+	color: var(--tabsdown-tab-color);
 	font-family: var(--font-interface);
 	font-size: var(--font-ui-small);
 	font-weight: var(--font-medium);
@@ -237,8 +256,34 @@ settings:
 	min-inline-size: 0;
 }
 
+.tabsdown__panels {
+	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
+}
+
+.tabsdown__panel:not([hidden]) {
+	animation: tabsdown-panel-in var(--tabsdown-animation-duration)
+		var(--anim-motion-swing);
+}
+
 .tabsdown__panel[hidden] {
 	display: none;
+}
+
+body.tabsdown-animations-disabled .tabsdown {
+	--tabsdown-animation-duration: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tabsdown {
+		--tabsdown-animation-duration: 0ms;
+	}
+}
+
+@keyframes tabsdown-panel-in {
+	from {
+		opacity: 0;
+		transform: translateY(-0.25rem);
+	}
 }
 
 .tabsdown__diagnostic,
@@ -275,9 +320,9 @@ settings:
 }
 
 body.tabsdown-density-compact .tabsdown {
-	--tabsdown-tab-padding-block: 0.25rem;
-	--tabsdown-tab-padding-inline: 0.625rem;
-	--tabsdown-content-spacing: 0.5rem;
+	--tabsdown-tab-min-size: 32px;
+	--tabsdown-tab-padding-block: 0.375rem;
+	--tabsdown-tab-padding-inline: 0.75rem;
 }
 
 body.tabsdown-density-default .tabsdown {
@@ -298,9 +343,9 @@ body.tabsdown-personality-underline .tabsdown__tab:hover {
 }
 
 body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
-	border-block-end-color: var(--tabsdown-accent);
+	border-block-end-color: var(--tabsdown-tab-selected-border);
 	background-color: transparent;
-	color: var(--tabsdown-accent);
+	color: var(--tabsdown-tab-underline-color);
 }
 
 body.tabsdown-overflow-wrap .tabsdown__tablist {
@@ -314,13 +359,15 @@ body.tabsdown-overflow-scroll .tabsdown__tablist {
 }
 
 body.tabsdown-palette-secondary .tabsdown {
-	--tabsdown-tab-background: var(--background-secondary);
+	--tabsdown-tab-background: var(--background-secondary-alt);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-hover-background: var(--background-secondary-alt);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
-	--tabsdown-tab-selected-background: var(--background-secondary-alt);
+	--tabsdown-tab-selected-background: var(--background-secondary);
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
 body.tabsdown-alignment-start .tabsdown__tablist {
