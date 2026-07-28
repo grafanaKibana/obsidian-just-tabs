@@ -58,6 +58,10 @@ If a step fails, fix it and re-run the workflow. Tagging accepts an existing tag
 
 Do not replace a published tag or its assets; corrections require a higher version.
 
+### Tagging permissions
+
+The workflow tags with the default `GITHUB_TOKEN`, which requires the `release tags` ruleset to restrict `update` and `deletion` but **not** `creation`. A user-owned repository cannot grant the GitHub Actions app a ruleset bypass, so restoring a `creation` restriction breaks every release at the tagging step, and would mean reintroducing an owner-scoped personal access token. Tags stay immutable either way: the remaining rules still forbid moving or deleting one.
+
 Submit only a published stable release through the current [Obsidian Community site](https://docs.obsidian.md/Plugins/Releasing/Submit%20your%20plugin): sign in, link the GitHub owner, open **Plugins → New plugin**, enter this repository URL, accept the policies and maintenance commitment, and submit. Do not open a manual submission pull request to `obsidianmd/obsidian-releases`. Only the initial release is submitted through the Community site; later versions are discovered from published GitHub Releases.
 
 Automated-review changes require a higher patch release and the same release gates before using **Retry**. Do not claim Community Plugins availability until review passes and the listing is published.

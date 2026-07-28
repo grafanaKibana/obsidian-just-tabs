@@ -122,10 +122,12 @@ jobs:
             exit 0
           fi
 
-          if [[ -z "$existing" ]]; then
-            gh api -X POST "repos/$GH_REPO/git/refs" \
-              -f ref="refs/tags/$version" \
-              -f sha="$GITHUB_SHA"
+          if [[ -z "$existing" ]] &&
+             ! gh api -X POST "repos/$GH_REPO/git/refs" \
+                 -f ref="refs/tags/$version" \
+                 -f sha="$GITHUB_SHA"; then
+            echo "::error::Could not create tag $version. A user-owned repository cannot grant the GitHub Actions app a ruleset bypass, so the release tags ruleset must not restrict creation. See CONTRIBUTING.md."
+            exit 1
           fi
 
           prerelease=()
