@@ -124,7 +124,7 @@ test("does not cancel a still-owned visible render on generation change", async 
 	expect(renderMock).toHaveBeenCalledTimes(3);
 });
 
-test("measures a lazy target only after its render completes", async () => {
+test("pins the old height and measures a lazy target after rendering", async () => {
 	const pending = deferred();
 	renderMock
 		.mockImplementationOnce(async (_app, markdown, element) => {
@@ -150,7 +150,8 @@ test("measures a lazy target only after its render completes", async () => {
 
 	second.click();
 	expect(measure).toHaveBeenCalledOnce();
-	expect(panels.style.height).toBe("");
+	expect(panels.style.height).toBe("80px");
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
 
 	pending.resolve();
 	await flush();

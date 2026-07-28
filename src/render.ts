@@ -195,6 +195,8 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.ensureRendered(index, !wasSelected);
 		if (!wasSelected && previousHeight !== undefined && state) {
 			state.animationFrom = previousHeight;
+			this.panelsEl?.style.setProperty("height", `${previousHeight}px`);
+			this.panelsEl?.classList.add("tabsdown__panels--animating");
 		}
 		if (state?.status === "rendered") {
 			this.animateRenderedPanel(index, state);
