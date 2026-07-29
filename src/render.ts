@@ -3,6 +3,7 @@ import {
 	Component,
 	MarkdownRenderChild,
 	MarkdownRenderer,
+	setIcon,
 } from "obsidian";
 import type { TabConfiguration, TabDefinition, TabsDiagnostic } from "./parser";
 
@@ -91,7 +92,13 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			const button = createElement(tabList, "button", "tabsdown__tab");
 			button.type = "button";
 			button.id = tabId;
-			button.textContent = tab.label;
+			if (tab.icon) {
+				const icon = createElement(button, "span", "tabsdown__tab-icon");
+				icon.setAttribute("aria-hidden", "true");
+				setIcon(icon, tab.icon);
+			}
+			createElement(button, "span", "tabsdown__tab-label").textContent =
+				tab.label;
 			button.setAttribute("role", "tab");
 			button.setAttribute("aria-controls", panelId);
 

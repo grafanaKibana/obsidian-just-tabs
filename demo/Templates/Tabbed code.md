@@ -17,7 +17,7 @@ if (languages.length < 2) {
 	tR += languages
 		.map(
 			(language) =>
-				`tab: ${language}\n\n` + "```" + `${language}\n\n` + "```\n",
+				`tab: icon:code ${language}\n\n` + "```" + `${language}\n\n` + "```\n",
 		)
 		.join("\n");
 	tR += "````";

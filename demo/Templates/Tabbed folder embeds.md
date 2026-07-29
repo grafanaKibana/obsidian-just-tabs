@@ -14,7 +14,7 @@ if (notes.length < 2) {
 } else {
 	tR += "````tabsdown\nconfig: left, multi\n\n";
 	tR += notes
-		.map((file) => `tab: ${file.basename}\n\n![[${file.path}]]\n`)
+		.map((file) => `tab: icon:file-text ${file.basename}\n\n![[${file.path}]]\n`)
 		.join("\n");
 	tR += "````";
 }

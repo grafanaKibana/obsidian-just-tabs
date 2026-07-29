@@ -10,6 +10,7 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 - Render Markdown, links, embeds, callouts, math, Mermaid, and compatible community-plugin processors through Obsidian's Markdown pipeline.
 - Use interactive tabs in Reading View and outside the editing locus in Live Preview; keep raw Markdown in Source Mode.
 - Preserve visited panels during normal switching and refresh stale hidden panels after relevant vault or metadata changes.
+- Label tabs with any bundled Lucide icon.
 - Inherit the active Obsidian theme, with five optional Style Settings controls.
 - Navigate with pointer, touch, or keyboard using accessible tab semantics.
 - Keep malformed source visible in a diagnostic instead of silently discarding it.
@@ -48,6 +49,19 @@ console.log("Hello Tabsdown");
 ````
 
 `top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`.
+
+### Icons
+
+Start a label with `icon:<name>` to put one of Obsidian's bundled [Lucide](https://lucide.dev/icons/) icons before it:
+
+````markdown
+```tabsdown
+tab: icon:code Python
+tab: icon:file-text Notes
+```
+````
+
+An unknown name renders nothing, and every tab still needs a label. Escape a literal label as `tab: \icon:name`.
 
 ### Nested tabs
 

@@ -243,6 +243,13 @@ settings:
 		color var(--anim-duration-fast) var(--anim-motion-swing);
 }
 
+.tabsdown__tab-icon {
+	--icon-size: 1em;
+	display: inline-flex;
+	margin-inline-end: 0.35em;
+	vertical-align: -0.15em;
+}
+
 .tabsdown__tab:hover {
 	border-color: var(--tabsdown-tab-hover-border);
 	background-color: var(--tabsdown-tab-hover-background);

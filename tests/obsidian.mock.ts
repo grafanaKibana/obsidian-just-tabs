@@ -97,6 +97,12 @@ export class MarkdownRenderChild extends Component {
 
 export const MarkdownRenderer = { render: renderMock };
 
+export const setIcon = vi.fn((element: HTMLElement, name: string) => {
+	const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	icon.classList.add("svg-icon", `lucide-${name}`);
+	element.append(icon);
+});
+
 export class MarkdownView {}
 
 export class Plugin extends Component {

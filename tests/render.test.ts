@@ -10,7 +10,7 @@ import {
 	renderTabsDiagnostic,
 } from "../src/render";
 import type { TabDefinition } from "../src/parser";
-import { renderMock } from "./obsidian.mock";
+import { renderMock, setIcon } from "./obsidian.mock";
 
 const tabs = [
 	{ label: "One", body: "First" },
@@ -323,6 +323,30 @@ test("applies the final position and layout configuration without showing it in 
 	expect(container.classList.contains("tabsdown--left")).toBe(false);
 	expect(container.classList.contains("tabsdown--multi")).toBe(false);
 	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
+});
+
+test("renders a tab icon beside the label and hides it from assistive tech", () => {
+	const container = document.createElement("div");
+	const child = new TabBlockRenderChild(
+		{} as App,
+		container,
+		"Folder/Note.md",
+		[
+			{ label: "Python", body: "First", icon: "code" },
+			{ label: "Notes", body: "Second" },
+		] satisfies TabDefinition[],
+		[],
+		() => 0,
+	);
+
+	child.load();
+	const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+	const icon = buttons[0]?.querySelector(".tabsdown__tab-icon");
+
+	expect(setIcon).toHaveBeenCalledWith(icon, "code");
+	expect(icon?.getAttribute("aria-hidden")).toBe("true");
+	expect(buttons[0]?.textContent).toBe("Python");
+	expect(buttons[1]?.querySelector(".tabsdown__tab-icon")).toBeNull();
 });
 
 test("layout modifiers style only their own tab list", () => {

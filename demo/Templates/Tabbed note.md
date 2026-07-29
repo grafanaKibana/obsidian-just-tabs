@@ -1,5 +1,8 @@
 <%*
-const answer = await tp.system.prompt("Tab labels, comma separated", "First, Second");
+const answer = await tp.system.prompt(
+	"Tab labels, comma separated (prefix with icon:<lucide-name> for an icon)",
+	"icon:pencil Draft, icon:check Final",
+);
 if (answer === null) return;
 const labels = [
 	...new Set(
