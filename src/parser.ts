@@ -1,7 +1,6 @@
 export interface ParsedTab {
 	label: string;
 	body: string;
-	configuration?: TabConfiguration[];
 }
 
 export type TabDefinition = ParsedTab;
@@ -12,6 +11,7 @@ export type TabsDiagnosticCode =
 	| "content-before-first-tab"
 	| "duplicate-label"
 	| "empty-label"
+	| "invalid-config"
 	| "nested-tabs"
 	| "too-few-tabs";
 
@@ -23,10 +23,11 @@ export interface TabsDiagnostic {
 }
 
 export type TabsParseResult =
-	| { ok: true; tabs: ParsedTab[] }
+	| { ok: true; tabs: ParsedTab[]; configuration?: TabConfiguration[] }
 	| { ok: false; diagnostic: TabsDiagnostic };
 
 const markerPrefix = "tab:";
+const configurationPrefix = "config:";
 const configurationValues = new Set<TabConfiguration>([
 	"top",
 	"left",
@@ -38,28 +39,9 @@ const configurationValues = new Set<TabConfiguration>([
 const backtickFence = /^ {0,3}(`{3,})([^`]*)$/;
 const tildeFence = /^ {0,3}(~{3,})(.*)$/;
 
-function parseTabHeader(value: string): {
-	configuration: TabConfiguration[];
-	label: string;
-} {
-	const label = value.trim();
-	const match = /^(.*)\s+\(([^()]*)\)$/.exec(label);
-	if (!match) {
-		return { configuration: [], label };
-	}
-
-	const [, rawLabel = "", rawConfiguration = ""] = match;
-	const configuration = rawConfiguration
-		.split(",")
-		.map((item) => item.trim())
-		.filter((item): item is TabConfiguration => configurationValues.has(item as TabConfiguration));
-	return configuration.length === rawConfiguration.split(",").length
-		? { configuration, label: rawLabel.trim() }
-		: { configuration: [], label };
-}
-
 export function parseTabs(source: string): TabsParseResult {
 	const tabs: ParsedTab[] = [];
+	const configuration: TabConfiguration[] = [];
 	const labels = new Set<string>();
 	const lines = source.split("\n");
 	let current: ParsedTab | undefined;
@@ -81,10 +63,33 @@ export function parseTabs(source: string): TabsParseResult {
 		const ending = hasNewline ? (hasCarriageReturn ? "\r\n" : "\n") : "";
 		const lineNumber = index + 1;
 
+		if (current === undefined && line.startsWith(configurationPrefix)) {
+			const values = line
+				.slice(configurationPrefix.length)
+				.split(",")
+				.map((value) => value.trim());
+			if (values.length === 1 && values[0] === "") {
+				return fail(
+					"invalid-config",
+					"A config marker must list at least one value.",
+					lineNumber,
+				);
+			}
+			for (const value of values) {
+				if (!configurationValues.has(value as TabConfiguration)) {
+					return fail(
+						"invalid-config",
+						`Unknown configuration value "${value}".`,
+						lineNumber,
+					);
+				}
+				configuration.push(value as TabConfiguration);
+			}
+			continue;
+		}
+
 		if (line.startsWith(markerPrefix)) {
-			const { configuration, label } = parseTabHeader(
-				line.slice(markerPrefix.length),
-			);
+			const label = line.slice(markerPrefix.length).trim();
 			if (label === "") {
 				return fail("empty-label", "Tab labels must not be empty.", lineNumber);
 			}
@@ -96,11 +101,7 @@ export function parseTabs(source: string): TabsParseResult {
 				);
 			}
 
-			current = {
-				label,
-				body: "",
-				...(configuration.length > 0 ? { configuration } : {}),
-			};
+			current = { label, body: "" };
 			tabs.push(current);
 			labels.add(label);
 			openFence = undefined;
@@ -132,7 +133,7 @@ export function parseTabs(source: string): TabsParseResult {
 		}
 
 		if (current === undefined) {
-			if (source === "") {
+			if (line.trim() === "") {
 				continue;
 			}
 			return fail(
@@ -155,5 +156,9 @@ export function parseTabs(source: string): TabsParseResult {
 		);
 	}
 
-	return { ok: true, tabs };
+	return {
+		ok: true,
+		tabs,
+		...(configuration.length > 0 ? { configuration } : {}),
+	};
 }

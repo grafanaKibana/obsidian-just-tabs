@@ -45,6 +45,7 @@ function setup(
 		container,
 		"Note.md",
 		tabs,
+		[],
 		() => generation.value,
 	);
 	child.load();
@@ -280,6 +281,7 @@ test("removes listeners on unload and gives a replacement child one handler", as
 			{ label: "One", body: "First" },
 			{ label: "Two", body: "Second" },
 		],
+		[],
 		() => generation.value,
 	);
 	replacement.load();

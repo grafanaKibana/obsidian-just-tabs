@@ -16,12 +16,7 @@ const layout = await tp.system.suggester(
 	"Tab list layout",
 );
 
-tR += "````tabsdown\n";
-tR += labels
-	.map(
-		(label, index) =>
-			`tab: ${label}${index === 0 ? ` (${position}, ${layout})` : ""}\n\n`,
-	)
-	.join("\n");
+tR += "````tabsdown\n" + `config: ${position}, ${layout}\n\n`;
+tR += labels.map((label) => `tab: ${label}\n\n`).join("\n");
 tR += "````";
 %>

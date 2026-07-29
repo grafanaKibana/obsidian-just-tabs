@@ -16,7 +16,7 @@ Put related Markdown, queries, and embeds into compact, accessible tabs without 
 
 ## Syntax
 
-Start each tab with a column-zero `tab: <label>` marker. A block needs at least two non-empty, unique labels. Put optional block configuration in parentheses after any label, such as `tab: Python (top, multi)`; later position or layout tokens win.
+Start each tab with a column-zero `tab: <label>` marker. A block needs at least two non-empty, unique labels. Put optional block configuration on a column-zero `config: <values>` line before the first tab, such as `config: top, multi`; later position or layout values win.
 
 `````markdown
 ````tabsdown
@@ -37,7 +37,9 @@ Use matching backtick or tilde fences. The outer fence must be longer than every
 
 ````markdown
 ~~~tabsdown
-tab: Python (top, multi)
+config: top, multi
+
+tab: Python
 print("Hello Tabsdown")
 
 tab: JavaScript
@@ -45,7 +47,7 @@ console.log("Hello Tabsdown");
 ~~~
 ````
 
-`top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks are not supported.
+`top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. An unknown value in a `config:` line is a diagnostic; after the first tab marker, `config:` is ordinary body content. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks are not supported.
 
 ## Obsidian modes
 

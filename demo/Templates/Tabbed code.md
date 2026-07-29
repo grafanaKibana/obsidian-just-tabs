@@ -4,14 +4,11 @@ const languages = (await tp.system.prompt("Languages, comma separated", "python,
 	.map((language) => language.trim())
 	.filter(Boolean);
 
-tR += "````tabsdown\n";
+tR += "````tabsdown\nconfig: top, one\n\n";
 tR += languages
 	.map(
-		(language, index) =>
-			`tab: ${language}${index === 0 ? " (top, one)" : ""}\n\n` +
-			"```" +
-			`${language}\n\n` +
-			"```\n",
+		(language) =>
+			`tab: ${language}\n\n` + "```" + `${language}\n\n` + "```\n",
 	)
 	.join("\n");
 tR += "````";

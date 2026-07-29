@@ -73,6 +73,7 @@ export default class TabsdownPlugin extends Plugin {
 					element,
 					context.sourcePath,
 					result.tabs,
+					result.configuration ?? [],
 					() => this.freshnessGeneration,
 				),
 			);

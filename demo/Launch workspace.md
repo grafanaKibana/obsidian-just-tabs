@@ -11,7 +11,9 @@ owner: Studio team
 A calm place for the plan, the work, and the material that keeps the team moving.
 
 ````tabsdown
-tab: Overview (top, one)
+config: top, one
+
+tab: Overview
 
 > [!success] On track
 > **74% launch ready** · 18 of 24 tasks complete · 12 days remaining

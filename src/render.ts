@@ -65,6 +65,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		containerEl: HTMLElement,
 		private readonly sourcePath: string,
 		private readonly tabs: readonly TabDefinition[],
+		private readonly configuration: readonly TabConfiguration[],
 		private readonly getGeneration: () => number,
 	) {
 		super(containerEl);
@@ -128,13 +129,11 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private resolveConfiguration(): TabConfiguration[] {
 		let position: TabConfiguration = "top";
 		let layout: TabConfiguration = "one";
-		for (const tab of this.tabs) {
-			for (const configuration of tab.configuration ?? []) {
-				if (["top", "left", "right", "bottom"].includes(configuration)) {
-					position = configuration;
-				} else {
-					layout = configuration;
-				}
+		for (const configuration of this.configuration) {
+			if (["top", "left", "right", "bottom"].includes(configuration)) {
+				position = configuration;
+			} else {
+				layout = configuration;
 			}
 		}
 		return [position, layout];

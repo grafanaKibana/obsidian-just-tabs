@@ -26,6 +26,7 @@ function setup(generation = { value: 0 }): {
 		container,
 		"Folder/Note.md",
 		tabs,
+		[],
 		() => generation.value,
 	);
 	child.load();
@@ -298,8 +299,8 @@ test("diagnostics preserve raw source through text-only DOM APIs", () => {
 
 test("applies the final position and layout configuration without showing it in labels", () => {
 	const configuredTabs = [
-		{ label: "Python", body: "First", configuration: ["left", "multi"] },
-		{ label: "JavaScript", body: "Second", configuration: ["bottom", "one"] },
+		{ label: "Python", body: "First" },
+		{ label: "JavaScript", body: "Second" },
 	] satisfies TabDefinition[];
 	const container = document.createElement("div");
 	const child = new TabBlockRenderChild(
@@ -307,6 +308,7 @@ test("applies the final position and layout configuration without showing it in 
 		container,
 		"Folder/Note.md",
 		configuredTabs,
+		["left", "multi", "bottom", "one"],
 		() => 0,
 	);
 
