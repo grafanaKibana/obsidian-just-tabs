@@ -1,5 +1,7 @@
 <%*
-const folder = (await tp.system.prompt("Folder path", "")).replace(/^\/|\/$/g, "");
+const answer = await tp.system.prompt("Folder path", "");
+if (answer === null) return;
+const folder = answer.replace(/^\/|\/$/g, "");
 const matches = app.vault
 	.getMarkdownFiles()
 	.filter((file) => (folder === "" ? true : file.path.startsWith(`${folder}/`)))
