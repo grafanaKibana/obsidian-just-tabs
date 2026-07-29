@@ -42,11 +42,45 @@ describe("parseTabs", () => {
 		}
 	});
 
-	test("parses parenthesized configuration without including it in the label", () => {
+	test("parses a leading config marker and keeps it out of the tabs", () => {
+		expect(
+			parseTabs("config: top, multi\n\ntab: Python\ntab: JavaScript"),
+		).toEqual({
+			ok: true,
+			configuration: ["top", "multi"],
+			tabs: [
+				{ label: "Python", body: "" },
+				{ label: "JavaScript", body: "" },
+			],
+		});
+	});
+
+	test("merges repeated config markers in source order", () => {
+		expect(parseTabs("config: left\nconfig: multi\ntab: One\ntab: Two")).toEqual({
+			ok: true,
+			configuration: ["left", "multi"],
+			tabs: [
+				{ label: "One", body: "" },
+				{ label: "Two", body: "" },
+			],
+		});
+	});
+
+	test("keeps a config marker after the first tab as body content", () => {
+		expect(parseTabs("tab: One\nconfig: left\ntab: Two")).toEqual({
+			ok: true,
+			tabs: [
+				{ label: "One", body: "config: left\n" },
+				{ label: "Two", body: "" },
+			],
+		});
+	});
+
+	test("does not support the previous parenthesized configuration", () => {
 		expect(parseTabs("tab: Python (top, multi)\ntab: JavaScript")).toEqual({
 			ok: true,
 			tabs: [
-				{ label: "Python", body: "", configuration: ["top", "multi"] },
+				{ label: "Python (top, multi)", body: "" },
 				{ label: "JavaScript", body: "" },
 			],
 		});

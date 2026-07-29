@@ -11,7 +11,9 @@ owner: Studio team
 A calm place for the plan, the work, and the material that keeps the team moving.
 
 ````tabsdown
-tab: Overview (top, one)
+config: top, one
+
+tab: Overview
 
 > [!success] On track
 > **74% launch ready** · 18 of 24 tasks complete · 12 days remaining
@@ -63,33 +65,3 @@ This section lives outside the tab block, so it remains unchanged while the sele
 - [x] Record the product demo
 - [ ] Finish the launch page
 - [ ] Schedule the announcement
-
-## Nested tabs
-
-The outer fence is longer than the inner one, so each level keeps its own tab list. Here the nested set sits on the third tab, which renders the first time that tab is opened.
-
-````tabsdown
-tab: Rollout
-
-Staged by region, one day apart, so a regression never reaches everyone at once.
-
-tab: Owners
-
-June holds the build, Mina the messaging, Theo the launch page.
-
-tab: Platforms
-
-```tabsdown
-tab: macOS
-Ship the notarized build first.
-
-tab: Windows
-Confirm the installer signature.
-
-tab: iOS
-Check the split-view layout.
-
-tab: Android
-Verify the back gesture leaves tabs intact.
-```
-````
