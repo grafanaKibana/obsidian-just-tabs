@@ -2,7 +2,7 @@
 
 Put related Markdown, queries, and embeds into compact, accessible tabs without turning your Obsidian notes into custom pages.
 
-![A note in Reading View cycling through the Overview, Timeline, and Resources tabs of one tabsdown block](docs/assets/tabsdown-showcase.gif)
+![A note in Reading View cycling through the Overview, Timeline, and Resources tabs of a tabsdown block, with a nested block inside the first tab](docs/assets/tabsdown-showcase.gif)
 
 ## Features
 
