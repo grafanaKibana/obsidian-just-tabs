@@ -12,7 +12,6 @@ export type TabsDiagnosticCode =
 	| "duplicate-label"
 	| "empty-label"
 	| "invalid-config"
-	| "nested-tabs"
 	| "too-few-tabs"
 	| "unclosed-nested-block";
 
@@ -84,10 +83,33 @@ export function parseTabs(source: string): TabsParseResult {
 			nestedLine = lineNumber;
 		}
 
+		if (!nested && current === undefined && line.startsWith(configurationPrefix)) {
+			const values = line
+				.slice(configurationPrefix.length)
+				.split(",")
+				.map((value) => value.trim());
+			if (values.length === 1 && values[0] === "") {
+				return fail(
+					"invalid-config",
+					"A config marker must list at least one value.",
+					lineNumber,
+				);
+			}
+			for (const value of values) {
+				if (!configurationValues.has(value as TabConfiguration)) {
+					return fail(
+						"invalid-config",
+						`Unknown configuration value "${value}".`,
+						lineNumber,
+					);
+				}
+				configuration.push(value as TabConfiguration);
+			}
+			continue;
+		}
+
 		if (!nested && line.startsWith(markerPrefix)) {
-			const { configuration, label } = parseTabHeader(
-				line.slice(markerPrefix.length),
-			);
+			const label = line.slice(markerPrefix.length).trim();
 			if (label === "") {
 				return fail("empty-label", "Tab labels must not be empty.", lineNumber);
 			}

@@ -65,7 +65,7 @@ tab: Go
 tab: Frontend
 `````
 
-Markers inside a nested block belong to that block, so the inner `tab:` lines above do not split the outer one and need no escaping. Each level places its own tab list and keeps its own active tab; configuration such as `(left, multi)` applies only to the level that declares it.
+Markers inside a nested block belong to that block, so the inner `tab:` lines above do not split the outer one and need no escaping. Each level places its own tab list and keeps its own active tab; a `config:` line applies only to the level that declares it.
 
 ## Obsidian modes
 
