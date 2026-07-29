@@ -45,7 +45,25 @@ console.log("Hello Tabsdown");
 ~~~
 ````
 
-`top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`. Nested `tabsdown` blocks are not supported.
+`top`, `left`, `right`, and `bottom` place the tab list; `one` keeps it on one scrollable line and `multi` wraps labels. The first tab starts active. Empty tab bodies are valid. To render a literal marker-looking line, escape it as `\tab:`.
+
+### Nested tabs
+
+A tab body can hold another `tabsdown` block, as long as its fence is shorter than the one around it:
+
+`````markdown
+````tabsdown
+tab: Backend
+
+```tabsdown
+tab: Python
+tab: Go
+```
+
+tab: Frontend
+`````
+
+Markers inside a nested block belong to that block, so the inner `tab:` lines above do not split the outer one and need no escaping. Each level places its own tab list and keeps its own active tab; configuration such as `(left, multi)` applies only to the level that declares it.
 
 ## Obsidian modes
 
@@ -159,7 +177,7 @@ Keyboard focus remains visible, hidden panels stay out of the accessibility tree
 
 ### I see a diagnostic
 
-Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. Nested `tabsdown` blocks are rejected. The diagnostic preserves the source so it can be corrected.
+Confirm that markers start at column zero, labels are non-empty and unique, the block has at least two tabs, and no content appears before the first marker. A nested block that is never closed reports its opening line, because it swallows every marker after it. The diagnostic preserves the source so it can be corrected.
 
 ### A nested code block closes the Tabsdown block
 
