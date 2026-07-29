@@ -331,3 +331,13 @@ test("layout modifiers style only their own tab list", () => {
 
 	expect(styles).not.toMatch(/\.tabsdown--[a-z]+\s+\.tabsdown__/);
 });
+
+test("panels contain their own margins so height stays stable", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	const panels = /\.tabsdown__panels \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+
+	expect(panels).toMatch(/display:\s*flow-root/);
+});

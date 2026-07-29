@@ -271,7 +271,11 @@ settings:
 	min-inline-size: 0;
 }
 
+/* flow-root keeps a panel's last margin inside the measured box. Without it the
+   margin escapes once the animating class drops its clipping, and the block
+   gains that margin as a gap the moment the animation ends. */
 .tabsdown__panels {
+	display: flow-root;
 	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
 }
 
