@@ -1,6 +1,7 @@
 export interface ParsedTab {
 	label: string;
 	body: string;
+	icon?: string;
 }
 
 export type TabDefinition = ParsedTab;
@@ -28,6 +29,7 @@ export type TabsParseResult =
 
 const markerPrefix = "tab:";
 const configurationPrefix = "config:";
+const iconToken = /^icon:(\S+)\s*/;
 const configurationValues = new Set<TabConfiguration>([
 	"top",
 	"left",
@@ -109,7 +111,13 @@ export function parseTabs(source: string): TabsParseResult {
 		}
 
 		if (!nested && line.startsWith(markerPrefix)) {
-			const label = line.slice(markerPrefix.length).trim();
+			const marker = line.slice(markerPrefix.length).trim();
+			const iconMatch = iconToken.exec(marker);
+			const icon = iconMatch?.[1];
+			let label = iconMatch ? marker.slice(iconMatch[0].length) : marker;
+			if (!iconMatch && label.startsWith("\\icon:")) {
+				label = label.slice(1);
+			}
 			if (label === "") {
 				return fail("empty-label", "Tab labels must not be empty.", lineNumber);
 			}
@@ -121,7 +129,7 @@ export function parseTabs(source: string): TabsParseResult {
 				);
 			}
 
-			current = { label, body: "" };
+			current = { label, body: "", ...(icon ? { icon } : {}) };
 			tabs.push(current);
 			labels.add(label);
 			openFence = undefined;

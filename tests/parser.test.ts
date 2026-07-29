@@ -379,6 +379,44 @@ describe("parseTabs", () => {
 		}
 	});
 
+	test("reads a leading icon token off the label", () => {
+		const source = "tab: icon:file-text  Notes\ntab: Plain";
+
+		expect(parseTabs(source)).toEqual({
+			ok: true,
+			tabs: [
+				{ label: "Notes", body: "", icon: "file-text" },
+				{ label: "Plain", body: "" },
+			],
+		});
+	});
+
+	test.each([
+		{ name: "escaped", marker: "tab: \\icon:x Literal", label: "icon:x Literal" },
+		{ name: "nameless", marker: "tab: icon: Literal", label: "icon: Literal" },
+	])("keeps an $name icon token in the label", ({ marker, label }) => {
+		const result = parseTabs(`${marker}\ntab: Other`);
+
+		expect(result.ok).toBe(true);
+		if (result.ok) {
+			expect(result.tabs[0]).toEqual({ label, body: "" });
+		}
+	});
+
+	test("rejects an icon token with no label", () => {
+		const source = "tab: icon:check\ntab: Other";
+
+		expect(parseTabs(source)).toEqual({
+			ok: false,
+			diagnostic: {
+				code: "empty-label",
+				message: "Tab labels must not be empty.",
+				line: 1,
+				source,
+			},
+		});
+	});
+
 	test("does not support the previous marker syntax", () => {
 		const source = "--- tab: One\ntab: Two";
 
