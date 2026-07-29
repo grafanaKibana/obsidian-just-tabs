@@ -163,9 +163,19 @@ settings:
 	-webkit-overflow-scrolling: touch;
 }
 
+/* A surface rather than a rule: an inline border reads as a tab underline under
+   the underline personality, and as a quote bar everywhere else. */
 .tabsdown .tabsdown {
-	padding-inline-start: var(--tabsdown-content-spacing, 0.75rem);
-	border-inline-start: var(--border-width) solid var(--tabsdown-tab-border);
+	margin-block: var(--tabsdown-content-spacing, 0.75rem);
+	padding: var(--tabsdown-content-spacing, 0.75rem);
+	border: var(--border-width) solid var(--tabsdown-tab-border);
+	border-radius: var(--radius-m);
+	background-color: var(--background-secondary);
+}
+
+/* Alternated so a third level does not sit on its parent's own colour. */
+.tabsdown .tabsdown .tabsdown {
+	background-color: var(--background-primary);
 }
 
 .tabsdown--multi > .tabsdown__tablist {
