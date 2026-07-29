@@ -13,7 +13,7 @@ A calm place for the plan, the work, and the material that keeps the team moving
 ````tabsdown
 config: top, one
 
-tab: Overview
+tab: icon:layout-dashboard Overview
 
 > [!success] On track
 > **74% launch ready** · 18 of 24 tasks complete · 12 days remaining
@@ -33,7 +33,7 @@ tab: Next week
 Monitor feedback and triage the first reports.
 ```
 
-tab: Timeline
+tab: icon:calendar-days Timeline
 
 > [!abstract] The final stretch
 > A focused path from content freeze to launch day.
@@ -44,7 +44,7 @@ tab: Timeline
 | July 29 | Final QA | Sign off on desktop and mobile |
 | July 31 | Launch | Publish and monitor feedback |
 
-tab: Resources
+tab: icon:book-open Resources
 
 > [!info] Everything close at hand
 > The material everyone needs, without splitting context across extra pages.
