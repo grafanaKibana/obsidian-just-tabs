@@ -218,9 +218,20 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private animateRenderedPanel(index: number, state: PanelState): void {
 		const from = state.animationFrom;
 		state.animationFrom = undefined;
-		if (!this.disposed && this.selectedIndex === index && from !== undefined) {
-			this.animateHeight(from);
+		if (this.disposed || this.selectedIndex !== index || from === undefined) {
+			return;
 		}
+
+		// A nested block keeps growing after this panel resolves, so any height
+		// measured now is stale. Release the pin rather than animate to it.
+		if (state.panelEl.querySelector(".tabsdown")) {
+			this.cancelHeightAnimation();
+			this.panelsEl?.style.removeProperty("height");
+			this.panelsEl?.classList.remove("tabsdown__panels--animating");
+			return;
+		}
+
+		this.animateHeight(from);
 	}
 
 	private cancelHeightAnimation(): void {

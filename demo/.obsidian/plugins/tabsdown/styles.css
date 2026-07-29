@@ -163,7 +163,22 @@ settings:
 	-webkit-overflow-scrolling: touch;
 }
 
-.tabsdown--multi .tabsdown__tablist {
+/* A surface rather than a rule: an inline border reads as a tab underline under
+   the underline personality, and as a quote bar everywhere else. */
+.tabsdown .tabsdown {
+	margin-block: var(--tabsdown-content-spacing, 0.75rem);
+	padding: var(--tabsdown-content-spacing, 0.75rem);
+	border: var(--border-width) solid var(--tabsdown-tab-border);
+	border-radius: var(--radius-m);
+	background-color: var(--background-secondary);
+}
+
+/* Alternated so a third level does not sit on its parent's own colour. */
+.tabsdown .tabsdown .tabsdown {
+	background-color: var(--background-primary);
+}
+
+.tabsdown--multi > .tabsdown__tablist {
 	flex-wrap: wrap;
 	overflow-x: visible;
 }
@@ -180,8 +195,8 @@ settings:
 	grid-template-columns: minmax(0, 1fr) auto;
 }
 
-.tabsdown--left .tabsdown__tablist,
-.tabsdown--right .tabsdown__tablist {
+.tabsdown--left > .tabsdown__tablist,
+.tabsdown--right > .tabsdown__tablist {
 	flex-direction: column;
 	inline-size: auto;
 	margin-block-end: 0;
@@ -189,7 +204,7 @@ settings:
 	overflow-y: auto;
 }
 
-.tabsdown--right .tabsdown__tablist {
+.tabsdown--right > .tabsdown__tablist {
 	order: 1;
 }
 
@@ -198,7 +213,7 @@ settings:
 	flex-direction: column;
 }
 
-.tabsdown--bottom .tabsdown__tablist {
+.tabsdown--bottom > .tabsdown__tablist {
 	order: 1;
 	margin-block: var(--tabsdown-content-spacing, 0.75rem) 0;
 }
@@ -256,7 +271,11 @@ settings:
 	min-inline-size: 0;
 }
 
+/* flow-root keeps a panel's last margin inside the measured box. Without it the
+   margin escapes once the animating class drops its clipping, and the block
+   gains that margin as a gap the moment the animation ends. */
 .tabsdown__panels {
+	display: flow-root;
 	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
 }
 

@@ -1,3 +1,7 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import type { App } from "obsidian";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -319,4 +323,23 @@ test("applies the final position and layout configuration without showing it in 
 	expect(container.classList.contains("tabsdown--left")).toBe(false);
 	expect(container.classList.contains("tabsdown--multi")).toBe(false);
 	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
+});
+
+test("layout modifiers style only their own tab list", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+
+	expect(styles).not.toMatch(/\.tabsdown--[a-z]+\s+\.tabsdown__/);
+});
+
+test("panels contain their own margins so height stays stable", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	const panels = /\.tabsdown__panels \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+
+	expect(panels).toMatch(/display:\s*flow-root/);
 });

@@ -336,3 +336,26 @@ test("rapid activation never attaches output to the wrong panel", async () => {
 	expect(panels[0]?.hidden).toBe(false);
 	expect(panels[1]?.hidden).toBe(true);
 });
+
+test("releases the height pin when a panel holds a nested block", async () => {
+	renderMock.mockImplementation(async (_app, markdown, element) => {
+		element.textContent = markdown;
+		if (markdown.startsWith("Second")) {
+			element.createEl("div", { cls: "tabsdown" });
+		}
+	});
+	const { container } = setup({ value: 0 });
+	await flush();
+	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+	const second =
+		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+	if (!panels) throw new Error("Expected panels.");
+	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+
+	second?.click();
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+
+	await flush();
+	expect(panels.style.height).toBe("");
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+});

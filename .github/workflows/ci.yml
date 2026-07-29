@@ -38,6 +38,18 @@ jobs:
       - run: npm ci
       - run: npm run check
 
+      - name: Check the demo vault runs this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run demo
+
+          if ! git diff --quiet -- demo/.obsidian/plugins/tabsdown; then
+            echo "::error::The demo vault plugin is stale. Run 'npm run demo' and commit the result."
+            git diff --stat -- demo/.obsidian/plugins/tabsdown
+            exit 1
+          fi
+
       - name: Store release-shaped build
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

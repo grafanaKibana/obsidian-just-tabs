@@ -13,7 +13,8 @@ export type TabsDiagnosticCode =
 	| "empty-label"
 	| "invalid-config"
 	| "nested-tabs"
-	| "too-few-tabs";
+	| "too-few-tabs"
+	| "unclosed-nested-block";
 
 export interface TabsDiagnostic {
 	code: TabsDiagnosticCode;
@@ -46,6 +47,8 @@ export function parseTabs(source: string): TabsParseResult {
 	const lines = source.split("\n");
 	let current: ParsedTab | undefined;
 	let openFence: string | undefined;
+	let nested = false;
+	let nestedLine = 0;
 
 	const fail = (
 		code: TabsDiagnosticCode,
@@ -63,33 +66,28 @@ export function parseTabs(source: string): TabsParseResult {
 		const ending = hasNewline ? (hasCarriageReturn ? "\r\n" : "\n") : "";
 		const lineNumber = index + 1;
 
-		if (current === undefined && line.startsWith(configurationPrefix)) {
-			const values = line
-				.slice(configurationPrefix.length)
-				.split(",")
-				.map((value) => value.trim());
-			if (values.length === 1 && values[0] === "") {
-				return fail(
-					"invalid-config",
-					"A config marker must list at least one value.",
-					lineNumber,
-				);
+		const fenceMatch = backtickFence.exec(line) ?? tildeFence.exec(line);
+		const fenceRun = fenceMatch?.[1];
+		const fenceInfo = fenceMatch?.[2] ?? "";
+
+		if (openFence) {
+			if (fenceRun?.startsWith(openFence) && /^[ \t]*$/.test(fenceInfo)) {
+				openFence = undefined;
+				nested = false;
 			}
-			for (const value of values) {
-				if (!configurationValues.has(value as TabConfiguration)) {
-					return fail(
-						"invalid-config",
-						`Unknown configuration value "${value}".`,
-						lineNumber,
-					);
-				}
-				configuration.push(value as TabConfiguration);
-			}
-			continue;
+		} else if (fenceRun) {
+			openFence = fenceRun;
+			// A nested block owns its own markers. CommonMark already forces the
+			// outer fence to be the longer one, so the close above cannot be stolen
+			// by an inner fence.
+			nested = /^[ \t]*([^ \t]*)/.exec(fenceInfo)?.[1] === "tabsdown";
+			nestedLine = lineNumber;
 		}
 
-		if (line.startsWith(markerPrefix)) {
-			const label = line.slice(markerPrefix.length).trim();
+		if (!nested && line.startsWith(markerPrefix)) {
+			const { configuration, label } = parseTabHeader(
+				line.slice(markerPrefix.length),
+			);
 			if (label === "") {
 				return fail("empty-label", "Tab labels must not be empty.", lineNumber);
 			}
@@ -108,30 +106,6 @@ export function parseTabs(source: string): TabsParseResult {
 			continue;
 		}
 
-		const fenceMatch = backtickFence.exec(line) ?? tildeFence.exec(line);
-		const fenceRun = fenceMatch?.[1];
-		const fenceInfo = fenceMatch?.[2] ?? "";
-		if (openFence) {
-			if (
-				fenceRun?.startsWith(openFence) &&
-				/^[ \t]*$/.test(fenceInfo)
-			) {
-				openFence = undefined;
-			}
-		} else {
-			const infoToken = /^[ \t]*([^ \t]*)/.exec(fenceInfo)?.[1];
-			if (fenceRun && infoToken === "tabsdown") {
-				return fail(
-					"nested-tabs",
-					"Nested tabs blocks are not supported.",
-					lineNumber,
-				);
-			}
-			if (fenceRun) {
-				openFence = fenceRun;
-			}
-		}
-
 		if (current === undefined) {
 			if (line.trim() === "") {
 				continue;
@@ -143,9 +117,20 @@ export function parseTabs(source: string): TabsParseResult {
 			);
 		}
 
-		current.body += line.startsWith(`\\${markerPrefix}`)
+		// Nested source stays verbatim; the inner block unescapes its own markers.
+		current.body += !nested && line.startsWith(`\\${markerPrefix}`)
 			? `${line.slice(1)}${ending}`
 			: `${line}${ending}`;
+	}
+
+	// Checked before the tab count, because an unclosed nested block swallows every
+	// marker after it and would otherwise surface as a missing tab.
+	if (nested) {
+		return fail(
+			"unclosed-nested-block",
+			"A nested tabs block is never closed.",
+			nestedLine,
+		);
 	}
 
 	if (tabs.length < 2) {

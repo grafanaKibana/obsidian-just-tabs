@@ -33,7 +33,7 @@ For manual testing, copy or link this repository into:
 
 Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → Community plugins**.
 
-To refresh this repository's demo vault, run `npm run demo`. It builds and copies `main.js`, `manifest.json`, and `styles.css` into `demo/.obsidian/plugins/tabsdown/`; commit the result when you want the demo to match your change.
+The demo vault always ships the plugin built from the same commit, so anyone can open `demo/` in Obsidian and exercise the current behavior. After changing `src/`, `styles.css`, or `manifest.json`, run `npm run demo` and commit the result; CI fails the `quality` check when the committed build does not match the source.
 
 ## Pull requests
 

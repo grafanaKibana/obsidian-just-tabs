@@ -194,3 +194,38 @@ test("moves the Live Preview editing locus into a tapped block", async () => {
 		?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 	expect(editor.setCursor).toHaveBeenCalledTimes(2);
 });
+
+test("a click inside a nested block reaches the enclosing edit bridge", async () => {
+	const { editor, plugin } = createPlugin();
+	plugin.onload();
+	const handler = processorRegistrationMock.mock.calls[0]?.[1];
+	if (!handler) throw new Error("Expected a tabsdown processor.");
+	const addChild = vi.fn((child: { load(): void }) => child.load());
+	const outer = document.createElement("div");
+	document.body.append(outer);
+
+	void handler("tab: One\nFirst\ntab: Two\nSecond", outer, {
+		sourcePath: "Folder/Note.md",
+		addChild,
+		getSectionInfo: () => ({ lineEnd: 8, lineStart: 3, text: "" }),
+	});
+	await flush();
+
+	// A nested block renders through the same processor, but Obsidian reports no
+	// section for it.
+	const panel = outer.querySelector<HTMLElement>('[role="tabpanel"]');
+	const inner = document.createElement("div");
+	panel?.append(inner);
+	void handler("tab: Inner one\nA\ntab: Inner two\nB", inner, {
+		sourcePath: "Folder/Note.md",
+		addChild,
+		getSectionInfo: () => null,
+	});
+	await flush();
+
+	inner
+		.querySelector<HTMLElement>('[role="tabpanel"]')
+		?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+	expect(editor.setCursor).toHaveBeenCalledWith({ line: 4, ch: 0 });
+});
