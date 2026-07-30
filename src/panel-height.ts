@@ -7,16 +7,18 @@ export interface HeightAnimator {
 export function createHeightAnimator(panelsEl: HTMLElement): HeightAnimator {
 	let animationFrame: number | undefined;
 	let resetTimer: number | undefined;
+	let ownerWindow: Window | undefined;
 
 	const cancel = (): void => {
 		if (animationFrame !== undefined) {
-			window.cancelAnimationFrame(animationFrame);
+			ownerWindow?.cancelAnimationFrame(animationFrame);
 			animationFrame = undefined;
 		}
 		if (resetTimer !== undefined) {
-			window.clearTimeout(resetTimer);
+			ownerWindow?.clearTimeout(resetTimer);
 			resetTimer = undefined;
 		}
+		ownerWindow = undefined;
 	};
 
 	const settle = (): void => {
@@ -30,21 +32,22 @@ export function createHeightAnimator(panelsEl: HTMLElement): HeightAnimator {
 		settle,
 		animate(from: number): void {
 			cancel();
+			ownerWindow = panelsEl.ownerDocument.defaultView ?? window;
 			panelsEl.style.removeProperty("height");
 			const to = panelsEl.getBoundingClientRect().height;
 			panelsEl.style.height = `${from}px`;
 			panelsEl.classList.add("tabsdown__panels--animating");
-			animationFrame = window.requestAnimationFrame(() => {
+			animationFrame = ownerWindow.requestAnimationFrame(() => {
 				panelsEl.style.height = `${to}px`;
 				animationFrame = undefined;
 			});
 
 			const duration = Number.parseFloat(
-				getComputedStyle(panelsEl).getPropertyValue(
+				ownerWindow.getComputedStyle(panelsEl).getPropertyValue(
 					"--tabsdown-animation-duration",
 				),
 			);
-			resetTimer = window.setTimeout(
+			resetTimer = ownerWindow.setTimeout(
 				settle,
 				Number.isFinite(duration) ? duration + 50 : 250,
 			);

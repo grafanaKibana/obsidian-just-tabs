@@ -199,6 +199,15 @@ describe("availability", () => {
 		document.body.append(frame);
 		const popup = frame.contentDocument;
 		if (!popup) throw new Error("Expected an iframe document.");
+		const popupWindow = popup.defaultView;
+		if (!popupWindow) throw new Error("Expected an iframe window.");
+		const requestFrame = vi
+			.spyOn(popupWindow, "requestAnimationFrame")
+			.mockReturnValue(1);
+		const cancelFrame = vi.spyOn(popupWindow, "cancelAnimationFrame");
+		const setTimer = vi.spyOn(popupWindow, "setTimeout");
+		const clearTimer = vi.spyOn(popupWindow, "clearTimeout");
+		const getStyle = vi.spyOn(popupWindow, "getComputedStyle");
 		const container = popup.createElement("div");
 		const trace = popup.createElement("div");
 		const watch = popup.createElement("div");
@@ -217,6 +226,14 @@ describe("availability", () => {
 		controller.setAvailable("watch", false);
 
 		expect(popup.activeElement).toBe(buttons[0]);
+		expect(requestFrame).toHaveBeenCalledOnce();
+		expect(setTimer).toHaveBeenCalledOnce();
+		expect(getStyle).toHaveBeenCalledWith(
+			container.querySelector(".tabsdown__panels"),
+		);
+		controller.destroy();
+		expect(cancelFrame).toHaveBeenCalledWith(1);
+		expect(clearTimer).toHaveBeenCalled();
 	});
 
 	test("falls back to the root when no other tab remains", () => {
@@ -384,6 +401,7 @@ describe("animation and teardown", () => {
 		expect(buttons[0]?.getAttribute("aria-controls")).toBe(
 			"steptrace-trace",
 		);
+		expect(trace.getAttribute("role")).toBe("log");
 
 		controller.destroy();
 
@@ -413,6 +431,12 @@ describe("mount guards", () => {
 		expect(() =>
 			mountTabs(container, { tabs: [], label: "Empty" }),
 		).toThrow(/at least one tab/);
+		expect(() =>
+			mountTabs(container, {
+				label: "Blank",
+				tabs: [{ id: "blank", label: " \t", panel: panel("Blank") }],
+			}),
+		).toThrow(/labels must not be blank/);
 		expect(() =>
 			mountTabs(container, {
 				label: "Duplicated",
@@ -485,6 +509,30 @@ describe("mount guards", () => {
 		).toThrow(/cannot contain its container/);
 		expect(container.parentElement).toBe(ancestor);
 		expect(container.querySelector(".tabsdown--mounted")).toBeNull();
+	});
+
+	test("rejects a panel owned by another live mount until teardown", () => {
+		const panelElement = panel("Shared");
+		const first = mountTabs(document.createElement("div"), {
+			label: "First",
+			tabs: [{ id: "shared", label: "Shared", panel: panelElement }],
+		});
+
+		expect(() =>
+			mountTabs(document.createElement("div"), {
+				label: "Second",
+				tabs: [{ id: "shared", label: "Shared", panel: panelElement }],
+			}),
+		).toThrow(/already mounted/);
+
+		first.destroy();
+
+		expect(() =>
+			mountTabs(document.createElement("div"), {
+				label: "Second",
+				tabs: [{ id: "shared", label: "Shared", panel: panelElement }],
+			}).destroy(),
+		).not.toThrow();
 	});
 });
 

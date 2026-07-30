@@ -32,6 +32,7 @@ const panelAttributes = [
 ] as const;
 
 let nextMountId = 0;
+const mountedPanels = new WeakSet<HTMLElement>();
 
 interface MountedTab {
 	id: string;
@@ -49,6 +50,9 @@ export function mountTabs(
 	if (options.tabs.length === 0) {
 		throw new Error("Tabsdown: mountTabs needs at least one tab.");
 	}
+	if (options.tabs.some((tab) => tab.label.trim() === "")) {
+		throw new Error("Tabsdown: mountTabs tab labels must not be blank.");
+	}
 	if (
 		new Set(options.tabs.map((tab) => tab.id)).size !== options.tabs.length
 	) {
@@ -58,6 +62,9 @@ export function mountTabs(
 		new Set(options.tabs.map((tab) => tab.panel)).size !== options.tabs.length
 	) {
 		throw new Error("Tabsdown: mountTabs panel elements must be unique.");
+	}
+	if (options.tabs.some((tab) => mountedPanels.has(tab.panel))) {
+		throw new Error("Tabsdown: a panel is already mounted.");
 	}
 	const panelIds = options.tabs.map((tab) => tab.panel.id).filter(Boolean);
 	if (new Set(panelIds).size !== panelIds.length) {
@@ -102,7 +109,9 @@ export function mountTabs(
 		// A caller that already identifies its own panel keeps that id, so its
 		// lookups still resolve while the panel is mounted.
 		tab.panel.id ||= `${mountId}-panel-${index}`;
-		tab.panel.setAttribute("role", "group");
+		if (!tab.panel.getAttribute("role")?.trim()) {
+			tab.panel.setAttribute("role", "group");
+		}
 		tab.panel.setAttribute("aria-labelledby", buttonId);
 		tab.panel.tabIndex = 0;
 		button.setAttribute("aria-controls", tab.panel.id);
@@ -123,6 +132,7 @@ export function mountTabs(
 
 	root.append(tabList, panelsEl);
 	container.append(root);
+	for (const tab of tabs) mountedPanels.add(tab.panel);
 
 	let selection: string | null = null;
 	let notifying = false;
@@ -225,6 +235,7 @@ export function mountTabs(
 			animator.cancel();
 			tabList.removeEventListener("click", onClick);
 			for (const tab of tabs) {
+				mountedPanels.delete(tab.panel);
 				for (const [name, value] of tab.restore) {
 					if (value === null) {
 						tab.panel.removeAttribute(name);
