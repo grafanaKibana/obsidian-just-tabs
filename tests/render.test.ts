@@ -385,3 +385,26 @@ test("a narrow block moves its side tab list off the panels' line", () => {
 	expect(query).toMatch(/flex-basis:\s*100%/);
 	expect(query).toMatch(/flex-direction:\s*row/);
 });
+
+test("equal-width tabs do not stretch down a side list", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	// A grow factor along a column's main axis sizes height, not width, so every
+	// tab ended up as tall as the panel beside it.
+	const reset =
+		/body\.tabsdown-alignment-equal-width \.tabsdown--left > \.tabsdown__tablist > \.tabsdown__tab[\s\S]*?flex:\s*0 0 auto/.exec(
+			styles,
+		);
+	// Restored where the list is a row again. Both rules carry the same
+	// specificity, so this one only wins by coming later in the file.
+	const restore =
+		/@container \([^)]*\) \{\s*body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 7rem/.exec(
+			styles,
+		);
+
+	expect(reset).not.toBeNull();
+	expect(restore).not.toBeNull();
+	expect(restore!.index).toBeGreaterThan(reset!.index);
+});

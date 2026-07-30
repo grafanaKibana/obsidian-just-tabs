@@ -450,6 +450,24 @@ body.tabsdown-alignment-equal-width .tabsdown__tab {
 	white-space: normal;
 }
 
+/* A side list runs down the block axis, where that grow factor equalises height
+   instead of width and leaves every tab as tall as the panel beside it. Their
+   widths already match, from the list's own cross-axis stretch. */
+body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+/* Narrow enough that the list is a row again, so equal width means what it says.
+   Kept next to the rule it overrides: both carry the same specificity, so the
+   cascade decides on document order. */
+@container (max-width: 28rem) {
+	body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+		flex: 1 0 7rem;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.tabsdown__tablist {
 		scroll-behavior: auto;
