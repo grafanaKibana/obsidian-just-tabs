@@ -244,6 +244,30 @@ describe("availability", () => {
 		expect(clearTimer).toHaveBeenCalled();
 	});
 
+	test("moves focus forward from a hidden tab and wraps at the end", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const controller = mountTabs(container, {
+			label: "Three panels",
+			tabs: [
+				{ id: "first", label: "First", panel: panel("First") },
+				{ id: "middle", label: "Middle", panel: panel("Middle") },
+				{ id: "last", label: "Last", panel: panel("Last") },
+			],
+		});
+		const buttons = container.querySelectorAll<HTMLButtonElement>("button");
+		buttons[1]?.focus();
+
+		controller.setAvailable("middle", false);
+
+		expect(document.activeElement).toBe(buttons[2]);
+		buttons[2]?.focus();
+
+		controller.setAvailable("last", false);
+
+		expect(document.activeElement).toBe(buttons[0]);
+	});
+
 	test("falls back to the root when no other tab remains", () => {
 		const { container, controller, buttons } = setup({
 			selection: "trace",
@@ -441,6 +465,12 @@ describe("mount guards", () => {
 		).toThrow(/at least one tab/);
 		expect(() =>
 			mountTabs(container, {
+				label: " \t",
+				tabs: [{ id: "group", label: "Group", panel: panel("Group") }],
+			}),
+		).toThrow(/nonblank group label/);
+		expect(() =>
+			mountTabs(container, {
 				label: "Blank",
 				tabs: [{ id: "blank", label: " \t", panel: panel("Blank") }],
 			}),
@@ -536,6 +566,38 @@ describe("mount guards", () => {
 		).toThrow(/must not contain each other/);
 		expect(child.parentElement).toBe(parent);
 		expect(parent.getAttribute("role")).toBeNull();
+	});
+
+	test("rejects shadow ancestors and target-document id collisions", () => {
+		const panelElement = panel("Shadow host");
+		const shadow = panelElement.attachShadow({ mode: "open" });
+		const shadowContainer = document.createElement("div");
+		shadow.append(shadowContainer);
+
+		expect(() =>
+			mountTabs(shadowContainer, {
+				label: "Shadow",
+				tabs: [{ id: "shadow", label: "Shadow", panel: panelElement }],
+			}),
+		).toThrow(/cannot contain its container/);
+		expect(shadowContainer.getRootNode()).toBe(shadow);
+		expect(panelElement.getAttribute("role")).toBeNull();
+
+		const existing = document.createElement("div");
+		existing.id = "shared-id";
+		document.body.append(existing);
+		const foreignDocument = document.implementation.createHTMLDocument();
+		const foreignPanel = foreignDocument.createElement("div");
+		foreignPanel.id = "shared-id";
+
+		expect(() =>
+			mountTabs(document.createElement("div"), {
+				label: "Collision",
+				tabs: [{ id: "foreign", label: "Foreign", panel: foreignPanel }],
+			}),
+		).toThrow(/already used in the target document/);
+		expect(foreignPanel.ownerDocument).toBe(foreignDocument);
+		expect(foreignPanel.getAttribute("role")).toBeNull();
 	});
 
 	test("rejects a panel owned by another live mount until teardown", () => {

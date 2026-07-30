@@ -34,6 +34,17 @@ const panelAttributes = [
 let nextMountId = 0;
 const mountedPanels = new WeakSet<HTMLElement>();
 
+function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
+	let current: Node | null = node;
+	while (current) {
+		if (current === ancestor) return true;
+		current =
+			current.parentNode ??
+			((current.getRootNode() as ShadowRoot).host ?? null);
+	}
+	return false;
+}
+
 interface MountedTab {
 	id: string;
 	button: HTMLButtonElement;
@@ -49,6 +60,9 @@ export function mountTabs(
 ): TabsController {
 	if (options.tabs.length === 0) {
 		throw new Error("Tabsdown: mountTabs needs at least one tab.");
+	}
+	if (options.label.trim() === "") {
+		throw new Error("Tabsdown: mountTabs needs a nonblank group label.");
 	}
 	if (options.tabs.some((tab) => tab.label.trim() === "")) {
 		throw new Error("Tabsdown: mountTabs tab labels must not be blank.");
@@ -81,14 +95,30 @@ export function mountTabs(
 	if (new Set(panelIds).size !== panelIds.length) {
 		throw new Error("Tabsdown: mountTabs panel DOM ids must be unique.");
 	}
-	if (options.tabs.some((tab) => tab.panel.contains(container))) {
+	const ownerDocument = container.ownerDocument;
+	if (
+		options.tabs.some((tab) => {
+			const existing = tab.panel.id
+				? ownerDocument.getElementById(tab.panel.id)
+				: null;
+			return existing !== null && existing !== tab.panel;
+		})
+	) {
+		throw new Error(
+			"Tabsdown: a panel DOM id is already used in the target document.",
+		);
+	}
+	if (
+		options.tabs.some((tab) =>
+			isShadowIncludingAncestor(tab.panel, container),
+		)
+	) {
 		throw new Error("Tabsdown: a mounted panel cannot contain its container.");
 	}
 	if (container.querySelector(":scope > .tabsdown--mounted")) {
 		throw new Error("Tabsdown: this container already has mounted tabs.");
 	}
 
-	const ownerDocument = container.ownerDocument;
 	const ElementConstructor = ownerDocument.defaultView?.Element ?? Element;
 	const mountId = `tabsdown-mount-${++nextMountId}`;
 	const root = ownerDocument.createElement("div");
@@ -230,9 +260,16 @@ export function mountTabs(
 			// The button is about to disappear; leaving focus on it drops
 			// the user at the top of the document.
 			if (tab.button.ownerDocument.activeElement === tab.button) {
-				const next = tabs.find(
-					(candidate) => candidate !== tab && candidate.available,
-				);
+				const index = tabs.indexOf(tab);
+				const next =
+					tabs.find(
+						(candidate, candidateIndex) =>
+							candidateIndex > index && candidate.available,
+					) ??
+					tabs.find(
+						(candidate, candidateIndex) =>
+							candidateIndex < index && candidate.available,
+					);
 				(next?.button ?? root).focus();
 			}
 			if (selection === id) {
