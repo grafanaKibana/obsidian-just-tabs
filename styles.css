@@ -216,8 +216,12 @@ settings:
 	overflow-y: auto;
 }
 
-.tabsdown--right > .tabsdown__tablist {
-	order: 1;
+/* Reversing the axis rather than ordering the tab list. An order would put the
+   panel on the first line whenever a long list forces a wrap, stranding the tabs
+   underneath it; reversing keeps the list first in line-assignment order, so it
+   stays beside the panel when both fit and above it when they do not. */
+.tabsdown--right {
+	flex-direction: row-reverse;
 }
 
 .tabsdown--bottom {
@@ -457,9 +461,6 @@ body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tab
 	.tabsdown--left > .tabsdown__tablist,
 	.tabsdown--right > .tabsdown__tablist {
 		flex-direction: row;
-		/* Undoes the right-side order, which would otherwise strand the list
-		   below a full-width panel and make switching tabs a scroll away. */
-		order: 0;
 		inline-size: 100%;
 		overflow-x: auto;
 		overflow-y: hidden;

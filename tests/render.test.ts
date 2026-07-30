@@ -384,9 +384,19 @@ test("a narrow block moves its side tab list off the panels' line", () => {
 	expect(styles).not.toMatch(/\.tabsdown--(left|right)[^{]*\{[^}]*grid-template-columns/);
 	expect(query).toMatch(/flex-basis:\s*100%/);
 	expect(query).toMatch(/flex-direction:\s*row/);
-	// Without this a right-side list stays after the panels, so switching tabs
-	// means scrolling past a full-width panel first.
-	expect(query).toMatch(/order:\s*0/);
+});
+
+test("a wrapped right-side tab list stays above its panels", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+
+	// Ordering the tab list instead would hand the first line to the panels
+	// whenever a long list forces a wrap, at any width, leaving the tabs stranded
+	// below the content.
+	expect(styles).toMatch(/\.tabsdown--right \{[^}]*flex-direction:\s*row-reverse/);
+	expect(styles).not.toMatch(/\.tabsdown--right > \.tabsdown__tablist \{[^}]*order:/);
 });
 
 test("equal-width tabs do not stretch down a side list", () => {
