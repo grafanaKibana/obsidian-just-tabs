@@ -126,6 +126,16 @@ Tabsdown sends raw tab bodies through Obsidian's Markdown renderer. It does not 
 
 Visited panels stay mounted while current. When a hidden panel becomes stale after a relevant public vault or metadata event, Tabsdown rebuilds it once on reactivation. This keeps a hidden Dataview panel current after indexed vault changes. Visible processors continue to manage their normal refresh behavior; network-, clock-, or private-state-driven updates remain that processor's responsibility.
 
+## Publishing with Quartz
+
+Obsidian renders these blocks; a static site generator does not. [quartz-tabsdown](https://github.com/grafanaKibana/quartz-tabsdown) is a separate [Quartz](https://quartz.jzhao.xyz/) plugin that reads the same syntax, so a vault published with Quartz shows tabs rather than a fenced code block:
+
+```bash
+npx quartz plugin add github:grafanaKibana/quartz-tabsdown
+```
+
+It shares this repository's parser and defaults to the same appearance values as the Style Settings controls below. Interactive tabs there need JavaScript; without it every panel renders in order under its own label.
+
 ## Style Settings
 
 Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes appearance controls like:
