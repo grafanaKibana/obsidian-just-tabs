@@ -183,6 +183,17 @@ settings:
 	background-color: var(--background-primary);
 }
 
+/* Doubled so it outranks .tabsdown rather than relying on source order. A caller
+   mounting its own panels keeps its containing block: layout containment would
+   otherwise capture any position: fixed descendant of a mounted panel. */
+.tabsdown.tabsdown--mounted {
+	container-type: normal;
+}
+
+.tabsdown--collapsed > .tabsdown__tablist {
+	margin-block-end: 0;
+}
+
 .tabsdown--multi > .tabsdown__tablist {
 	flex-wrap: wrap;
 	overflow-x: visible;

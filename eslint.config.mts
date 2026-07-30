@@ -42,7 +42,14 @@ export default defineConfig(
 		},
 	},
 	{
-		files: ["src/render.ts", "tests/**/*.ts"],
+		// The Quartz port vendors panel-height.ts and tabs.ts verbatim, where
+		// Obsidian's DOM extensions do not exist.
+		files: [
+			"src/panel-height.ts",
+			"src/render.ts",
+			"src/tabs.ts",
+			"tests/**/*.ts",
+		],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
 		},
