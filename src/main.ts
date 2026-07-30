@@ -1,6 +1,9 @@
 import { MarkdownRenderChild, MarkdownView, Plugin } from "obsidian";
 import { parseTabs } from "./parser";
 import { TabBlockRenderChild, renderTabsDiagnostic } from "./render";
+import { mountTabs, type MountTabsOptions, type TabsController } from "./tabs";
+
+export type { MountTabsOptions, TabSpec, TabsController } from "./tabs";
 
 const INTERACTIVE_SELECTOR =
 	'a, audio, button, iframe, input, label, select, summary, textarea, video, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"]), [role="button"], [role="checkbox"], [role="link"], [role="menuitem"], [role="switch"]';
@@ -80,5 +83,13 @@ export default class TabsdownPlugin extends Plugin {
 		});
 
 		this.app.workspace.trigger("parse-style-settings");
+	}
+
+	mountTabs(container: HTMLElement, options: MountTabsOptions): TabsController {
+		const controller = mountTabs(container, options);
+		this.register(() => {
+			controller.destroy();
+		});
+		return controller;
 	}
 }
