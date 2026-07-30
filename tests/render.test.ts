@@ -403,7 +403,7 @@ test("equal-width tabs do not stretch down a side list", () => {
 	// Restored where the list is a row again. Both rules carry the same
 	// specificity, so this one only wins by coming later in the file.
 	const restore =
-		/@container \([^)]*\) \{\s*body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 7rem/.exec(
+		/@container \([^)]*\) \{[\s\S]*?body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 7rem/.exec(
 			styles,
 		);
 
