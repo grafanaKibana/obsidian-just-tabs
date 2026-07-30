@@ -6,6 +6,7 @@ import {
 	setIcon,
 } from "obsidian";
 import type { TabConfiguration, TabDefinition, TabsDiagnostic } from "./parser";
+import { createHeightAnimator, type HeightAnimator } from "./panel-height";
 
 interface PanelState {
 	panelEl: HTMLElement;
@@ -55,8 +56,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private readonly buttons: HTMLButtonElement[] = [];
 	private readonly panels: PanelState[] = [];
 	private panelsEl?: HTMLElement;
-	private heightAnimationFrame?: number;
-	private heightResetTimer?: number;
+	private animator?: HeightAnimator;
 	private selectedIndex = 0;
 	private focusIndex = 0;
 	private disposed = false;
@@ -85,6 +85,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 		const panels = createElement(this.containerEl, "div", "tabsdown__panels");
 		this.panelsEl = panels;
+		this.animator = createHeightAnimator(panels);
 
 		this.tabs.forEach((tab, index) => {
 			const tabId = `${this.blockId}-tab-${index}`;
@@ -148,7 +149,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onunload(): void {
 		this.disposed = true;
-		this.cancelHeightAnimation();
+		this.animator?.cancel();
 		for (const panel of this.panels) {
 			this.disposePanel(panel);
 		}
@@ -195,7 +196,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.updateState();
 		this.ensureRendered(index, !wasSelected);
 		if (!wasSelected && previousHeight !== undefined && state) {
-			this.cancelHeightAnimation();
+			this.animator?.cancel();
 			state.animationFrom = previousHeight;
 			this.panelsEl?.style.setProperty("height", `${previousHeight}px`);
 			this.panelsEl?.classList.add("tabsdown__panels--animating");
@@ -232,51 +233,11 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		// A nested block keeps growing after this panel resolves, so any height
 		// measured now is stale. Release the pin rather than animate to it.
 		if (state.panelEl.querySelector(".tabsdown")) {
-			this.cancelHeightAnimation();
-			this.panelsEl?.style.removeProperty("height");
-			this.panelsEl?.classList.remove("tabsdown__panels--animating");
+			this.animator?.settle();
 			return;
 		}
 
-		this.animateHeight(from);
-	}
-
-	private cancelHeightAnimation(): void {
-		if (this.heightAnimationFrame !== undefined) {
-			window.cancelAnimationFrame(this.heightAnimationFrame);
-			this.heightAnimationFrame = undefined;
-		}
-		if (this.heightResetTimer !== undefined) {
-			window.clearTimeout(this.heightResetTimer);
-			this.heightResetTimer = undefined;
-		}
-	}
-
-	private animateHeight(from: number): void {
-		const panels = this.panelsEl;
-		if (!panels) return;
-
-		this.cancelHeightAnimation();
-		panels.style.removeProperty("height");
-		const to = panels.getBoundingClientRect().height;
-		panels.style.height = `${from}px`;
-		panels.classList.add("tabsdown__panels--animating");
-		this.heightAnimationFrame = window.requestAnimationFrame(() => {
-			panels.style.height = `${to}px`;
-			this.heightAnimationFrame = undefined;
-		});
-
-		const duration = Number.parseFloat(
-			getComputedStyle(panels).getPropertyValue("--tabsdown-animation-duration"),
-		);
-		this.heightResetTimer = window.setTimeout(
-			() => {
-				this.cancelHeightAnimation();
-				panels.style.removeProperty("height");
-				panels.classList.remove("tabsdown__panels--animating");
-			},
-			Number.isFinite(duration) ? duration + 50 : 250,
-		);
+		this.animator?.animate(from);
 	}
 
 	private scrollTabIntoView(index: number): void {

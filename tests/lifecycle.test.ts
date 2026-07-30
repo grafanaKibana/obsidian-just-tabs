@@ -359,3 +359,67 @@ test("releases the height pin when a panel holds a nested block", async () => {
 	expect(panels.style.height).toBe("");
 	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
 });
+
+test("keeps the selected panel's pin when a superseded render resolves first", async () => {
+	vi.useFakeTimers();
+	const pending: Record<string, Deferred> = {};
+	renderMock.mockImplementation((_app, markdown, element) => {
+		const operation = deferred();
+		pending[markdown] = operation;
+		return operation.promise.then(() => {
+			element.textContent = markdown;
+		});
+	});
+	const { container } = setup({ value: 0 }, [
+		{ label: "One", body: "First" },
+		{ label: "Two", body: "Second" },
+		{ label: "Three", body: "Third" },
+	]);
+	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+	const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+	if (!panels) throw new Error("Expected panels.");
+	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+	pending.First?.resolve();
+	await vi.advanceTimersByTimeAsync(0);
+
+	buttons[1]?.click();
+	buttons[2]?.click();
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+
+	// Both renders are in flight and the superseded one lands first. Its pin is
+	// its own; reading it must not consume the one the selected panel waits on,
+	// or nothing arms the reset and the pinned height never comes off.
+	pending.Second?.resolve();
+	await vi.advanceTimersByTimeAsync(0);
+	pending.Third?.resolve();
+	await vi.advanceTimersByTimeAsync(0);
+
+	await vi.advanceTimersByTimeAsync(300);
+	expect(panels.style.height).toBe("");
+	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+});
+
+test("measures the old height before the outgoing panel is emptied", async () => {
+	const { container } = setup({ value: 0 });
+	await flush();
+	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+	const second =
+		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+	if (!panels) throw new Error("Expected panels.");
+	let measured: { id?: string; text?: string } | undefined;
+	vi.spyOn(panels, "getBoundingClientRect").mockImplementation(() => {
+		const visible = panels.querySelector<HTMLElement>(
+			".tabsdown__panel:not([hidden])",
+		);
+		measured ??= { id: visible?.id, text: visible?.textContent ?? undefined };
+		return { height: 80 } as DOMRect;
+	});
+	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+
+	second?.click();
+
+	// Measuring later than this reads the incoming panel, which is hidden or
+	// already emptied, so every switch would animate up from nothing.
+	expect(measured?.id).toBe(panels.children[0]?.id);
+	expect(measured?.text).toBe("First");
+});
