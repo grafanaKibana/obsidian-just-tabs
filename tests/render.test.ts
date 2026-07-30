@@ -363,7 +363,61 @@ test("panels contain their own margins so height stays stable", () => {
 		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
 		"utf8",
 	);
-	const panels = /\.tabsdown__panels \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+	// Anchored, so a position-specific rule ending in the same class does not
+	// shadow the base rule this asserts on.
+	const panels = /^\.tabsdown__panels \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
 
 	expect(panels).toMatch(/display:\s*flow-root/);
+});
+
+test("a narrow block moves its side tab list off the panels' line", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	const query = /@container \([^)]*\) \{([\s\S]*?)\n\}/.exec(styles)?.[1] ?? "";
+
+	// A grid here collapsed the panel column to zero width in a narrow pane, and
+	// the query has to measure the block, not the viewport, so a note docked in a
+	// sidebar recovers too.
+	expect(styles).toMatch(/^\.tabsdown \{[^}]*container-type:\s*inline-size/m);
+	expect(styles).not.toMatch(/\.tabsdown--(left|right)[^{]*\{[^}]*grid-template-columns/);
+	expect(query).toMatch(/flex-basis:\s*100%/);
+	expect(query).toMatch(/flex-direction:\s*row/);
+});
+
+test("a wrapped right-side tab list stays above its panels", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+
+	// Ordering the tab list instead would hand the first line to the panels
+	// whenever a long list forces a wrap, at any width, leaving the tabs stranded
+	// below the content.
+	expect(styles).toMatch(/\.tabsdown--right \{[^}]*flex-direction:\s*row-reverse/);
+	expect(styles).not.toMatch(/\.tabsdown--right > \.tabsdown__tablist \{[^}]*order:/);
+});
+
+test("equal-width tabs do not stretch down a side list", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	// A grow factor along a column's main axis sizes height, not width, so every
+	// tab ended up as tall as the panel beside it.
+	const reset =
+		/body\.tabsdown-alignment-equal-width \.tabsdown--left > \.tabsdown__tablist > \.tabsdown__tab[\s\S]*?flex:\s*0 0 auto/.exec(
+			styles,
+		);
+	// Restored where the list is a row again. Both rules carry the same
+	// specificity, so this one only wins by coming later in the file.
+	const restore =
+		/@container \([^)]*\) \{[\s\S]*?body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 7rem/.exec(
+			styles,
+		);
+
+	expect(reset).not.toBeNull();
+	expect(restore).not.toBeNull();
+	expect(restore!.index).toBeGreaterThan(reset!.index);
 });
