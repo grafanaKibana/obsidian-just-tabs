@@ -154,9 +154,9 @@ const tabs = tabsdown?.mountTabs(container, {
   },
 });
 
-tabs.setSelection("trace");
-tabs.setAvailable("watch", false);
-tabs.destroy();
+tabs?.setSelection("trace");
+tabs?.setAvailable("watch", false);
+tabs?.destroy();
 ```
 
 This is a collapsible switch, not a tab strip: selection starts at `null` unless you pass one, and activating the open tab closes it again. At most one panel is ever visible. Fenced `tabsdown` blocks are unaffected and keep their first-tab-selected, always-one-open behavior.

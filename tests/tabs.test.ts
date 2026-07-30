@@ -137,6 +137,28 @@ describe("selection", () => {
 		expect(controller.selection).toBe("trace");
 		expect(onSelectionChange).not.toHaveBeenCalled();
 	});
+
+	test("moves focus out of a panel before switching or collapsing", () => {
+		const { container, controller, tabs, buttons } = setup({
+			selection: "trace",
+		});
+		const traceInput = document.createElement("input");
+		tabs[0]?.panel.append(traceInput);
+		traceInput.focus();
+
+		controller.setSelection("watch");
+
+		expect(document.activeElement).toBe(buttons[1]);
+		const watchInput = document.createElement("input");
+		tabs[1]?.panel.append(watchInput);
+		watchInput.focus();
+
+		controller.setAvailable("watch", false);
+
+		expect(document.activeElement).toBe(
+			container.querySelector(".tabsdown--mounted"),
+		);
+	});
 });
 
 describe("availability", () => {
@@ -432,6 +454,37 @@ describe("mount guards", () => {
 				tabs: [{ id: "trace", label: "Trace", panel: panel("Trace") }],
 			}),
 		).not.toThrow();
+	});
+
+	test("rejects duplicate panel ids and container ancestors before mounting", () => {
+		const container = document.createElement("div");
+		const first = panel("First");
+		const second = panel("Second");
+		first.id = "shared";
+		second.id = "shared";
+
+		expect(() =>
+			mountTabs(container, {
+				label: "Duplicated ids",
+				tabs: [
+					{ id: "first", label: "First", panel: first },
+					{ id: "second", label: "Second", panel: second },
+				],
+			}),
+		).toThrow(/panel DOM ids must be unique/);
+		expect(first.getAttribute("role")).toBeNull();
+		expect(second.getAttribute("role")).toBeNull();
+
+		const ancestor = panel("Ancestor");
+		ancestor.append(container);
+		expect(() =>
+			mountTabs(container, {
+				label: "Cycle",
+				tabs: [{ id: "ancestor", label: "Ancestor", panel: ancestor }],
+			}),
+		).toThrow(/cannot contain its container/);
+		expect(container.parentElement).toBe(ancestor);
+		expect(container.querySelector(".tabsdown--mounted")).toBeNull();
 	});
 });
 

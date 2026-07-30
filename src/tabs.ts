@@ -59,6 +59,13 @@ export function mountTabs(
 	) {
 		throw new Error("Tabsdown: mountTabs panel elements must be unique.");
 	}
+	const panelIds = options.tabs.map((tab) => tab.panel.id).filter(Boolean);
+	if (new Set(panelIds).size !== panelIds.length) {
+		throw new Error("Tabsdown: mountTabs panel DOM ids must be unique.");
+	}
+	if (options.tabs.some((tab) => tab.panel.contains(container))) {
+		throw new Error("Tabsdown: a mounted panel cannot contain its container.");
+	}
 	if (container.querySelector(":scope > .tabsdown--mounted")) {
 		throw new Error("Tabsdown: this container already has mounted tabs.");
 	}
@@ -140,6 +147,11 @@ export function mountTabs(
 		const previous = selection;
 		if (next === previous) return;
 		const from = panelsEl.getBoundingClientRect().height;
+		const outgoing = previous === null ? undefined : find(previous);
+		const activeElement = outgoing?.panel.ownerDocument.activeElement;
+		if (activeElement && outgoing.panel.contains(activeElement)) {
+			(next === null ? root : (find(next)?.button ?? root)).focus();
+		}
 		selection = next;
 		applyState();
 		animator.animate(from);
