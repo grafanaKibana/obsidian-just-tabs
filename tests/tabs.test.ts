@@ -209,7 +209,14 @@ describe("availability", () => {
 		const clearTimer = vi.spyOn(popupWindow, "clearTimeout");
 		const getStyle = vi.spyOn(popupWindow, "getComputedStyle");
 		const container = popup.createElement("div");
-		const trace = popup.createElement("div");
+		let adoptionCount = 0;
+		class TracePanel extends popupWindow.HTMLElement {
+			adoptedCallback(): void {
+				adoptionCount += 1;
+			}
+		}
+		popupWindow.customElements.define("tabsdown-trace-panel", TracePanel);
+		const trace = popup.createElement("tabsdown-trace-panel");
 		const watch = popup.createElement("div");
 		popup.body.append(container);
 		const controller = mountTabs(container, {
@@ -226,6 +233,7 @@ describe("availability", () => {
 		controller.setAvailable("watch", false);
 
 		expect(popup.activeElement).toBe(buttons[0]);
+		expect(adoptionCount).toBe(0);
 		expect(requestFrame).toHaveBeenCalledOnce();
 		expect(setTimer).toHaveBeenCalledOnce();
 		expect(getStyle).toHaveBeenCalledWith(
@@ -509,6 +517,25 @@ describe("mount guards", () => {
 		).toThrow(/cannot contain its container/);
 		expect(container.parentElement).toBe(ancestor);
 		expect(container.querySelector(".tabsdown--mounted")).toBeNull();
+	});
+
+	test("rejects nested panels without changing their hierarchy", () => {
+		const container = document.createElement("div");
+		const parent = panel("Parent");
+		const child = panel("Child");
+		parent.append(child);
+
+		expect(() =>
+			mountTabs(container, {
+				label: "Nested",
+				tabs: [
+					{ id: "parent", label: "Parent", panel: parent },
+					{ id: "child", label: "Child", panel: child },
+				],
+			}),
+		).toThrow(/must not contain each other/);
+		expect(child.parentElement).toBe(parent);
+		expect(parent.getAttribute("role")).toBeNull();
 	});
 
 	test("rejects a panel owned by another live mount until teardown", () => {

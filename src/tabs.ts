@@ -63,6 +63,17 @@ export function mountTabs(
 	) {
 		throw new Error("Tabsdown: mountTabs panel elements must be unique.");
 	}
+	// ponytail: tab groups are small; index ancestors if large mounts ever matter.
+	if (
+		options.tabs.some((tab, index) =>
+			options.tabs.some(
+				(other, otherIndex) =>
+					index !== otherIndex && tab.panel.contains(other.panel),
+			),
+		)
+	) {
+		throw new Error("Tabsdown: mounted panels must not contain each other.");
+	}
 	if (options.tabs.some((tab) => mountedPanels.has(tab.panel))) {
 		throw new Error("Tabsdown: a panel is already mounted.");
 	}
@@ -77,27 +88,29 @@ export function mountTabs(
 		throw new Error("Tabsdown: this container already has mounted tabs.");
 	}
 
+	const ownerDocument = container.ownerDocument;
+	const ElementConstructor = ownerDocument.defaultView?.Element ?? Element;
 	const mountId = `tabsdown-mount-${++nextMountId}`;
-	const root = document.createElement("div");
+	const root = ownerDocument.createElement("div");
 	root.className = "tabsdown tabsdown--mounted";
 	root.tabIndex = -1;
 
-	const tabList = document.createElement("div");
+	const tabList = ownerDocument.createElement("div");
 	tabList.className = "tabsdown__tablist";
 	tabList.setAttribute("role", "group");
 	tabList.setAttribute("aria-label", options.label);
 
-	const panelsEl = document.createElement("div");
+	const panelsEl = ownerDocument.createElement("div");
 	panelsEl.className = "tabsdown__panels";
 
 	const animator: HeightAnimator = createHeightAnimator(panelsEl);
 	const tabs: MountedTab[] = options.tabs.map((tab, index) => {
 		const buttonId = `${mountId}-tab-${index}`;
-		const button = document.createElement("button");
+		const button = ownerDocument.createElement("button");
 		button.type = "button";
 		button.id = buttonId;
 		button.className = "tabsdown__tab";
-		const label = document.createElement("span");
+		const label = ownerDocument.createElement("span");
 		label.className = "tabsdown__tab-label";
 		label.textContent = tab.label;
 		button.append(label);
@@ -176,7 +189,7 @@ export function mountTabs(
 
 	const onClick = (event: Event): void => {
 		const target = event.target;
-		if (!(target instanceof Element)) return;
+		if (!(target instanceof ElementConstructor)) return;
 		const button = target.closest("button");
 		const tab = tabs.find((candidate) => candidate.button === button);
 		if (!tab || !tab.available) return;

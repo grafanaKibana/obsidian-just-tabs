@@ -141,7 +141,31 @@ It shares this repository's parser and defaults to the same appearance values as
 Fenced blocks are not the only way in. A plugin that already owns live DOM panels can hand them to Tabsdown and get the same styling, animation, and accessibility without re-rendering anything through Markdown:
 
 ```ts
-const tabsdown = this.app.plugins.getPlugin("tabsdown");
+interface TabsdownApi {
+  mountTabs(
+    container: HTMLElement,
+    options: {
+      label: string;
+      selection?: string | null;
+      tabs: readonly {
+        id: string;
+        label: string;
+        panel: HTMLElement;
+      }[];
+      onSelectionChange?: (
+        selection: string | null,
+        previous: string | null,
+      ) => void;
+    },
+  ): {
+    readonly selection: string | null;
+    setSelection(id: string | null): void;
+    setAvailable(id: string, available: boolean): void;
+    destroy(): void;
+  };
+}
+
+const tabsdown = this.app.plugins.getPlugin("tabsdown") as TabsdownApi | null;
 const tabs = tabsdown?.mountTabs(container, {
   label: "Trace and watch",
   selection: null,
