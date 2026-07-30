@@ -282,13 +282,15 @@ settings:
 	background-color: var(--tabsdown-tab-hover-background);
 }
 
-.tabsdown__tab[aria-selected="true"] {
+.tabsdown__tab[aria-selected="true"],
+.tabsdown__tab[aria-expanded="true"] {
 	border-color: var(--tabsdown-tab-selected-border);
 	background-color: var(--tabsdown-tab-selected-background);
 	color: var(--tabsdown-tab-selected-color);
 }
 
-.tabsdown__tab[aria-selected="true"]:hover {
+.tabsdown__tab[aria-selected="true"]:hover,
+.tabsdown__tab[aria-expanded="true"]:hover {
 	border-color: var(--tabsdown-tab-selected-border);
 	background-color: var(--tabsdown-tab-selected-background);
 }
@@ -407,7 +409,8 @@ body.tabsdown-personality-underline .tabsdown__tab:hover {
 	background-color: transparent;
 }
 
-body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
+body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
 	border-block-end-color: var(--tabsdown-tab-selected-border);
 	background-color: transparent;
 	color: var(--tabsdown-tab-underline-color);

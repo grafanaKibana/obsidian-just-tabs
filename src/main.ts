@@ -10,6 +10,7 @@ const INTERACTIVE_SELECTOR =
 
 export default class TabsdownPlugin extends Plugin {
 	private freshnessGeneration = 0;
+	private readonly mountedTabs = new Set<TabsController>();
 
 	onload(): void {
 		const markContentStale = (): void => {
@@ -85,11 +86,18 @@ export default class TabsdownPlugin extends Plugin {
 		this.app.workspace.trigger("parse-style-settings");
 	}
 
+	onunload(): void {
+		for (const controller of this.mountedTabs) controller.destroy();
+	}
+
 	mountTabs(container: HTMLElement, options: MountTabsOptions): TabsController {
 		const controller = mountTabs(container, options);
-		this.register(() => {
-			controller.destroy();
-		});
+		const destroy = controller.destroy.bind(controller);
+		controller.destroy = (): void => {
+			destroy();
+			this.mountedTabs.delete(controller);
+		};
+		this.mountedTabs.add(controller);
 		return controller;
 	}
 }

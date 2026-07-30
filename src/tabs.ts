@@ -23,7 +23,13 @@ export interface TabsController {
 	destroy(): void;
 }
 
-const panelAttributes = ["id", "role", "tabindex", "aria-labelledby"] as const;
+const panelAttributes = [
+	"id",
+	"role",
+	"tabindex",
+	"aria-labelledby",
+	"hidden",
+] as const;
 
 let nextMountId = 0;
 
@@ -34,7 +40,6 @@ interface MountedTab {
 	available: boolean;
 	restore: Map<string, string | null>;
 	hadPanelClass: boolean;
-	wasHidden: boolean;
 }
 
 export function mountTabs(
@@ -48,6 +53,11 @@ export function mountTabs(
 		new Set(options.tabs.map((tab) => tab.id)).size !== options.tabs.length
 	) {
 		throw new Error("Tabsdown: mountTabs tab ids must be unique.");
+	}
+	if (
+		new Set(options.tabs.map((tab) => tab.panel)).size !== options.tabs.length
+	) {
+		throw new Error("Tabsdown: mountTabs panel elements must be unique.");
 	}
 	if (container.querySelector(":scope > .tabsdown--mounted")) {
 		throw new Error("Tabsdown: this container already has mounted tabs.");
@@ -92,7 +102,6 @@ export function mountTabs(
 
 		const hadPanelClass = tab.panel.classList.contains("tabsdown__panel");
 		tab.panel.classList.add("tabsdown__panel");
-		const wasHidden = tab.panel.hidden;
 		panelsEl.append(tab.panel);
 
 		return {
@@ -102,7 +111,6 @@ export function mountTabs(
 			available: true,
 			restore,
 			hadPanelClass,
-			wasHidden,
 		};
 	});
 
@@ -186,7 +194,7 @@ export function mountTabs(
 			}
 			// The button is about to disappear; leaving focus on it drops
 			// the user at the top of the document.
-			if (document.activeElement === tab.button) {
+			if (tab.button.ownerDocument.activeElement === tab.button) {
 				const next = tabs.find(
 					(candidate) => candidate !== tab && candidate.available,
 				);
@@ -212,7 +220,6 @@ export function mountTabs(
 						tab.panel.setAttribute(name, value);
 					}
 				}
-				tab.panel.hidden = tab.wasHidden;
 				if (!tab.hadPanelClass) {
 					tab.panel.classList.remove("tabsdown__panel");
 				}

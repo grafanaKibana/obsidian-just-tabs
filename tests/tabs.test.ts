@@ -172,6 +172,31 @@ describe("availability", () => {
 		expect(document.activeElement).not.toBe(document.body);
 	});
 
+	test("moves focus within a pop-out document", () => {
+		const frame = document.createElement("iframe");
+		document.body.append(frame);
+		const popup = frame.contentDocument;
+		if (!popup) throw new Error("Expected an iframe document.");
+		const container = popup.createElement("div");
+		const trace = popup.createElement("div");
+		const watch = popup.createElement("div");
+		popup.body.append(container);
+		const controller = mountTabs(container, {
+			label: "Trace and watch",
+			selection: "watch",
+			tabs: [
+				{ id: "trace", label: "Trace", panel: trace },
+				{ id: "watch", label: "Watch", panel: watch },
+			],
+		});
+		const buttons = container.querySelectorAll<HTMLButtonElement>("button");
+		buttons[1]?.focus();
+
+		controller.setAvailable("watch", false);
+
+		expect(popup.activeElement).toBe(buttons[0]);
+	});
+
 	test("falls back to the root when no other tab remains", () => {
 		const { container, controller, buttons } = setup({
 			selection: "trace",
@@ -329,7 +354,7 @@ describe("animation and teardown", () => {
 		const trace = panel("Trace");
 		trace.id = "steptrace-trace";
 		trace.setAttribute("role", "log");
-		trace.hidden = true;
+		trace.setAttribute("hidden", "until-found");
 		const watch = panel("Watch");
 		watch.tabIndex = 3;
 		const { controller, tabs, buttons } = setup({ panels: [trace, watch] });
@@ -342,7 +367,7 @@ describe("animation and teardown", () => {
 
 		expect(trace.id).toBe("steptrace-trace");
 		expect(trace.getAttribute("role")).toBe("log");
-		expect(trace.hidden).toBe(true);
+		expect(trace.getAttribute("hidden")).toBe("until-found");
 		expect(watch.tabIndex).toBe(3);
 		expect(tabs[1]?.panel.getAttribute("role")).toBeNull();
 	});
@@ -360,6 +385,7 @@ describe("animation and teardown", () => {
 describe("mount guards", () => {
 	test("rejects empty and duplicated input", () => {
 		const container = document.createElement("div");
+		const sharedPanel = panel("Shared");
 		document.body.append(container);
 
 		expect(() =>
@@ -374,6 +400,15 @@ describe("mount guards", () => {
 				],
 			}),
 		).toThrow(/unique/);
+		expect(() =>
+			mountTabs(container, {
+				label: "Duplicated panel",
+				tabs: [
+					{ id: "trace", label: "One", panel: sharedPanel },
+					{ id: "watch", label: "Two", panel: sharedPanel },
+				],
+			}),
+		).toThrow(/panel elements must be unique/);
 	});
 
 	test("rejects a second mount but not a neighbouring markdown block", () => {
@@ -410,5 +445,19 @@ test("keeps mounted roots out of their own container query", () => {
 	// depend on sitting later in the file.
 	expect(styles).toMatch(
 		/\.tabsdown\.tabsdown--mounted \{[^}]*container-type:\s*normal/,
+	);
+});
+
+test("styles mounted selections as active", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+
+	expect(styles).toMatch(
+		/\.tabsdown__tab\[aria-selected="true"\],\s*\.tabsdown__tab\[aria-expanded="true"\] \{/,
+	);
+	expect(styles).toMatch(
+		/body\.tabsdown-personality-underline \.tabsdown__tab\[aria-selected="true"\],\s*body\.tabsdown-personality-underline \.tabsdown__tab\[aria-expanded="true"\] \{/,
 	);
 });

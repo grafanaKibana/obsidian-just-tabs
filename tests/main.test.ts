@@ -255,3 +255,19 @@ test("exposes a tabs API that the plugin tears down on unload", () => {
 		controller.destroy();
 	}).not.toThrow();
 });
+
+test("forgets controllers consumers already destroyed", () => {
+	const { plugin } = createPlugin();
+	plugin.load();
+	const container = document.createElement("div");
+	const controller = plugin.mountTabs(container, {
+		label: "Trace",
+		tabs: [{ id: "trace", label: "Trace", panel: document.createElement("div") }],
+	});
+	const destroy = vi.spyOn(controller, "destroy");
+
+	controller.destroy();
+	plugin.unload();
+
+	expect(destroy).toHaveBeenCalledOnce();
+});
