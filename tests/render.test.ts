@@ -384,6 +384,9 @@ test("a narrow block moves its side tab list off the panels' line", () => {
 	expect(styles).not.toMatch(/\.tabsdown--(left|right)[^{]*\{[^}]*grid-template-columns/);
 	expect(query).toMatch(/flex-basis:\s*100%/);
 	expect(query).toMatch(/flex-direction:\s*row/);
+	// Without this a right-side list stays after the panels, so switching tabs
+	// means scrolling past a full-width panel first.
+	expect(query).toMatch(/order:\s*0/);
 });
 
 test("equal-width tabs do not stretch down a side list", () => {

@@ -216,23 +216,6 @@ settings:
 	overflow-y: auto;
 }
 
-/* Too narrow for a side list: give the panels their own line and lay the list
-   out along the top, since a full-width column of tabs is mostly empty space. */
-@container (max-width: 28rem) {
-	.tabsdown--left > .tabsdown__panels,
-	.tabsdown--right > .tabsdown__panels {
-		flex-basis: 100%;
-	}
-
-	.tabsdown--left > .tabsdown__tablist,
-	.tabsdown--right > .tabsdown__tablist {
-		flex-direction: row;
-		inline-size: 100%;
-		overflow-x: auto;
-		overflow-y: hidden;
-	}
-}
-
 .tabsdown--right > .tabsdown__tablist {
 	order: 1;
 }
@@ -458,10 +441,31 @@ body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tab
 	flex: 0 0 auto;
 }
 
-/* Narrow enough that the list is a row again, so equal width means what it says.
-   Kept next to the rule it overrides: both carry the same specificity, so the
-   cascade decides on document order. */
+/* Too narrow for a side list: give the panels their own line and lay the list out
+   along the top, since a full-width column of tabs is mostly empty space.
+
+   Last in the file on purpose. Every rule here overrides an earlier one at the
+   same specificity — the side positions above and the Style Settings alignment
+   classes — so document order is what decides, and moving this block earlier
+   silently reverts whichever rules then follow it. */
 @container (max-width: 28rem) {
+	.tabsdown--left > .tabsdown__panels,
+	.tabsdown--right > .tabsdown__panels {
+		flex-basis: 100%;
+	}
+
+	.tabsdown--left > .tabsdown__tablist,
+	.tabsdown--right > .tabsdown__tablist {
+		flex-direction: row;
+		/* Undoes the right-side order, which would otherwise strand the list
+		   below a full-width panel and make switching tabs a scroll away. */
+		order: 0;
+		inline-size: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+	}
+
+	/* Back along the inline axis, so equal width means what it says again. */
 	body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 0 7rem;
