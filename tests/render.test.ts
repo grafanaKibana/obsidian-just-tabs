@@ -363,7 +363,25 @@ test("panels contain their own margins so height stays stable", () => {
 		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
 		"utf8",
 	);
-	const panels = /\.tabsdown__panels \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+	// Anchored, so a position-specific rule ending in the same class does not
+	// shadow the base rule this asserts on.
+	const panels = /^\.tabsdown__panels \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
 
 	expect(panels).toMatch(/display:\s*flow-root/);
+});
+
+test("a narrow block moves its side tab list off the panels' line", () => {
+	const styles = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+	const query = /@container \([^)]*\) \{([\s\S]*?)\n\}/.exec(styles)?.[1] ?? "";
+
+	// A grid here collapsed the panel column to zero width in a narrow pane, and
+	// the query has to measure the block, not the viewport, so a note docked in a
+	// sidebar recovers too.
+	expect(styles).toMatch(/^\.tabsdown \{[^}]*container-type:\s*inline-size/m);
+	expect(styles).not.toMatch(/\.tabsdown--(left|right)[^{]*\{[^}]*grid-template-columns/);
+	expect(query).toMatch(/flex-basis:\s*100%/);
+	expect(query).toMatch(/flex-direction:\s*row/);
 });
