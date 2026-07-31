@@ -758,6 +758,71 @@ describe("caller semantics", () => {
 		controller.destroy();
 	});
 
+	test("leaves a panel that already carries its own name", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const heading = document.createElement("h2");
+		heading.id = "trace-heading";
+		heading.textContent = "Trace output";
+		const labelled = panel("Labelled");
+		labelled.setAttribute("aria-labelledby", "trace-heading");
+		const described = panel("Described");
+		described.setAttribute("aria-label", "Watch output");
+		const bare = panel("Bare");
+		container.append(heading);
+
+		const controller = mountTabs(container, {
+			label: "Named panels",
+			tabs: [
+				{ id: "labelled", label: "Trace", panel: labelled },
+				{ id: "described", label: "Watch", panel: described },
+				{ id: "bare", label: "Bare", panel: bare },
+			],
+		});
+		const buttons = Array.from(
+			container.querySelectorAll<HTMLButtonElement>(".tabsdown__tab"),
+		);
+
+		expect(labelled.getAttribute("aria-labelledby")).toBe("trace-heading");
+		expect(described.getAttribute("aria-labelledby")).toBeNull();
+		expect(described.getAttribute("aria-label")).toBe("Watch output");
+		expect(bare.getAttribute("aria-labelledby")).toBe(buttons[2]?.id);
+		// The relationship is still recorded on the button either way.
+		expect(buttons[0]?.getAttribute("aria-controls")).toBe(labelled.id);
+
+		controller.destroy();
+		expect(labelled.getAttribute("aria-labelledby")).toBe("trace-heading");
+	});
+
+	test("adds a panel tab stop only where nothing inside can take one", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const interactive = panel("Interactive");
+		interactive.append(document.createElement("input"));
+		const readable = panel("Readable");
+		const preset = panel("Preset");
+		preset.tabIndex = -1;
+
+		const controller = mountTabs(container, {
+			label: "Tab stops",
+			tabs: [
+				{ id: "interactive", label: "Interactive", panel: interactive },
+				{ id: "readable", label: "Readable", panel: readable },
+				{ id: "preset", label: "Preset", panel: preset },
+			],
+		});
+
+		// Its own input is the first thing a keyboard user should reach, not the
+		// wrapper around it.
+		expect(interactive.hasAttribute("tabindex")).toBe(false);
+		expect(readable.tabIndex).toBe(0);
+		expect(preset.tabIndex).toBe(-1);
+
+		controller.destroy();
+		expect(readable.hasAttribute("tabindex")).toBe(false);
+		expect(preset.tabIndex).toBe(-1);
+	});
+
 	test("gives a preformatted panel a nameable role", () => {
 		const container = document.createElement("div");
 		document.body.append(container);

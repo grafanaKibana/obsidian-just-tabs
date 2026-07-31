@@ -39,6 +39,9 @@ const mountedPanels = new WeakSet<HTMLElement>();
 // else plausible as a panel arrives with a nameable implicit role to preserve.
 const genericPanelTags = new Set(["DIV", "SPAN", "PRE"]);
 
+const focusableSelector =
+	'a[href], audio[controls], button, details, iframe, input, select, summary, textarea, video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+
 function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 	let current: Node | null = node;
 	while (current) {
@@ -222,8 +225,22 @@ export function mountTabs(
 		) {
 			tab.panel.setAttribute("role", "group");
 		}
-		tab.panel.setAttribute("aria-labelledby", buttonId);
-		tab.panel.tabIndex = 0;
+		// A panel that already carries a name keeps it. aria-controls on the button
+		// still records the relationship, and the caller's name is usually the
+		// better one anyway.
+		const named =
+			tab.panel.getAttribute("aria-labelledby")?.trim() ||
+			tab.panel.getAttribute("aria-label")?.trim();
+		if (!named) tab.panel.setAttribute("aria-labelledby", buttonId);
+		// A scrollable region needs a tab stop only when nothing inside it can take
+		// one. Adding it regardless puts the wrapper ahead of the caller's own
+		// controls, a stop their DOM did not have before mounting.
+		if (
+			!tab.panel.hasAttribute("tabindex") &&
+			tab.panel.querySelector(focusableSelector) === null
+		) {
+			tab.panel.tabIndex = 0;
+		}
 		button.setAttribute("aria-controls", tab.panel.id);
 
 		const hadPanelClass = tab.panel.classList.contains("tabsdown__panel");
