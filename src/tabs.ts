@@ -39,8 +39,10 @@ const mountedPanels = new WeakSet<HTMLElement>();
 // else plausible as a panel arrives with a nameable implicit role to preserve.
 const genericPanelTags = new Set(["DIV", "SPAN", "PRE"]);
 
+// Disabled and hidden controls match the shape of a focus target without being
+// one, and a panel whose only candidate is one of those still needs its own stop.
 const focusableSelector =
-	'a[href], audio[controls], button, details, iframe, input, select, summary, textarea, video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+	'a[href], audio[controls], button:not([disabled]), details, iframe, input:not([disabled]):not([type="hidden"]), select:not([disabled]), summary, textarea:not([disabled]), video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"]):not([disabled])';
 
 function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 	let current: Node | null = node;
@@ -162,10 +164,15 @@ export function mountTabs(
 	const mountId = `tabsdown-mount-${++nextMountId}`;
 	// The counter restarts whenever the plugin reloads, so a generated id can
 	// meet a leftover one from the previous load. Probe rather than assume.
-	// Seeded with the ids arriving on the panels, which are about to enter this
-	// tree but cannot be found in it yet when a panel is detached or foreign.
+	// Seeded with every id arriving inside the panels, which are about to enter
+	// this tree but cannot be found in it yet when a panel is detached or foreign.
 	const assignedIds = new Set<string>(
-		options.tabs.map((tab) => tab.panel.id).filter(Boolean),
+		options.tabs
+			.flatMap((tab) => [
+				tab.panel.id,
+				...Array.from(tab.panel.querySelectorAll("[id]"), (el) => el.id),
+			])
+			.filter(Boolean),
 	);
 	const uniqueId = (base: string): string => {
 		let candidate = base;
@@ -201,6 +208,10 @@ export function mountTabs(
 	const focusedElement = focusedSpec
 		? activeElementNear(focusedSpec.panel)
 		: null;
+	// Claimed before the first DOM move. Appending a panel can fire a custom
+	// element's disconnectedCallback, which runs before append returns, so a
+	// reentrant mount would otherwise slip past the guard and share these panels.
+	for (const tab of options.tabs) mountedPanels.add(tab.panel);
 	const tabs: MountedTab[] = options.tabs.map((tab, index) => {
 		const buttonId = uniqueId(`${mountId}-tab-${index}`);
 		const button = ownerDocument.createElement("button");
@@ -259,7 +270,6 @@ export function mountTabs(
 
 	root.append(tabList, panelsEl);
 	container.append(root);
-	for (const tab of tabs) mountedPanels.add(tab.panel);
 
 	let selection: string | null = null;
 	let notifying = false;

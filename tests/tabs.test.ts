@@ -823,6 +823,85 @@ describe("caller semantics", () => {
 		expect(preset.tabIndex).toBe(-1);
 	});
 
+	test("still takes a tab stop when its only controls cannot hold focus", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const hidden = panel("Hidden");
+		const hiddenInput = document.createElement("input");
+		hiddenInput.type = "hidden";
+		hidden.append(hiddenInput);
+		const disabled = panel("Disabled");
+		const disabledButton = document.createElement("button");
+		disabledButton.disabled = true;
+		disabled.append(disabledButton);
+
+		const controller = mountTabs(container, {
+			label: "Unusable controls",
+			tabs: [
+				{ id: "hidden", label: "Hidden", panel: hidden },
+				{ id: "disabled", label: "Disabled", panel: disabled },
+			],
+		});
+
+		// Neither descendant can be tabbed to, so the panel is the only way in.
+		expect(hidden.tabIndex).toBe(0);
+		expect(disabled.tabIndex).toBe(0);
+
+		controller.destroy();
+	});
+
+	test("keeps a generated id clear of one arriving inside a panel", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const host = panel("Host");
+		const descendant = document.createElement("span");
+		descendant.id = `tabsdown-mount-${nextMountNumber()}-tab-0`;
+		host.append(descendant);
+
+		const controller = mountTabs(container, {
+			label: "Nested id",
+			tabs: [{ id: "host", label: "Host", panel: host }],
+		});
+		const button = container.querySelector<HTMLButtonElement>(".tabsdown__tab");
+
+		expect(button?.id).not.toBe(descendant.id);
+		expect(
+			container.querySelectorAll(`#${CSS.escape(descendant.id)}`),
+		).toHaveLength(1);
+
+		controller.destroy();
+	});
+
+	test("claims its panels before a disconnect callback can re-enter", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		let nested: string | undefined;
+		class ReentrantPanel extends HTMLElement {
+			disconnectedCallback(): void {
+				try {
+					mountTabs(document.createElement("div"), {
+						label: "Nested",
+						tabs: [{ id: "again", label: "Again", panel: this }],
+					});
+				} catch (error) {
+					nested = (error as Error).message;
+				}
+			}
+		}
+		customElements.define("tabsdown-reentrant-panel", ReentrantPanel);
+		const reentrant = document.createElement("tabsdown-reentrant-panel");
+		// Attached first, so moving it into the mount fires the callback mid-append.
+		document.body.append(reentrant);
+
+		const controller = mountTabs(container, {
+			label: "Reentrant",
+			tabs: [{ id: "trace", label: "Trace", panel: reentrant }],
+		});
+
+		expect(nested).toMatch(/already mounted/);
+		controller.destroy();
+	});
+
 	test("gives a preformatted panel a nameable role", () => {
 		const container = document.createElement("div");
 		document.body.append(container);
