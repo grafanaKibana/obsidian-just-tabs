@@ -42,11 +42,17 @@ export function createHeightAnimator(panelsEl: HTMLElement): HeightAnimator {
 				animationFrame = undefined;
 			});
 
-			const duration = Number.parseFloat(
-				ownerWindow.getComputedStyle(panelsEl).getPropertyValue(
-					"--tabsdown-animation-duration",
-				),
-			);
+			// A custom property keeps whatever unit it was authored with, so a theme
+			// writing 0.5s has to be read as 500ms and not as half a millisecond.
+			const authored = ownerWindow
+				.getComputedStyle(panelsEl)
+				.getPropertyValue("--tabsdown-animation-duration")
+				.trim();
+			const value = Number.parseFloat(authored);
+			const duration =
+				authored.endsWith("s") && !authored.endsWith("ms")
+					? value * 1000
+					: value;
 			resetTimer = ownerWindow.setTimeout(
 				settle,
 				Number.isFinite(duration) ? duration + 50 : 250,

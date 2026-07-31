@@ -39,6 +39,8 @@ export default defineConfig(
 		rules: {
 			"obsidianmd/no-nodejs-modules": "off",
 			"obsidianmd/hardcoded-config-path": "off",
+			// A test setting up a custom property is arranging state, not styling UI.
+			"obsidianmd/no-static-styles-assignment": "off",
 		},
 	},
 	{

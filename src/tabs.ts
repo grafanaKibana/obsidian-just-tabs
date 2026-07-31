@@ -34,9 +34,10 @@ const panelAttributes = [
 let nextMountId = 0;
 const mountedPanels = new WeakSet<HTMLElement>();
 
-// Only a div or span maps to role="generic", which prohibits an accessible name.
-// Anything else arrives with a nameable implicit role that must not be replaced.
-const genericPanelTags = new Set(["DIV", "SPAN"]);
+// These map to role="generic", which prohibits an accessible name, so they are
+// the ones that need a role before aria-labelledby means anything. Everything
+// else plausible as a panel arrives with a nameable implicit role to preserve.
+const genericPanelTags = new Set(["DIV", "SPAN", "PRE"]);
 
 function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 	let current: Node | null = node;
@@ -54,6 +55,18 @@ function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 function findById(scope: ParentNode, id: string): Element | null {
 	if ("id" in scope && (scope as Element).id === id) return scope as Element;
 	return scope.querySelector(`#${CSS.escape(id)}`);
+}
+
+// document.activeElement reports the outermost shadow host rather than what is
+// actually focused inside it, so this starts at the node's own root and keeps
+// descending while each active element hosts a shadow tree of its own.
+function activeElementNear(node: Node): Element | null {
+	const root = node.getRootNode() as Partial<DocumentOrShadowRoot>;
+	let active = root.activeElement ?? null;
+	while (active?.shadowRoot?.activeElement) {
+		active = active.shadowRoot.activeElement;
+	}
+	return active;
 }
 
 interface MountedTab {
@@ -146,7 +159,11 @@ export function mountTabs(
 	const mountId = `tabsdown-mount-${++nextMountId}`;
 	// The counter restarts whenever the plugin reloads, so a generated id can
 	// meet a leftover one from the previous load. Probe rather than assume.
-	const assignedIds = new Set<string>();
+	// Seeded with the ids arriving on the panels, which are about to enter this
+	// tree but cannot be found in it yet when a panel is detached or foreign.
+	const assignedIds = new Set<string>(
+		options.tabs.map((tab) => tab.panel.id).filter(Boolean),
+	);
 	const uniqueId = (base: string): string => {
 		let candidate = base;
 		for (
@@ -175,10 +192,12 @@ export function mountTabs(
 	// Captured before any panel moves: panelsEl is still detached, so appending a
 	// panel that holds the focused element would otherwise drop focus outright.
 	const focusedSpec = options.tabs.find((tab) => {
-		const active = tab.panel.ownerDocument.activeElement;
+		const active = activeElementNear(tab.panel);
 		return active !== null && isShadowIncludingAncestor(tab.panel, active);
 	});
-	const focusedElement = focusedSpec?.panel.ownerDocument.activeElement;
+	const focusedElement = focusedSpec
+		? activeElementNear(focusedSpec.panel)
+		: null;
 	const tabs: MountedTab[] = options.tabs.map((tab, index) => {
 		const buttonId = uniqueId(`${mountId}-tab-${index}`);
 		const button = ownerDocument.createElement("button");
@@ -249,8 +268,12 @@ export function mountTabs(
 		if (next === previous) return;
 		const from = panelsEl.getBoundingClientRect().height;
 		const outgoing = previous === null ? undefined : find(previous);
-		const activeElement = outgoing?.panel.ownerDocument.activeElement;
-		if (activeElement && outgoing.panel.contains(activeElement)) {
+		const activeElement = outgoing ? activeElementNear(outgoing.panel) : null;
+		if (
+			activeElement &&
+			outgoing &&
+			isShadowIncludingAncestor(outgoing.panel, activeElement)
+		) {
 			(next === null ? root : (find(next)?.button ?? root)).focus();
 		}
 		selection = next;
@@ -315,7 +338,7 @@ export function mountTabs(
 			}
 			// The button is about to disappear; leaving focus on it drops
 			// the user at the top of the document.
-			if (tab.button.ownerDocument.activeElement === tab.button) {
+			if (activeElementNear(tab.button) === tab.button) {
 				const index = tabs.indexOf(tab);
 				const next =
 					tabs.find(

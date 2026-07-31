@@ -61,6 +61,19 @@ function visible(container: HTMLElement): HTMLElement[] {
 	);
 }
 
+// Mount ids come from a module counter, so the only way to know what the next
+// mount will generate is to spend one.
+function nextMountNumber(): number {
+	const scratch = panel("Scratch");
+	const controller = mountTabs(document.createElement("div"), {
+		label: "Probe",
+		tabs: [{ id: "probe", label: "Probe", panel: scratch }],
+	});
+	const current = Number(/mount-(\d+)-/.exec(scratch.id)?.[1]);
+	controller.destroy();
+	return current + 1;
+}
+
 beforeEach(() => {
 	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
 });
@@ -379,6 +392,33 @@ describe("animation and teardown", () => {
 			false,
 		);
 		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	test("waits out a duration authored in seconds", () => {
+		vi.useFakeTimers();
+		const container = document.createElement("div");
+		document.body.append(container);
+		container.style.setProperty("--tabsdown-animation-duration", "0.5s");
+		mountTabs(container, {
+			label: "Seconds",
+			tabs: [{ id: "trace", label: "Trace", panel: panel("Trace") }],
+		});
+		const panelsEl = container.querySelector<HTMLElement>(".tabsdown__panels");
+		if (!panelsEl) throw new Error("Expected a panels wrapper.");
+
+		container.querySelector<HTMLButtonElement>(".tabsdown__tab")?.click();
+
+		// Read as a bare number this is 0.5ms, and the pin comes off mid-transition.
+		vi.advanceTimersByTime(200);
+		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
+			true,
+		);
+
+		vi.advanceTimersByTime(400);
+		expect(panelsEl.style.height).toBe("");
+		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
+			false,
+		);
 	});
 
 	test("settles with no residual height when motion is disabled", () => {
@@ -716,6 +756,113 @@ describe("caller semantics", () => {
 
 		expect(document.activeElement).toBe(input);
 		controller.destroy();
+	});
+
+	test("gives a preformatted panel a nameable role", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const trace = document.createElement("pre");
+		trace.textContent = "Step 1";
+
+		const controller = mountTabs(container, {
+			label: "Trace",
+			tabs: [{ id: "trace", label: "Trace", panel: trace }],
+		});
+
+		// pre is generic like div, so without a role its aria-labelledby names
+		// nothing at all.
+		expect(trace.getAttribute("role")).toBe("group");
+		expect(trace.getAttribute("aria-labelledby")).toBe(
+			container.querySelector(".tabsdown__tab")?.id,
+		);
+
+		controller.destroy();
+		expect(trace.getAttribute("role")).toBeNull();
+	});
+
+	test("keeps a generated id clear of one arriving on another panel", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const squatter = panel("Squatter");
+		// Detached and foreign panels are invisible to a tree search, so only
+		// reserving the incoming ids keeps the generated button id off this one.
+		squatter.id = `tabsdown-mount-${nextMountNumber()}-tab-0`;
+		const other = panel("Other");
+
+		const controller = mountTabs(container, {
+			label: "Reserved",
+			tabs: [
+				{ id: "squatter", label: "Squatter", panel: squatter },
+				{ id: "other", label: "Other", panel: other },
+			],
+		});
+		const buttons = Array.from(
+			container.querySelectorAll<HTMLButtonElement>(".tabsdown__tab"),
+		);
+
+		expect(buttons[0]?.id).not.toBe(squatter.id);
+		expect(squatter.getAttribute("aria-labelledby")).toBe(buttons[0]?.id);
+		expect(
+			container.querySelectorAll(`#${CSS.escape(squatter.id)}`),
+		).toHaveLength(1);
+
+		controller.destroy();
+	});
+
+	test("notices focus inside a shadow root when mounting collapsed", () => {
+		const host = document.createElement("div");
+		document.body.append(host);
+		const shadow = host.attachShadow({ mode: "open" });
+		const container = document.createElement("div");
+		const trace = document.createElement("div");
+		const input = document.createElement("input");
+		trace.append(input);
+		shadow.append(container, trace);
+		input.focus();
+
+		// The document reports only the host, so a document-scoped read never sees
+		// the input and leaves focus stranded in a panel it is about to hide.
+		expect(document.activeElement).toBe(host);
+		expect(shadow.activeElement).toBe(input);
+
+		mountTabs(container, {
+			label: "Shadow focus",
+			selection: null,
+			tabs: [{ id: "trace", label: "Trace", panel: trace }],
+		});
+
+		expect(shadow.activeElement).toBe(
+			container.querySelector(".tabsdown__tab"),
+		);
+	});
+
+	test("notices focus inside a shadow root when switching away", () => {
+		const host = document.createElement("div");
+		document.body.append(host);
+		const shadow = host.attachShadow({ mode: "open" });
+		const container = document.createElement("div");
+		const trace = document.createElement("div");
+		const watch = document.createElement("div");
+		const input = document.createElement("input");
+		trace.append(input);
+		shadow.append(container, trace, watch);
+		const controller = mountTabs(container, {
+			label: "Shadow switch",
+			selection: "trace",
+			tabs: [
+				{ id: "trace", label: "Trace", panel: trace },
+				{ id: "watch", label: "Watch", panel: watch },
+			],
+		});
+		input.focus();
+		expect(shadow.activeElement).toBe(input);
+
+		controller.setSelection("watch");
+
+		const buttons = container.querySelectorAll<HTMLButtonElement>(
+			".tabsdown__tab",
+		);
+		expect(shadow.activeElement).toBe(buttons[1]);
 	});
 
 	test("rehomes focus when the panel holding it mounts collapsed", () => {
