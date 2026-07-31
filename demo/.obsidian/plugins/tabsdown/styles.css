@@ -183,6 +183,17 @@ settings:
 	background-color: var(--background-primary);
 }
 
+/* Doubled so it outranks .tabsdown rather than relying on source order. A caller
+   mounting its own panels keeps its containing block: layout containment would
+   otherwise capture any position: fixed descendant of a mounted panel. */
+.tabsdown.tabsdown--mounted {
+	container-type: normal;
+}
+
+.tabsdown--collapsed > .tabsdown__tablist {
+	margin-block-end: 0;
+}
+
 .tabsdown--multi > .tabsdown__tablist {
 	flex-wrap: wrap;
 	overflow-x: visible;
@@ -271,13 +282,15 @@ settings:
 	background-color: var(--tabsdown-tab-hover-background);
 }
 
-.tabsdown__tab[aria-selected="true"] {
+.tabsdown__tab[aria-selected="true"],
+.tabsdown__tab[aria-expanded="true"] {
 	border-color: var(--tabsdown-tab-selected-border);
 	background-color: var(--tabsdown-tab-selected-background);
 	color: var(--tabsdown-tab-selected-color);
 }
 
-.tabsdown__tab[aria-selected="true"]:hover {
+.tabsdown__tab[aria-selected="true"]:hover,
+.tabsdown__tab[aria-expanded="true"]:hover {
 	border-color: var(--tabsdown-tab-selected-border);
 	background-color: var(--tabsdown-tab-selected-background);
 }
@@ -396,7 +409,8 @@ body.tabsdown-personality-underline .tabsdown__tab:hover {
 	background-color: transparent;
 }
 
-body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"] {
+body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
 	border-block-end-color: var(--tabsdown-tab-selected-border);
 	background-color: transparent;
 	color: var(--tabsdown-tab-underline-color);

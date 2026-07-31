@@ -136,6 +136,62 @@ npx quartz plugin add github:grafanaKibana/quartz-tabsdown
 
 It shares this repository's parser and defaults to the same appearance values as the Style Settings controls below. Interactive tabs there need JavaScript; without it every panel renders in order under its own label.
 
+## Embedding tabs from another plugin
+
+Fenced blocks are not the only way in. A plugin that already owns live DOM panels can hand them to Tabsdown and get the same styling, animation, and accessibility without re-rendering anything through Markdown:
+
+```ts
+interface TabsdownApi {
+  mountTabs(
+    container: HTMLElement,
+    options: {
+      label: string;
+      selection?: string | null;
+      tabs: readonly {
+        id: string;
+        label: string;
+        panel: HTMLElement;
+      }[];
+      onSelectionChange?: (
+        selection: string | null,
+        previous: string | null,
+      ) => void;
+    },
+  ): {
+    readonly selection: string | null;
+    setSelection(id: string | null): void;
+    setAvailable(id: string, available: boolean): void;
+    destroy(): void;
+  };
+}
+
+const tabsdown = this.app.plugins.getPlugin("tabsdown") as TabsdownApi | null;
+const tabs = tabsdown?.mountTabs(container, {
+  label: "Trace and watch",
+  selection: null,
+  tabs: [
+    { id: "trace", label: "Trace", panel: traceElement },
+    { id: "watch", label: "Watch", panel: watchElement },
+  ],
+  onSelectionChange(selection) {
+    // null when the open panel was collapsed
+  },
+});
+
+tabs?.setSelection("trace");
+tabs?.setAvailable("watch", false);
+tabs?.destroy();
+```
+
+This is a collapsible switch, not a tab strip: selection starts at `null` unless you pass one, and activating the open tab closes it again. At most one panel is ever visible. Fenced `tabsdown` blocks are unaffected and keep their first-tab-selected, always-one-open behavior.
+
+- **Your panels stay yours.** They are moved, never cloned or re-rendered. `destroy()` returns them to `container` with their original `id`, `role`, `tabindex`, `hidden`, and `aria-labelledby` restored, and removes everything Tabsdown added. It is safe to call twice, and the plugin calls it for you if Tabsdown is disabled first.
+- **Keyboard and screen readers.** Buttons are real `<button>` elements, so Enter, Space, and Tab behave natively and focus stays put. The group is not announced as a tab list, because nothing is selected at first. If you make the focused tab unavailable, focus moves to the next one rather than to the top of the document. Panels are named and given a tab stop only where they need one: a panel that already carries `aria-label` or `aria-labelledby` keeps its own name, and one containing its own controls is left out of the tab order so those controls come first.
+- **Place focus yourself after `destroy()`.** Tabsdown does not move it. While the group is live it rehomes focus for you, but teardown removes the buttons and the root, and only you know what replaces them — so if you tear down in response to something the reader did, focus the element that should come next.
+- **`onSelectionChange` reports user intent only.** It fires on click and when hiding a tab forces the panel closed, not on mount and not on your own `setSelection` calls, so you will not echo your own updates. Calling back into the controller from the handler is safe.
+- **Mount into the document.** A detached container has no resolved styles, so the height animation falls back to a fixed duration and ignores the reader's reduced-motion setting.
+- **Do not mount inside a rendered `tabsdown` panel.** That panel is rebuilt from Markdown when its content goes stale, which would discard your root without tearing it down.
+
 ## Style Settings
 
 Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes appearance controls like:

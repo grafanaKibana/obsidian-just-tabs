@@ -39,10 +39,19 @@ export default defineConfig(
 		rules: {
 			"obsidianmd/no-nodejs-modules": "off",
 			"obsidianmd/hardcoded-config-path": "off",
+			// A test setting up a custom property is arranging state, not styling UI.
+			"obsidianmd/no-static-styles-assignment": "off",
 		},
 	},
 	{
-		files: ["src/render.ts", "tests/**/*.ts"],
+		// The Quartz port vendors panel-height.ts and tabs.ts verbatim, where
+		// Obsidian's DOM extensions do not exist.
+		files: [
+			"src/panel-height.ts",
+			"src/render.ts",
+			"src/tabs.ts",
+			"tests/**/*.ts",
+		],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
 		},

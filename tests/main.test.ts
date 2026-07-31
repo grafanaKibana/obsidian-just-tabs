@@ -229,3 +229,45 @@ test("a click inside a nested block reaches the enclosing edit bridge", async ()
 
 	expect(editor.setCursor).toHaveBeenCalledWith({ line: 4, ch: 0 });
 });
+
+test("exposes a tabs API that the plugin tears down on unload", () => {
+	const { plugin } = createPlugin();
+	plugin.load();
+	const container = document.createElement("div");
+	document.body.append(container);
+	const panel = document.createElement("div");
+
+	const controller = plugin.mountTabs(container, {
+		label: "Trace and watch",
+		tabs: [{ id: "trace", label: "Trace", panel }],
+	});
+	controller.setSelection("trace");
+
+	expect(controller.selection).toBe("trace");
+	expect(container.querySelector(".tabsdown--mounted")).not.toBeNull();
+
+	plugin.unload();
+
+	expect(container.querySelector(".tabsdown--mounted")).toBeNull();
+	expect(panel.parentElement).toBe(container);
+	// The consumer may have torn its own controller down first.
+	expect(() => {
+		controller.destroy();
+	}).not.toThrow();
+});
+
+test("forgets controllers consumers already destroyed", () => {
+	const { plugin } = createPlugin();
+	plugin.load();
+	const container = document.createElement("div");
+	const controller = plugin.mountTabs(container, {
+		label: "Trace",
+		tabs: [{ id: "trace", label: "Trace", panel: document.createElement("div") }],
+	});
+	const destroy = vi.spyOn(controller, "destroy");
+
+	controller.destroy();
+	plugin.unload();
+
+	expect(destroy).toHaveBeenCalledOnce();
+});
