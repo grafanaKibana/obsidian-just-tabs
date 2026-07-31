@@ -53,6 +53,7 @@ export default defineConfig(
 			"tests/**/*.ts",
 		],
 		rules: {
+			// Tests build DOM in jsdom, where Obsidian's createEl helpers do not exist.
 			"obsidianmd/prefer-create-el": "off",
 		},
 	},
