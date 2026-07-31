@@ -34,6 +34,10 @@ const panelAttributes = [
 let nextMountId = 0;
 const mountedPanels = new WeakSet<HTMLElement>();
 
+// Only a div or span maps to role="generic", which prohibits an accessible name.
+// Anything else arrives with a nameable implicit role that must not be replaced.
+const genericPanelTags = new Set(["DIV", "SPAN"]);
+
 function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 	let current: Node | null = node;
 	while (current) {
@@ -43,6 +47,13 @@ function isShadowIncludingAncestor(ancestor: Node, node: Node): boolean {
 			((current.getRootNode() as ShadowRoot).host ?? null);
 	}
 	return false;
+}
+
+// getElementById is missing when the root is a loose element, so this queries
+// instead, which every ParentNode supports, and checks the root itself too.
+function findById(scope: ParentNode, id: string): Element | null {
+	if ("id" in scope && (scope as Element).id === id) return scope as Element;
+	return scope.querySelector(`#${CSS.escape(id)}`);
 }
 
 interface MountedTab {
@@ -82,7 +93,8 @@ export function mountTabs(
 		options.tabs.some((tab, index) =>
 			options.tabs.some(
 				(other, otherIndex) =>
-					index !== otherIndex && tab.panel.contains(other.panel),
+					index !== otherIndex &&
+					isShadowIncludingAncestor(tab.panel, other.panel),
 			),
 		)
 	) {
@@ -96,16 +108,27 @@ export function mountTabs(
 		throw new Error("Tabsdown: mountTabs panel DOM ids must be unique.");
 	}
 	const ownerDocument = container.ownerDocument;
+	// Both, because neither alone is enough: the root node covers a shadow tree or
+	// a detached fragment that the document cannot see into, and the document
+	// covers a container still detached from the tree it is about to join.
+	const idScopes = Array.from(
+		new Set<ParentNode>([container.getRootNode() as ParentNode, ownerDocument]),
+	);
+	const findMountedId = (id: string): Element | null => {
+		for (const scope of idScopes) {
+			const found = findById(scope, id);
+			if (found !== null) return found;
+		}
+		return null;
+	};
 	if (
 		options.tabs.some((tab) => {
-			const existing = tab.panel.id
-				? ownerDocument.getElementById(tab.panel.id)
-				: null;
+			const existing = tab.panel.id ? findMountedId(tab.panel.id) : null;
 			return existing !== null && existing !== tab.panel;
 		})
 	) {
 		throw new Error(
-			"Tabsdown: a panel DOM id is already used in the target document.",
+			"Tabsdown: a panel DOM id is already used in the target tree.",
 		);
 	}
 	if (
@@ -121,6 +144,21 @@ export function mountTabs(
 
 	const ElementConstructor = ownerDocument.defaultView?.Element ?? Element;
 	const mountId = `tabsdown-mount-${++nextMountId}`;
+	// The counter restarts whenever the plugin reloads, so a generated id can
+	// meet a leftover one from the previous load. Probe rather than assume.
+	const assignedIds = new Set<string>();
+	const uniqueId = (base: string): string => {
+		let candidate = base;
+		for (
+			let suffix = 1;
+			assignedIds.has(candidate) || findMountedId(candidate) !== null;
+			suffix += 1
+		) {
+			candidate = `${base}-${suffix}`;
+		}
+		assignedIds.add(candidate);
+		return candidate;
+	};
 	const root = ownerDocument.createElement("div");
 	root.className = "tabsdown tabsdown--mounted";
 	root.tabIndex = -1;
@@ -134,8 +172,15 @@ export function mountTabs(
 	panelsEl.className = "tabsdown__panels";
 
 	const animator: HeightAnimator = createHeightAnimator(panelsEl);
+	// Captured before any panel moves: panelsEl is still detached, so appending a
+	// panel that holds the focused element would otherwise drop focus outright.
+	const focusedSpec = options.tabs.find((tab) => {
+		const active = tab.panel.ownerDocument.activeElement;
+		return active !== null && isShadowIncludingAncestor(tab.panel, active);
+	});
+	const focusedElement = focusedSpec?.panel.ownerDocument.activeElement;
 	const tabs: MountedTab[] = options.tabs.map((tab, index) => {
-		const buttonId = `${mountId}-tab-${index}`;
+		const buttonId = uniqueId(`${mountId}-tab-${index}`);
 		const button = ownerDocument.createElement("button");
 		button.type = "button";
 		button.id = buttonId;
@@ -151,8 +196,11 @@ export function mountTabs(
 		);
 		// A caller that already identifies its own panel keeps that id, so its
 		// lookups still resolve while the panel is mounted.
-		tab.panel.id ||= `${mountId}-panel-${index}`;
-		if (!tab.panel.getAttribute("role")?.trim()) {
+		if (!tab.panel.id) tab.panel.id = uniqueId(`${mountId}-panel-${index}`);
+		if (
+			!tab.panel.getAttribute("role")?.trim() &&
+			genericPanelTags.has(tab.panel.tagName)
+		) {
 			tab.panel.setAttribute("role", "group");
 		}
 		tab.panel.setAttribute("aria-labelledby", buttonId);
@@ -231,6 +279,14 @@ export function mountTabs(
 	const initial = options.selection ?? null;
 	selection = initial !== null && find(initial) ? initial : null;
 	applyState();
+
+	const focusedTab = tabs.find((tab) => tab.panel === focusedSpec?.panel);
+	if (focusedTab && focusedElement) {
+		(selection === focusedTab.id
+			? (focusedElement as HTMLElement)
+			: focusedTab.button
+		).focus();
+	}
 
 	return {
 		get selection(): string | null {

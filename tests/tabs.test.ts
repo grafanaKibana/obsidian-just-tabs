@@ -595,9 +595,148 @@ describe("mount guards", () => {
 				label: "Collision",
 				tabs: [{ id: "foreign", label: "Foreign", panel: foreignPanel }],
 			}),
-		).toThrow(/already used in the target document/);
+		).toThrow(/already used in the target tree/);
 		expect(foreignPanel.ownerDocument).toBe(foreignDocument);
 		expect(foreignPanel.getAttribute("role")).toBeNull();
+	});
+
+	test("rejects a panel nested in another panel's shadow tree", () => {
+		const host = panel("Host");
+		const shadow = host.attachShadow({ mode: "open" });
+		const inner = document.createElement("div");
+		inner.textContent = "Inner";
+		shadow.append(inner);
+
+		expect(() =>
+			mountTabs(document.createElement("div"), {
+				label: "Shadow pair",
+				tabs: [
+					{ id: "host", label: "Host", panel: host },
+					{ id: "inner", label: "Inner", panel: inner },
+				],
+			}),
+		).toThrow(/must not contain each other/);
+		expect(inner.parentNode).toBe(shadow);
+		expect(host.getAttribute("role")).toBeNull();
+	});
+
+	test("rejects an id already taken inside the destination shadow root", () => {
+		const host = document.createElement("div");
+		document.body.append(host);
+		const shadow = host.attachShadow({ mode: "open" });
+		const existing = document.createElement("div");
+		existing.id = "shadow-dup";
+		const shadowContainer = document.createElement("div");
+		shadow.append(existing, shadowContainer);
+		const duplicate = panel("Duplicate");
+		duplicate.id = "shadow-dup";
+
+		// The owner document cannot see into a shadow tree, so this only throws
+		// when the destination root is what gets searched.
+		expect(document.getElementById("shadow-dup")).toBeNull();
+		expect(() =>
+			mountTabs(shadowContainer, {
+				label: "Shadow collision",
+				tabs: [{ id: "dup", label: "Duplicate", panel: duplicate }],
+			}),
+		).toThrow(/already used in the target tree/);
+	});
+
+	test("steps a generated id past one left behind by an earlier load", () => {
+		const first = setup();
+		const generated = first.tabs[0]?.panel.id ?? "";
+		const mountNumber = Number(/mount-(\d+)-/.exec(generated)?.[1]);
+		expect(mountNumber).toBeGreaterThan(0);
+
+		// What the next mount would reach for, planted as if a reload had left it.
+		const squatter = document.createElement("div");
+		squatter.id = `tabsdown-mount-${mountNumber + 1}-panel-0`;
+		document.body.append(squatter);
+
+		const second = setup();
+		const panelId = second.tabs[0]?.panel.id ?? "";
+
+		expect(panelId).not.toBe(squatter.id);
+		expect(second.buttons[0]?.getAttribute("aria-controls")).toBe(panelId);
+		expect(document.querySelectorAll(`#${CSS.escape(panelId)}`)).toHaveLength(1);
+	});
+});
+
+describe("caller semantics", () => {
+	test("leaves an implicit landmark role alone", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const form = document.createElement("form");
+		const article = document.createElement("article");
+		const plain = panel("Plain");
+		const controller = mountTabs(container, {
+			label: "Semantic panels",
+			tabs: [
+				{ id: "form", label: "Form", panel: form },
+				{ id: "article", label: "Article", panel: article },
+				{ id: "plain", label: "Plain", panel: plain },
+			],
+		});
+		const buttons = Array.from(
+			container.querySelectorAll<HTMLButtonElement>(".tabsdown__tab"),
+		);
+
+		// A form and an article are already nameable; overriding them with group
+		// would strip semantics the caller still relies on.
+		expect(form.getAttribute("role")).toBeNull();
+		expect(article.getAttribute("role")).toBeNull();
+		expect(plain.getAttribute("role")).toBe("group");
+		for (const [index, element] of [form, article, plain].entries()) {
+			expect(element.getAttribute("aria-labelledby")).toBe(buttons[index]?.id);
+		}
+
+		controller.destroy();
+		expect(plain.getAttribute("role")).toBeNull();
+	});
+
+	test("keeps focus that was already inside a panel being mounted", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const trace = panel("Trace");
+		const input = document.createElement("input");
+		trace.append(input);
+		document.body.append(trace);
+		const watch = panel("Watch");
+		input.focus();
+		expect(document.activeElement).toBe(input);
+
+		const controller = mountTabs(container, {
+			label: "Trace and watch",
+			selection: "trace",
+			tabs: [
+				{ id: "trace", label: "Trace", panel: trace },
+				{ id: "watch", label: "Watch", panel: watch },
+			],
+		});
+
+		expect(document.activeElement).toBe(input);
+		controller.destroy();
+	});
+
+	test("rehomes focus when the panel holding it mounts collapsed", () => {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const trace = panel("Trace");
+		const input = document.createElement("input");
+		trace.append(input);
+		document.body.append(trace);
+		input.focus();
+
+		mountTabs(container, {
+			label: "Trace only",
+			selection: null,
+			tabs: [{ id: "trace", label: "Trace", panel: trace }],
+		});
+
+		// The panel is hidden, so its own control is the nearest sensible home.
+		expect(document.activeElement).toBe(
+			container.querySelector(".tabsdown__tab"),
+		);
 	});
 
 	test("rejects a panel owned by another live mount until teardown", () => {
