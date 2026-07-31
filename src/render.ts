@@ -6,14 +6,13 @@ import {
 	setIcon,
 } from "obsidian";
 import type { TabConfiguration, TabDefinition, TabsDiagnostic } from "./parser";
-import { createHeightAnimator, type HeightAnimator } from "./panel-height";
+import { trackPanelHeight, type PanelHeightTracker } from "./panel-height";
 
 interface PanelState {
 	panelEl: HTMLElement;
 	component?: Component;
 	attemptEl?: HTMLElement;
 	generation?: number;
-	animationFrom?: number;
 	epoch: number;
 	status: "unrendered" | "rendering" | "rendered" | "error";
 }
@@ -56,7 +55,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private readonly buttons: HTMLButtonElement[] = [];
 	private readonly panels: PanelState[] = [];
 	private panelsEl?: HTMLElement;
-	private animator?: HeightAnimator;
+	private height?: PanelHeightTracker;
 	private selectedIndex = 0;
 	private focusIndex = 0;
 	private disposed = false;
@@ -85,7 +84,10 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 		const panels = createElement(this.containerEl, "div", "tabsdown__panels");
 		this.panelsEl = panels;
-		this.animator = createHeightAnimator(panels);
+		this.height = trackPanelHeight(
+			panels,
+			() => this.panels[this.selectedIndex]?.status === "rendering",
+		);
 
 		this.tabs.forEach((tab, index) => {
 			const tabId = `${this.blockId}-tab-${index}`;
@@ -149,7 +151,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	onunload(): void {
 		this.disposed = true;
-		this.animator?.cancel();
+		this.height?.destroy();
 		for (const panel of this.panels) {
 			this.disposePanel(panel);
 		}
@@ -189,20 +191,15 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 
 	private activate(index: number, focus: boolean): void {
 		const wasSelected = index === this.selectedIndex;
-		const previousHeight = this.panelsEl?.getBoundingClientRect().height;
-		const state = this.panels[index];
+		// Read before the outgoing panel is hidden: this is the height the box
+		// animates away from, and the floor a still-loading panel cannot fall below.
+		const previousHeight = this.panelsEl?.getBoundingClientRect().height ?? 0;
 		this.selectedIndex = index;
 		this.focusIndex = index;
 		this.updateState();
 		this.ensureRendered(index, !wasSelected);
-		if (!wasSelected && previousHeight !== undefined && state) {
-			this.animator?.cancel();
-			state.animationFrom = previousHeight;
-			this.panelsEl?.style.setProperty("height", `${previousHeight}px`);
-			this.panelsEl?.classList.add("tabsdown__panels--animating");
-		}
-		if (state?.status === "rendered") {
-			this.animateRenderedPanel(index, state);
+		if (!wasSelected) {
+			this.height?.switched(previousHeight);
 		}
 		if (focus) {
 			this.buttons[index]?.focus();
@@ -221,23 +218,6 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.panels.forEach((panel, index) => {
 			panel.panelEl.hidden = index !== this.selectedIndex;
 		});
-	}
-
-	private animateRenderedPanel(index: number, state: PanelState): void {
-		const from = state.animationFrom;
-		state.animationFrom = undefined;
-		if (this.disposed || this.selectedIndex !== index || from === undefined) {
-			return;
-		}
-
-		// A nested block keeps growing after this panel resolves, so any height
-		// measured now is stale. Release the pin rather than animate to it.
-		if (state.panelEl.querySelector(".tabsdown")) {
-			this.animator?.settle();
-			return;
-		}
-
-		this.animator?.animate(from);
 	}
 
 	private scrollTabIntoView(index: number): void {
@@ -285,10 +265,11 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			component,
 		)
 			.then(() => {
-				if (!this.disposed && state.epoch === epoch) {
-					state.status = "rendered";
-					this.animateRenderedPanel(index, state);
+				if (this.disposed || state.epoch !== epoch) {
+					return;
 				}
+				state.status = "rendered";
+				this.height?.refresh();
 			})
 			.catch((error: unknown) => {
 				if (this.disposed || state.epoch !== epoch) {
@@ -304,7 +285,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 				message.textContent = `This tab could not be rendered: ${errorMessage(error)}`;
 				attemptEl.append(message);
 				state.status = "error";
-				this.animateRenderedPanel(index, state);
+				this.height?.refresh();
 			});
 	}
 
@@ -316,7 +297,6 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		}
 		state.attemptEl?.remove();
 		state.attemptEl = undefined;
-		state.animationFrom = undefined;
 		state.status = "unrendered";
 	}
 }

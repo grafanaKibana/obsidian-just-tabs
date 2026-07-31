@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { mountTabs, type TabSpec, type TabsController } from "../src/tabs";
+import { stubPanelHeights, stubResizeObserver } from "./panel-size";
 
 function panel(text: string): HTMLElement {
 	const element = document.createElement("div");
@@ -214,13 +215,9 @@ describe("availability", () => {
 		if (!popup) throw new Error("Expected an iframe document.");
 		const popupWindow = popup.defaultView;
 		if (!popupWindow) throw new Error("Expected an iframe window.");
-		const requestFrame = vi
-			.spyOn(popupWindow, "requestAnimationFrame")
-			.mockReturnValue(1);
-		const cancelFrame = vi.spyOn(popupWindow, "cancelAnimationFrame");
 		const setTimer = vi.spyOn(popupWindow, "setTimeout");
 		const clearTimer = vi.spyOn(popupWindow, "clearTimeout");
-		const getStyle = vi.spyOn(popupWindow, "getComputedStyle");
+		const popupResize = stubResizeObserver(popupWindow);
 		const container = popup.createElement("div");
 		let adoptionCount = 0;
 		class TracePanel extends popupWindow.HTMLElement {
@@ -247,14 +244,16 @@ describe("availability", () => {
 
 		expect(popup.activeElement).toBe(buttons[0]);
 		expect(adoptionCount).toBe(0);
-		expect(requestFrame).toHaveBeenCalledOnce();
-		expect(setTimer).toHaveBeenCalledOnce();
-		expect(getStyle).toHaveBeenCalledWith(
-			container.querySelector(".tabsdown__panels"),
-		);
+		// Everything the tracker schedules has to belong to the pop-out window;
+		// the main window's timers do not run on this document's frames.
+		expect(setTimer).toHaveBeenCalled();
+		buttons[0]?.click();
+		expect(popupResize.observed()).toEqual([trace]);
+		expect(adoptionCount).toBe(0);
 		controller.destroy();
-		expect(cancelFrame).toHaveBeenCalledWith(1);
 		expect(clearTimer).toHaveBeenCalled();
+		expect(popupResize.observed()).toHaveLength(0);
+		popupResize.restore();
 	});
 
 	test("moves focus forward from a hidden tab and wraps at the end", () => {
@@ -372,68 +371,52 @@ describe("keyboard and roles", () => {
 });
 
 describe("animation and teardown", () => {
-	test("leaves no pinned height, frame, or timer after switching", () => {
+	test("keeps the box on the visible panel through rapid switches", () => {
 		vi.useFakeTimers();
-		const cancelFrame = vi.spyOn(window, "cancelAnimationFrame");
-		const { buttons, panelsEl } = setup();
+		const { container, buttons, panelsEl } = setup();
+		stubPanelHeights(container, [120, 40]);
 
 		buttons[0]?.click();
 		buttons[1]?.click();
 		buttons[0]?.click();
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			true,
-		);
-		expect(cancelFrame).toHaveBeenCalled();
-
 		vi.advanceTimersByTime(300);
 
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
-		expect(vi.getTimerCount()).toBe(0);
-	});
-
-	test("waits out a duration authored in seconds", () => {
-		vi.useFakeTimers();
-		const container = document.createElement("div");
-		document.body.append(container);
-		container.style.setProperty("--tabsdown-animation-duration", "0.5s");
-		mountTabs(container, {
-			label: "Seconds",
-			tabs: [{ id: "trace", label: "Trace", panel: panel("Trace") }],
-		});
-		const panelsEl = container.querySelector<HTMLElement>(".tabsdown__panels");
-		if (!panelsEl) throw new Error("Expected a panels wrapper.");
-
-		container.querySelector<HTMLButtonElement>(".tabsdown__tab")?.click();
-
-		// Read as a bare number this is 0.5ms, and the pin comes off mid-transition.
-		vi.advanceTimersByTime(200);
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			true,
-		);
-
-		vi.advanceTimersByTime(400);
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
-	});
-
-	test("settles with no residual height when motion is disabled", () => {
-		vi.useFakeTimers();
-		document.body.classList.add("tabsdown-animations-disabled");
-		const { buttons, panelsEl } = setup();
+		// No settle step to wait for and nothing to unpin: the height is simply
+		// whichever panel is on screen, so there is no stale value to jump off.
+		expect(panelsEl.style.height).toBe("120px");
 
 		buttons[0]?.click();
+		expect(panelsEl.style.height).toBe("0px");
+	});
+
+	test("tracks the panel height with motion disabled", () => {
+		vi.useFakeTimers();
+		document.body.classList.add("tabsdown-animations-disabled");
+		const { container, buttons, panelsEl } = setup();
+		stubPanelHeights(container, [120, 40]);
+
+		buttons[1]?.click();
 		vi.advanceTimersByTime(300);
 
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
+		expect(panelsEl.style.height).toBe("40px");
 		document.body.classList.remove("tabsdown-animations-disabled");
+	});
+
+	test("drops the pinned height and observer on destroy", () => {
+		const resize = stubResizeObserver();
+		try {
+			const { container, controller, buttons, panelsEl } = setup();
+			stubPanelHeights(container, [120, 40]);
+			buttons[1]?.click();
+			expect(panelsEl.style.height).toBe("40px");
+
+			controller.destroy();
+
+			expect(panelsEl.style.height).toBe("");
+			expect(resize.observed()).toHaveLength(0);
+		} finally {
+			resize.restore();
+		}
 	});
 
 	test("returns bare panels to the container untouched", () => {

@@ -445,7 +445,80 @@ tab: 20
 20
 ```
 
-## 11. Diagnostics
+## 11. Asynchronous content
+
+These fill their panel after the markdown renderer resolves. Switch away and back
+between each of them and the short panel, repeatedly: the panels box must hold
+the outgoing height until the content lands and then resize once. A collapse to
+nothing followed by a spring open is the bug.
+
+The embed row needs no plugins. The query rows need Dataview and Datacore; without
+them they render as plain code fences and prove nothing.
+
+`````tabsdown
+tab: Embedded note
+
+![[Launch workspace]]
+
+tab: Dataview table
+
+```dataview
+TABLE file.mtime AS Modified
+FROM ""
+SORT file.mtime DESC
+LIMIT 15
+```
+
+tab: Dataview JS, delayed
+
+```dataviewjs
+await new Promise((resolve) => setTimeout(resolve, 800));
+dv.list(dv.pages().file.name.slice(0, 10));
+```
+
+tab: Datacore
+
+```datacorejsx
+return function View() {
+	const pages = dc.useQuery("@page");
+	return <p>{pages.length} pages indexed</p>;
+}
+```
+
+tab: Remote image
+
+![](https://obsidian.md/images/obsidian-logo-gradient.svg)
+
+tab: Short panel
+
+One line. This is the height the tall query panels must not flash through.
+`````
+
+Async content inside a nested block: the outer panel resizes while the inner one
+is still filling.
+
+`````tabsdown
+tab: Outer with a nested query
+
+````tabsdown
+tab: Inner query panel
+
+```dataview
+LIST
+FROM ""
+LIMIT 10
+```
+
+tab: Inner short panel
+one line
+````
+
+tab: Outer short panel
+
+One line.
+`````
+
+## 12. Diagnostics
 
 Each block below is intentionally invalid and should render a diagnostic with the source preserved.
 

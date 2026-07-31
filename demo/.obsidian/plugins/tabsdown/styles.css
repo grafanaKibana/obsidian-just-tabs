@@ -270,6 +270,16 @@ settings:
 		color var(--anim-duration-fast) var(--anim-motion-swing);
 }
 
+/* Themes draw button chrome as an inset ring in --input-shadow, which core
+   applies to every button. It lands on top of the tab's own border and survives
+   the underline personality making that border transparent, so it reads there as
+   a stray outline around an underlined tab. The tab owns its whole surface. */
+.tabsdown__tab,
+.tabsdown__tab:hover,
+.tabsdown__tab:active {
+	box-shadow: none;
+}
+
 .tabsdown__tab-icon {
 	--icon-size: 1em;
 	display: inline-flex;
@@ -301,8 +311,14 @@ settings:
 	outline-offset: var(--border-width);
 }
 
+/* flow-root for the same reason the panels box has it, one level further in: the
+   height tracked for the box is this element's, so a first or last child margin
+   that collapses through it is a margin the box never reserves. The content then
+   sits flush inside the panel and the escaped margin reappears as a gap under
+   the block. */
 .tabsdown__panel,
 .tabsdown__content {
+	display: flow-root;
 	max-inline-size: 100%;
 	min-inline-size: 0;
 }

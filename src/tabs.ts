@@ -1,4 +1,4 @@
-import { createHeightAnimator, type HeightAnimator } from "./panel-height";
+import { trackPanelHeight, type PanelHeightTracker } from "./panel-height";
 
 export interface TabSpec {
 	id: string;
@@ -198,7 +198,7 @@ export function mountTabs(
 	const panelsEl = ownerDocument.createElement("div");
 	panelsEl.className = "tabsdown__panels";
 
-	const animator: HeightAnimator = createHeightAnimator(panelsEl);
+	const height: PanelHeightTracker = trackPanelHeight(panelsEl);
 	// Captured before any panel moves: panelsEl is still detached, so appending a
 	// panel that holds the focused element would otherwise drop focus outright.
 	const focusedSpec = options.tabs.find((tab) => {
@@ -305,7 +305,7 @@ export function mountTabs(
 		}
 		selection = next;
 		applyState();
-		animator.animate(from);
+		height.switched(from);
 		if (!notify || notifying) return;
 		notifying = true;
 		try {
@@ -388,7 +388,7 @@ export function mountTabs(
 		destroy(): void {
 			if (destroyed) return;
 			destroyed = true;
-			animator.cancel();
+			height.destroy();
 			tabList.removeEventListener("click", onClick);
 			for (const tab of tabs) {
 				mountedPanels.delete(tab.panel);
