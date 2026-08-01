@@ -620,6 +620,7 @@ test("preserves global Style Settings and adds the approved hierarchy", () => {
 		["Layout", "2", "true"],
 		["Tab appearance", "2", "true"],
 		["Icons and labels", "2", "true"],
+		["Nested blocks", "2", "true"],
 		["Position overrides", "1", "false"],
 		["Top", "2", "true"],
 		["Bottom", "2", "true"],
@@ -680,6 +681,45 @@ test("defines the requested control ranges and selected weights", () => {
 	expect(matchingRuleBodies(styles, `body.${weightId}-medium`)).toMatch(/font-weight:\s*var\(--font-medium\)/);
 	expect(matchingRuleBodies(styles, `body.${weightId}-bold`)).toMatch(/font-weight:\s*var\(--font-bold,\s*700\)/);
 	expect(styles).not.toContain(`body.${weightId}-theme-default`);
+
+	const nested = styleSetting(styles, "title", "Nested block style");
+	expect(nested).toMatch(/type: class-select/);
+	expect(nested).toMatch(/allowEmpty: false/);
+	expect(nested).toContain("default: tabsdown-nested-style-card");
+	expect(nested).toContain("value: tabsdown-nested-style-card");
+	expect(nested).toContain("value: tabsdown-nested-style-flat");
+});
+
+test("offers flat nested blocks while keeping nested controls subtle", () => {
+	const styles = readStyles();
+	const card = matchingRuleBodies(styles, ".tabsdown .tabsdown");
+	const flat = matchingRuleBodies(styles, "body.tabsdown-nested-style-flat .tabsdown .tabsdown");
+	const subtle = matchingRuleBodies(styles, "body .tabsdown .tabsdown");
+	const deeper = matchingRuleBodies(styles, "body .tabsdown .tabsdown .tabsdown");
+
+	expect(card).toMatch(/border:\s*var\(--border-width\) solid/);
+	expect(card).toMatch(/background-color:\s*var\(--background-secondary\)/);
+	for (const reset of ["margin-block: 0", "padding: 0", "border: 0", "border-radius: 0", "background-color: transparent"]) {
+		expect(flat).toContain(reset);
+	}
+	for (const variable of [
+		"--tabsdown-tab-background: color-mix(",
+		"--tabsdown-tab-color: var(--text-muted)",
+		"--tabsdown-tab-selected-background: color-mix(",
+		"--tabsdown-tab-selected-color: var(--text-normal)",
+		"--tabsdown-tab-underline-color: var(--text-normal)",
+	]) {
+		expect(subtle).toContain(variable);
+	}
+	expect(styles.indexOf("body .tabsdown .tabsdown")).toBeGreaterThan(
+		styles.indexOf("body.tabsdown-right-palette-secondary"),
+	);
+	const background = (body: string): string =>
+		/--tabsdown-tab-background:\s*([^;]+)/.exec(body)?.[1]?.trim() ?? "";
+	expect(background(subtle)).not.toBe(
+		background(matchingRuleBodies(styles, "body.tabsdown-palette-secondary")),
+	);
+	expect(background(deeper)).not.toBe(background(subtle));
 });
 
 test("keeps position overrides direct, ordered, and mounted-global", () => {

@@ -203,6 +203,26 @@ settings:
         label: Bold
         value: tabsdown-selected-font-weight-bold
   -
+    id: tabsdown-nested-blocks-heading
+    title: Nested blocks
+    type: heading
+    level: 2
+    collapsed: true
+  -
+    id: tabsdown-nested-style
+    title: Nested block style
+    description: Card adds a bordered surface; Flat shows tabs directly inside the parent panel.
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-nested-style-card
+    options:
+      -
+        label: Card
+        value: tabsdown-nested-style-card
+      -
+        label: Flat
+        value: tabsdown-nested-style-flat
+  -
     id: tabsdown-position-overrides-heading
     title: Position overrides
     type: heading
@@ -522,6 +542,14 @@ settings:
 /* Alternated so a third level does not sit on its parent's own colour. */
 .tabsdown .tabsdown .tabsdown {
 	background-color: var(--background-primary);
+}
+
+body.tabsdown-nested-style-flat .tabsdown .tabsdown {
+	margin-block: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background-color: transparent;
 }
 
 /* Doubled so it outranks .tabsdown rather than relying on source order. A caller
@@ -1276,6 +1304,27 @@ body.tabsdown-right-palette-secondary .tabsdown--right {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+/* Nested controls stay quieter than their parent, regardless of the global or
+   position palette. Keep this after the palette overrides so it wins equally
+   specific selectors without affecting layout or touch targets. */
+body .tabsdown .tabsdown {
+	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 6%, transparent);
+	--tabsdown-tab-border: color-mix(in srgb, var(--text-normal) 12%, transparent);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: color-mix(in srgb, var(--text-normal) 10%, transparent);
+	--tabsdown-tab-hover-border: color-mix(in srgb, var(--text-normal) 20%, transparent);
+	--tabsdown-tab-selected-background: color-mix(in srgb, var(--text-normal) 14%, transparent);
+	--tabsdown-tab-selected-border: color-mix(in srgb, var(--text-normal) 24%, transparent);
+	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+body .tabsdown .tabsdown .tabsdown {
+	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 10%, transparent);
+	--tabsdown-tab-hover-background: color-mix(in srgb, var(--text-normal) 14%, transparent);
+	--tabsdown-tab-selected-background: color-mix(in srgb, var(--text-normal) 18%, transparent);
 }
 
 body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist {

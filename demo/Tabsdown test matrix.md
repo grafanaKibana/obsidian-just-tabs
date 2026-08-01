@@ -19,6 +19,7 @@ Reuse the Positions, Icons, and Labels sections below while changing settings; n
 | Change horizontal padding directly to 0/36/48 in Default and Compact. | Each slider change applies immediately without a separate toggle and overflow remains usable. |
 | Change side-list width directly to 96/160/320 on Left/Right and resize narrowly. | Each slider change applies immediately on wide lists; narrow lists return to a full-width row and panels remain visible. |
 | Set icon size 12/32 and spacing 0/16, using the Icons section. | Icon boxes and gaps change without moving plain-label tabs off baseline. |
+| In Nested blocks, switch Nested block style between Card and Flat while viewing section 9 with Primary and Secondary palettes. | Card shows a bordered nested surface; Flat shows tabs directly under their parent without a wrapper surface; nested controls remain subtly colored in both modes and at every depth. |
 | Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Equal width shares spare space without squeezing labels: Scroll scrolls and Wrap moves whole tabs to another row; panels never collapse to zero. |
 | Toggle theme button outline and test mouse hover, keyboard focus, touch taps, reduced motion, light/dark themes, and rapid setting changes. | Theme shadow toggles without replacing the focus outline; hover never sticks on touch; motion and selected state remain correct. |
 
