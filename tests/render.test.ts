@@ -11,6 +11,7 @@ import {
 } from "../src/render";
 import type { TabDefinition } from "../src/parser";
 import { renderMock, setIcon } from "./obsidian.mock";
+import { stubPanelHeights, stubResizeObserver } from "./panel-size";
 
 const tabs = [
 	{ label: "One", body: "First" },
@@ -43,7 +44,9 @@ function keys(element: HTMLElement, key: string): void {
 
 beforeEach(() => {
 	renderMock.mockReset();
-	renderMock.mockResolvedValue(undefined);
+	renderMock.mockImplementation(async (_app, markdown, element) => {
+		element.textContent = markdown;
+	});
 	scrollIntoViewMock.mockReset();
 	Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
 		configurable: true,
@@ -151,107 +154,310 @@ describe("tab interaction", () => {
 		expect(secondButtons[0]?.getAttribute("aria-selected")).toBe("true");
 	});
 
-	test("animates the panel container from its old height to its new height", async () => {
+	test("moves the box from the outgoing height to the visible panel's height", async () => {
 		const { container } = setup();
 		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
 		const second = container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
 		if (!panels || !second) throw new Error("Expected panels and second tab.");
-		const measure = vi
-			.spyOn(panels, "getBoundingClientRect")
-			.mockReturnValueOnce({ height: 240 } as DOMRect)
-			.mockReturnValueOnce({ height: 80 } as DOMRect);
-		let nextFrame: FrameRequestCallback | undefined;
-		const frame = vi
-			.spyOn(window, "requestAnimationFrame")
-			.mockImplementation((callback) => {
-				nextFrame = callback;
-				return 1;
-			});
+		stubPanelHeights(container, [240, 80, 0]);
 
 		second.click();
 		await Promise.resolve();
 
-		expect(measure).toHaveBeenCalledTimes(2);
-		expect(panels.style.height).toBe("240px");
-		nextFrame?.(0);
 		expect(panels.style.height).toBe("80px");
-		frame.mockRestore();
 	});
 
-	test("cancels stale height frames during rapid tab switches", async () => {
-		const { container } = setup();
-		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
-		const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-		if (!panels || !buttons[1] || !buttons[2]) {
-			throw new Error("Expected panels and tabs.");
-		}
-		vi.spyOn(panels, "getBoundingClientRect").mockReturnValue({
-			height: 120,
-		} as DOMRect);
-		const frames = new Map<number, FrameRequestCallback>();
-		let frameId = 0;
-		const request = vi
-			.spyOn(window, "requestAnimationFrame")
-			.mockImplementation((callback) => {
-				const id = ++frameId;
-				frames.set(id, callback);
-				return id;
-			});
-		const cancel = vi
-			.spyOn(window, "cancelAnimationFrame")
-			.mockImplementation((id) => {
-				frames.delete(id);
-			});
-
-		buttons[1].click();
-		await Promise.resolve();
-		frames.get(1)?.(0);
-		buttons[2].click();
-		await Promise.resolve();
-		frames.get(2)?.(0);
-
-		cancel.mockClear();
-		buttons[1].click();
-		buttons[2].click();
-		frames.get(4)?.(0);
-
-		expect(cancel).toHaveBeenCalledWith(3);
-		expect(panels.style.height).toBe("120px");
-		request.mockRestore();
-		cancel.mockRestore();
-	});
-
-	test("clips overflow and cancels a frame delayed past height cleanup", async () => {
-		vi.useFakeTimers();
+	test("tracks a panel that grows after it is already on screen", async () => {
+		const resize = stubResizeObserver();
 		try {
 			const { container } = setup();
 			const panels =
 				container.querySelector<HTMLElement>(".tabsdown__panels");
 			const second =
 				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
-			if (!panels || !second) {
-				throw new Error("Expected panels and second tab.");
-			}
-			vi.spyOn(panels, "getBoundingClientRect")
-				.mockReturnValueOnce({ height: 80 } as DOMRect)
-				.mockReturnValueOnce({ height: 240 } as DOMRect);
-			vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-			const cancel = vi
-				.spyOn(window, "cancelAnimationFrame")
-				.mockImplementation(() => undefined);
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			const grow = stubPanelHeights(container, [240, 80, 0]);
 
 			second.click();
 			await Promise.resolve();
-			expect(
-				panels.classList.contains("tabsdown__panels--animating"),
-			).toBe(true);
+			expect(panels.style.height).toBe("80px");
 
-			vi.advanceTimersByTime(250);
-			expect(cancel).toHaveBeenCalledWith(1);
-			expect(panels.style.height).toBe("");
-			expect(
-				panels.classList.contains("tabsdown__panels--animating"),
-			).toBe(false);
+			// Nothing predicted this: the panel simply got taller, and the box
+			// follows rather than staying on a height it guessed earlier.
+			grow(1, 640);
+			resize.fire();
+			expect(panels.style.height).toBe("640px");
+
+			grow(1, 300);
+			resize.fire();
+			expect(panels.style.height).toBe("300px");
+		} finally {
+			resize.restore();
+		}
+	});
+
+	test("lands on the final panel through rapid switches", async () => {
+		const { container } = setup();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+		if (!panels || !buttons[1] || !buttons[2]) {
+			throw new Error("Expected panels and tabs.");
+		}
+		stubPanelHeights(container, [240, 80, 500]);
+
+		buttons[1].click();
+		buttons[2].click();
+		buttons[1].click();
+		await Promise.resolve();
+
+		expect(panels.style.height).toBe("80px");
+	});
+
+	test("clips only while a height transition is running", async () => {
+		const { container } = setup();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const second = container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+		if (!panels || !second) throw new Error("Expected panels and second tab.");
+		stubPanelHeights(container, [240, 80, 0]);
+		const frames = new Map<number, FrameRequestCallback>();
+		let nextFrame = 0;
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+			frames.set(++nextFrame, callback);
+			return nextFrame;
+		});
+		vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => {
+			frames.delete(id);
+		});
+		const runFrames = (): void => {
+			const pending = [...frames.values()];
+			frames.clear();
+			for (const frame of pending) frame(0);
+		};
+		const transition = (type: string): void => {
+			const event = new Event(type);
+			Object.defineProperty(event, "propertyName", { value: "height" });
+			panels.dispatchEvent(event);
+		};
+
+		second.click();
+		await Promise.resolve();
+		expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+
+		transition("transitionstart");
+		expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+
+		// A retarget cancels and restarts within the frame; the clip has to survive
+		// the gap or the content spills out mid-run.
+		transition("transitioncancel");
+		transition("transitionstart");
+		runFrames();
+		expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+
+		transition("transitionend");
+		runFrames();
+		expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+	});
+
+	test("holds the outgoing height until an empty query container fills", async () => {
+		const resize = stubResizeObserver();
+		vi.useFakeTimers();
+		try {
+			// A query block renders an empty container and fills it when the query
+			// resolves. Text alongside it gives the panel height the whole time, so
+			// height alone can never say whether the panel is finished.
+			renderMock.mockImplementation(
+				async (_app: unknown, _body: unknown, el: HTMLElement) => {
+					el.createEl("p").textContent = "Heading above the query";
+					el.createEl("div", { cls: "block-language-dataview" });
+					el.createEl("div", { cls: "block-language-datacorejsx" });
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			const grow = stubPanelHeights(container, [240, 40, 0]);
+
+			second.click();
+			await vi.advanceTimersByTimeAsync(0);
+			expect(panels.style.height).toBe("240px");
+
+			await vi.advanceTimersByTimeAsync(1000);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			const query = container.querySelectorAll<HTMLElement>(
+				".block-language-dataview",
+			)[1];
+			const slower = container.querySelectorAll<HTMLElement>(
+				".block-language-datacorejsx",
+			)[1];
+			if (!query || !slower) throw new Error("Expected query containers.");
+
+			// One of two containers filling is not the panel being done.
+			query.createEl("table");
+			grow(1, 300);
+			resize.fire();
+			expect(panels.getBoundingClientRect().height).toBe(300);
+
+			grow(1, 90);
+			resize.fire();
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			slower.createEl("table");
+			grow(1, 700);
+			resize.fire();
+			expect(panels.getBoundingClientRect().height).toBe(700);
+		} finally {
+			vi.useRealTimers();
+			resize.restore();
+		}
+	});
+
+	test.each(["load", "error"] as const)(
+		"holds the outgoing height until an incomplete image emits %s",
+		async (terminalEvent) => {
+			let complete = false;
+			renderMock.mockImplementation(
+				async (_app: unknown, body: unknown, el: HTMLElement) => {
+					if (body !== "Second") {
+						el.textContent = String(body);
+						return;
+					}
+					const image = el.createEl("img", {
+						attr: { src: "https://example.invalid/pending.png" },
+					});
+					Object.defineProperty(image, "complete", {
+						configurable: true,
+						get: () => complete,
+					});
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			const setHeight = stubPanelHeights(container, [240, 40, 0]);
+
+			second.click();
+			await Promise.resolve();
+			const image = panels.querySelector<HTMLImageElement>("img");
+			if (!image) throw new Error("Expected a pending image.");
+			expect(image.complete).toBe(false);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			complete = true;
+			const settledHeight = terminalEvent === "load" ? 300 : 40;
+			setHeight(1, settledHeight);
+			image.dispatchEvent(new Event(terminalEvent));
+			expect(panels.getBoundingClientRect().height).toBe(settledHeight);
+		},
+	);
+
+	test("re-arms the floor on each switch instead of inheriting a stale one", async () => {
+		vi.useFakeTimers();
+		try {
+			renderMock.mockImplementation(
+				async (_app: unknown, _body: unknown, el: HTMLElement) => {
+					el.createEl("p").textContent = "Text above the query";
+					el.createEl("div", { cls: "block-language-dataview" });
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const buttons =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+			if (!panels || !buttons[1] || !buttons[2]) {
+				throw new Error("Expected panels and tabs.");
+			}
+			stubPanelHeights(container, [240, 40, 30]);
+
+			buttons[1].click();
+			await vi.advanceTimersByTimeAsync(2400);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			// The second switch owns the floor now. Leaving the first switch's cap
+			// armed drops the box two seconds after the user already moved on.
+			buttons[2].click();
+			await vi.advanceTimersByTimeAsync(200);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	test("gives up the floor when a container never fills", async () => {
+		vi.useFakeTimers();
+		try {
+			renderMock.mockImplementation(
+				async (_app: unknown, _body: unknown, el: HTMLElement) => {
+					el.createEl("div", { cls: "block-language-dataview" });
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			stubPanelHeights(container, [240, 20, 0]);
+
+			second.click();
+			await vi.advanceTimersByTimeAsync(2000);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			await vi.advanceTimersByTimeAsync(600);
+			expect(panels.getBoundingClientRect().height).toBe(20);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	test("shrinks straight to a shorter panel with nothing pending", async () => {
+		vi.useFakeTimers();
+		try {
+			renderMock.mockImplementation(
+				async (_app: unknown, _body: unknown, el: HTMLElement) => {
+					el.createEl("p").textContent = "Content";
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			stubPanelHeights(container, [240, 30, 0]);
+
+			second.click();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(panels.style.height).toBe("30px");
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	test("settles an empty tab without waiting out the floor", async () => {
+		vi.useFakeTimers();
+		try {
+			renderMock.mockImplementation(async () => undefined);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			stubPanelHeights(container, [240, 0, 0]);
+
+			second.click();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(panels.style.height).toBe("0px");
 		} finally {
 			vi.useRealTimers();
 		}
@@ -366,8 +572,14 @@ test("panels contain their own margins so height stays stable", () => {
 	// Anchored, so a position-specific rule ending in the same class does not
 	// shadow the base rule this asserts on.
 	const panels = /^\.tabsdown__panels \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
+	const panel =
+		/^\.tabsdown__panel,\s*\n\.tabsdown__content \{([^}]*)\}/m.exec(styles)?.[1] ??
+		"";
 
 	expect(panels).toMatch(/display:\s*flow-root/);
+	expect(panels).toMatch(/box-sizing:\s*border-box/);
+	expect(styles).toMatch(/^\.tabsdown__content \{\s*display:\s*flow-root/m);
+	expect(panel).not.toMatch(/\bdisplay\s*:/);
 });
 
 test("a narrow block moves its side tab list off the panels' line", () => {

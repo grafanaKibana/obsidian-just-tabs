@@ -7,14 +7,15 @@ Tabsdown is intentionally small: Markdown remains the source of truth, Obsidian'
 1. Open or select an issue.
 2. Keep the change inside that issue's acceptance criteria.
 3. Do not add private Obsidian APIs, runtime dependencies, plugin-specific adapters, or source-mutating tab behavior.
-4. Run:
+4. Build DOM with Obsidian's `createEl` helpers in files that import `obsidian`. Only the runtime-agnostic modules — the ones the Quartz port and the jsdom tests reuse — use `ownerDocument.createElement`, and the `obsidianmd/prefer-create-el` override in `eslint.config.mts` lists exactly those files.
+5. Run:
 
    ```bash
    npm ci
    npm run check
    ```
 
-5. Test the affected behavior in the relevant Obsidian modes and platforms.
+6. Test the affected behavior in the relevant Obsidian modes and platforms.
 
 ## Development
 
@@ -34,6 +35,8 @@ For manual testing, copy or link this repository into:
 Build `main.js`, reload Obsidian, then enable **Tabsdown** under **Settings → Community plugins**.
 
 The demo vault always ships the plugin built from the same commit, so anyone can open `demo/` in Obsidian and exercise the current behavior. After changing `src/`, `styles.css`, or `manifest.json`, run `npm run demo` and commit the result; CI fails the `quality` check when the committed build does not match the source.
+
+Tabsdown is the only plugin enabled in the tracked demo state. Style Settings, BRAT, Templater, Dataview, and Datacore are tracked as manifests and styles only, because `main.js` is ignored for everything but Tabsdown. Install and enable them through **Settings → Community plugins** before using the parts of `Tabsdown test matrix.md` that need them.
 
 ## Pull requests
 

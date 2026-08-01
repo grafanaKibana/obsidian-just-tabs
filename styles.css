@@ -270,6 +270,16 @@ settings:
 		color var(--anim-duration-fast) var(--anim-motion-swing);
 }
 
+/* Themes draw button chrome as an inset ring in --input-shadow, which core
+   applies to every button. It lands on top of the tab's own border and survives
+   the underline personality making that border transparent, so it reads there as
+   a stray outline around an underlined tab. The tab owns its whole surface. */
+.tabsdown__tab,
+.tabsdown__tab:hover,
+.tabsdown__tab:active {
+	box-shadow: none;
+}
+
 .tabsdown__tab-icon {
 	--icon-size: 1em;
 	display: inline-flex;
@@ -307,10 +317,17 @@ settings:
 	min-inline-size: 0;
 }
 
+/* Markdown content belongs to Tabsdown, so it can contain its children's margins.
+   The panel roots handed to mountTabs belong to the caller and keep their display. */
+.tabsdown__content {
+	display: flow-root;
+}
+
 /* flow-root keeps a panel's last margin inside the measured box. Without it the
    margin escapes once the animating class drops its clipping, and the block
    gains that margin as a gap the moment the animation ends. */
 .tabsdown__panels {
+	box-sizing: border-box;
 	display: flow-root;
 	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
 }

@@ -4,7 +4,13 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { trackPanelHeight } from "../src/panel-height";
 import { mountTabs, type TabSpec, type TabsController } from "../src/tabs";
+import {
+	stubMutationObserver,
+	stubPanelHeights,
+	stubResizeObserver,
+} from "./panel-size";
 
 function panel(text: string): HTMLElement {
 	const element = document.createElement("div");
@@ -214,13 +220,9 @@ describe("availability", () => {
 		if (!popup) throw new Error("Expected an iframe document.");
 		const popupWindow = popup.defaultView;
 		if (!popupWindow) throw new Error("Expected an iframe window.");
-		const requestFrame = vi
-			.spyOn(popupWindow, "requestAnimationFrame")
-			.mockReturnValue(1);
-		const cancelFrame = vi.spyOn(popupWindow, "cancelAnimationFrame");
 		const setTimer = vi.spyOn(popupWindow, "setTimeout");
 		const clearTimer = vi.spyOn(popupWindow, "clearTimeout");
-		const getStyle = vi.spyOn(popupWindow, "getComputedStyle");
+		const popupResize = stubResizeObserver(popupWindow);
 		const container = popup.createElement("div");
 		let adoptionCount = 0;
 		class TracePanel extends popupWindow.HTMLElement {
@@ -247,14 +249,18 @@ describe("availability", () => {
 
 		expect(popup.activeElement).toBe(buttons[0]);
 		expect(adoptionCount).toBe(0);
-		expect(requestFrame).toHaveBeenCalledOnce();
-		expect(setTimer).toHaveBeenCalledOnce();
-		expect(getStyle).toHaveBeenCalledWith(
-			container.querySelector(".tabsdown__panels"),
-		);
+		// Everything the tracker schedules has to belong to the pop-out window;
+		// the main window's timers do not run on this document's frames.
+		expect(setTimer).toHaveBeenCalled();
+		buttons[0]?.click();
+		// The visible panel is observed in its own pop-out window rather than the
+		// main window, whose timers and ResizeObserver cannot follow it.
+		expect(popupResize.observed()).toEqual([trace]);
+		expect(adoptionCount).toBe(0);
 		controller.destroy();
-		expect(cancelFrame).toHaveBeenCalledWith(1);
 		expect(clearTimer).toHaveBeenCalled();
+		expect(popupResize.observed()).toHaveLength(0);
+		popupResize.restore();
 	});
 
 	test("moves focus forward from a hidden tab and wraps at the end", () => {
@@ -372,68 +378,327 @@ describe("keyboard and roles", () => {
 });
 
 describe("animation and teardown", () => {
-	test("leaves no pinned height, frame, or timer after switching", () => {
+	test.each(["load", "error"] as const)(
+		"holds the outgoing height until an incomplete root image emits %s",
+		(terminalEvent) => {
+			let complete = false;
+			const image = document.createElement("img");
+			Object.defineProperty(image, "complete", {
+				configurable: true,
+				get: () => complete,
+			});
+			const { container, buttons, panelsEl } = setup({
+				selection: "trace",
+				panels: [panel("Trace"), image],
+			});
+			const setHeight = stubPanelHeights(container, [240, 40]);
+
+			buttons[1]?.click();
+			expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+			complete = true;
+			const settledHeight = terminalEvent === "load" ? 300 : 40;
+			setHeight(1, settledHeight);
+			image.dispatchEvent(new Event(terminalEvent));
+			expect(panelsEl.getBoundingClientRect().height).toBe(settledHeight);
+		},
+	);
+
+	test("does not hold the outgoing height for a complete root image", () => {
+		const image = document.createElement("img");
+		Object.defineProperty(image, "complete", { value: true });
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), image],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
+	test.each(["block-language-dataview", "internal-embed"])(
+		"holds the outgoing height for a root %s until it fills",
+		async (className) => {
+			const query = document.createElement("div");
+			query.className = className;
+			const { container, buttons, panelsEl } = setup({
+				selection: "trace",
+				panels: [panel("Trace"), query],
+			});
+			const setHeight = stubPanelHeights(container, [240, 40]);
+
+			buttons[1]?.click();
+			expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+			query.append(document.createElement("table"));
+			setHeight(1, 80);
+			await Promise.resolve();
+
+			expect(panelsEl.getBoundingClientRect().height).toBe(80);
+		},
+	);
+
+	test("reuses the switch floor when a placeholder appears asynchronously", async () => {
+		const target = panel("Ready");
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), target],
+		});
+		const setHeight = stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+
+		const query = target.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		await Promise.resolve();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+		query.append(document.createElement("table"));
+		setHeight(1, 80);
+		await Promise.resolve();
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
+	});
+
+	test("ignores pending resources suppressed inside the visible panel", () => {
+		const target = panel("Visible content");
+		const hidden = target.appendChild(document.createElement("div"));
+		hidden.hidden = true;
+		hidden.appendChild(document.createElement("div")).className =
+			"block-language-dataview";
+		const image = hidden.appendChild(document.createElement("img"));
+		Object.defineProperty(image, "complete", { value: false });
+		const displayNone = target.appendChild(document.createElement("div"));
+		displayNone.style.display = "none";
+		displayNone.appendChild(document.createElement("div")).className =
+			"internal-embed";
+		const skipped = target.appendChild(document.createElement("div"));
+		skipped.style.contentVisibility = "hidden";
+		skipped.appendChild(document.createElement("div")).className =
+			"block-language-datacore";
+		const details = target.appendChild(document.createElement("details"));
+		details.appendChild(document.createElement("div")).className =
+			"block-language-mermaid";
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), target],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
+	test("tracks a boxless mounted panel when its async content fills", async () => {
+		const resize = stubResizeObserver();
+		const trace = panel("Trace");
+		const boxless = panel("");
+		boxless.style.display = "contents";
+		const query = boxless.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [trace, boxless],
+		});
+		const setHeight = stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
+		expect(resize.observed()).toEqual([panelsEl, query]);
+
+		query.append(document.createElement("table"));
+		setHeight(1, 80);
+		await Promise.resolve();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
+		resize.restore();
+	});
+
+	test("tracks pending content in an open shadow root", async () => {
+		const host = panel("");
+		const shadow = host.attachShadow({ mode: "open" });
+		const image = shadow.appendChild(document.createElement("img"));
+		let complete = false;
+		Object.defineProperty(image, "complete", {
+			configurable: true,
+			get: () => complete,
+		});
+		const { buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), host],
+		});
+		let height = 40;
+		vi.spyOn(host, "getBoundingClientRect").mockImplementation(
+			() => ({ height }) as DOMRect,
+		);
+		vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => {
+			const pinned = Number.parseFloat(panelsEl.style.height);
+			return {
+				height: Number.isFinite(pinned) ? pinned : host.hidden ? 240 : height,
+			} as DOMRect;
+		});
+
+		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+		height = 80;
+		complete = true;
+		image.dispatchEvent(new Event("load"));
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
+	});
+
+	test("ignores slotted pending content under a hidden shadow ancestor", () => {
+		const host = panel("");
+		const shadow = host.attachShadow({ mode: "open" });
+		const hidden = shadow.appendChild(document.createElement("div"));
+		hidden.hidden = true;
+		const slot = hidden.appendChild(document.createElement("slot"));
+		slot.name = "pending";
+		const query = host.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		query.slot = "pending";
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), host],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		expect(query.assignedSlot).toBe(slot);
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
+	test("removes captured resource listeners on destroy", () => {
+		const panelsEl = document.createElement("div");
+		const add = vi.spyOn(panelsEl, "addEventListener");
+		const remove = vi.spyOn(panelsEl, "removeEventListener");
+		const tracker = trackPanelHeight(panelsEl);
+
+		tracker.destroy();
+
+		for (const type of ["load", "error"] as const) {
+			const listener = add.mock.calls.find(([event]) => event === type)?.[1];
+			expect(listener).toBeDefined();
+			expect(remove).toHaveBeenCalledWith(type, listener, true);
+		}
+	});
+
+	test("scopes mutation rescans to the floor window and re-arms them", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		const mutation = stubMutationObserver();
+		const resize = stubResizeObserver();
+		try {
+			const panelsEl = document.createElement("div");
+			const panelElement = panel("Ready");
+			let panelHeight = 40;
+			panelElement.className = "tabsdown__panel";
+			panelsEl.append(panelElement);
+			document.body.append(panelsEl);
+			vi.spyOn(panelElement, "getBoundingClientRect").mockImplementation(
+				() => ({ height: panelHeight }) as DOMRect,
+			);
+			vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => ({
+				height: Number.parseFloat(panelsEl.style.height) || 40,
+			}) as DOMRect);
+			const tracker = trackPanelHeight(panelsEl);
+
+			tracker.switched(240);
+			expect(mutation.observed()).toEqual([panelElement]);
+
+			vi.advanceTimersByTime(2499);
+			expect(mutation.observed()).toEqual([panelElement]);
+			vi.advanceTimersByTime(1);
+			expect(mutation.observed()).toEqual([]);
+			panelHeight = 80;
+			resize.fire();
+			expect(panelsEl.style.height).toBe("80px");
+
+			tracker.switched(240);
+			expect(mutation.observed()).toEqual([panelElement]);
+			tracker.destroy();
+			expect(mutation.observed()).toEqual([]);
+		} finally {
+			mutation.restore();
+			resize.restore();
+		}
+	});
+
+	test("measures the visible panel margin box", () => {
+		const resize = stubResizeObserver();
+		try {
+			const panelsEl = document.createElement("div");
+			const panelElement = document.createElement("div");
+			panelElement.className = "tabsdown__panel";
+			panelElement.style.margin = "12px 0 18px";
+			panelsEl.append(panelElement);
+			vi.spyOn(panelsEl, "getBoundingClientRect").mockReturnValue({
+				height: 240,
+			} as DOMRect);
+			vi.spyOn(panelElement, "getBoundingClientRect").mockReturnValue({
+				height: 240,
+			} as DOMRect);
+			const tracker = trackPanelHeight(panelsEl);
+			tracker.switched(240);
+
+			expect(panelsEl.style.height).toBe("270px");
+			expect(resize.observed()).toEqual([panelElement]);
+			tracker.destroy();
+		} finally {
+			resize.restore();
+		}
+	});
+
+	test("keeps the box on the visible panel through rapid switches", () => {
 		vi.useFakeTimers();
-		const cancelFrame = vi.spyOn(window, "cancelAnimationFrame");
-		const { buttons, panelsEl } = setup();
+		const { container, buttons, panelsEl } = setup();
+		stubPanelHeights(container, [120, 40]);
 
 		buttons[0]?.click();
 		buttons[1]?.click();
 		buttons[0]?.click();
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			true,
-		);
-		expect(cancelFrame).toHaveBeenCalled();
-
 		vi.advanceTimersByTime(300);
 
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
-		expect(vi.getTimerCount()).toBe(0);
-	});
-
-	test("waits out a duration authored in seconds", () => {
-		vi.useFakeTimers();
-		const container = document.createElement("div");
-		document.body.append(container);
-		container.style.setProperty("--tabsdown-animation-duration", "0.5s");
-		mountTabs(container, {
-			label: "Seconds",
-			tabs: [{ id: "trace", label: "Trace", panel: panel("Trace") }],
-		});
-		const panelsEl = container.querySelector<HTMLElement>(".tabsdown__panels");
-		if (!panelsEl) throw new Error("Expected a panels wrapper.");
-
-		container.querySelector<HTMLButtonElement>(".tabsdown__tab")?.click();
-
-		// Read as a bare number this is 0.5ms, and the pin comes off mid-transition.
-		vi.advanceTimersByTime(200);
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			true,
-		);
-
-		vi.advanceTimersByTime(400);
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
-	});
-
-	test("settles with no residual height when motion is disabled", () => {
-		vi.useFakeTimers();
-		document.body.classList.add("tabsdown-animations-disabled");
-		const { buttons, panelsEl } = setup();
+		// No settle step to wait for and nothing to unpin: the height is simply
+		// whichever panel is on screen, so there is no stale value to jump off.
+		expect(panelsEl.style.height).toBe("120px");
 
 		buttons[0]?.click();
+		expect(panelsEl.style.height).toBe("0px");
+	});
+
+	test("tracks the panel height with motion disabled", () => {
+		vi.useFakeTimers();
+		document.body.classList.add("tabsdown-animations-disabled");
+		const { container, buttons, panelsEl } = setup();
+		stubPanelHeights(container, [120, 40]);
+
+		buttons[1]?.click();
 		vi.advanceTimersByTime(300);
 
-		expect(panelsEl.style.height).toBe("");
-		expect(panelsEl.classList.contains("tabsdown__panels--animating")).toBe(
-			false,
-		);
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
 		document.body.classList.remove("tabsdown-animations-disabled");
+	});
+
+	test("drops the pinned height and observer on destroy", () => {
+		const resize = stubResizeObserver();
+		try {
+			const { container, controller, buttons, panelsEl } = setup();
+			stubPanelHeights(container, [120, 40]);
+			buttons[1]?.click();
+			expect(panelsEl.style.height).toBe("40px");
+
+			controller.destroy();
+
+			expect(panelsEl.style.height).toBe("");
+			expect(resize.observed()).toHaveLength(0);
+		} finally {
+			resize.restore();
+		}
 	});
 
 	test("returns bare panels to the container untouched", () => {

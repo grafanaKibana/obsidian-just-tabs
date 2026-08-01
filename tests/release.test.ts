@@ -10,7 +10,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { delimiter, dirname, resolve } from "node:path";
+import { basename, delimiter, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, expect, test } from "vitest";
 
@@ -97,6 +97,23 @@ afterEach(() => {
 	for (const fixture of fixtures.splice(0)) {
 		rmSync(fixture, { recursive: true, force: true });
 	}
+});
+
+test("demo enables only plugins with tracked runtime bundles", () => {
+	const enabled = readJson<string[]>(
+		resolve(repositoryRoot, "demo/.obsidian/community-plugins.json"),
+	);
+	const tracked = execFileSync(
+		"git",
+		["ls-files", "demo/.obsidian/plugins/*/main.js"],
+		{ cwd: repositoryRoot, encoding: "utf8" },
+	)
+		.trim()
+		.split("\n")
+		.filter(Boolean)
+		.map((path) => basename(dirname(path)));
+
+	expect(enabled.sort()).toEqual(tracked.sort());
 });
 
 test("updates package, lockfile, manifest, and versions together", () => {

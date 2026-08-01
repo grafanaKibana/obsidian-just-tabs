@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { TabBlockRenderChild } from "../src/render";
 import { componentUnloadMock, renderMock } from "./obsidian.mock";
+import { stubPanelHeights, stubResizeObserver } from "./panel-size";
 
 interface Deferred {
 	promise: Promise<void>;
@@ -65,7 +66,7 @@ afterEach(() => {
 	document.body.replaceChildren();
 });
 
-test("cancels a stale height reset before pinning a lazy panel", async () => {
+test("re-arms the floor on each switch instead of inheriting a stale one", async () => {
 	vi.useFakeTimers();
 	const pending = deferred();
 	renderMock.mockImplementation(async (_app, markdown, element) => {
@@ -80,20 +81,23 @@ test("cancels a stale height reset before pinning a lazy panel", async () => {
 	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
 	const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
 	if (!panels) throw new Error("Expected panels.");
-	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+	stubPanelHeights(container, [80, 120, 200]);
 	await vi.advanceTimersByTimeAsync(0);
 
 	buttons[1]?.click();
-	await vi.advanceTimersByTimeAsync(0);
+	await vi.advanceTimersByTimeAsync(2400);
+	expect(panels.getBoundingClientRect().height).toBe(120);
 
+	// The third panel is still rendering, so its own floor has to be the one in
+	// force. Letting the first switch's cap expire underneath it drops the box
+	// onto an empty panel two seconds after the user moved on.
 	buttons[2]?.click();
-	expect(panels.style.height).toBe("0px");
-
-	await vi.advanceTimersByTimeAsync(300);
-	expect(panels.style.height).toBe("0px");
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+	await vi.advanceTimersByTimeAsync(200);
+	expect(panels.getBoundingClientRect().height).toBe(120);
 
 	pending.resolve();
+	await vi.advanceTimersByTimeAsync(0);
+	expect(panels.getBoundingClientRect().height).toBe(200);
 });
 
 test("renders lazily, keeps current panels, and rebuilds stale hidden panels once", async () => {
@@ -160,7 +164,7 @@ test("does not cancel a still-owned visible render on generation change", async 
 	expect(renderMock).toHaveBeenCalledTimes(3);
 });
 
-test("pins the old height and measures a lazy target after rendering", async () => {
+test("holds the outgoing height while a lazy panel renders", async () => {
 	const pending = deferred();
 	renderMock
 		.mockImplementationOnce(async (_app, markdown, element) => {
@@ -178,21 +182,14 @@ test("pins the old height and measures a lazy target after rendering", async () 
 	const second =
 		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
 	if (!panels || !second) throw new Error("Expected panels and second tab.");
-	const measure = vi
-		.spyOn(panels, "getBoundingClientRect")
-		.mockReturnValueOnce({ height: 80 } as DOMRect)
-		.mockReturnValueOnce({ height: 240 } as DOMRect);
-	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+	stubPanelHeights(container, [80, 240]);
 
 	second.click();
-	expect(measure).toHaveBeenCalledOnce();
 	expect(panels.style.height).toBe("80px");
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
 
 	pending.resolve();
 	await flush();
-	expect(measure).toHaveBeenCalledTimes(2);
-	expect(panels.style.height).toBe("80px");
+	expect(panels.getBoundingClientRect().height).toBe(240);
 });
 
 test("ignores a superseded hidden render and installs only its replacement", async () => {
@@ -337,30 +334,38 @@ test("rapid activation never attaches output to the wrong panel", async () => {
 	expect(panels[1]?.hidden).toBe(true);
 });
 
-test("releases the height pin when a panel holds a nested block", async () => {
-	renderMock.mockImplementation(async (_app, markdown, element) => {
-		element.textContent = markdown;
-		if (markdown.startsWith("Second")) {
-			element.createEl("div", { cls: "tabsdown" });
-		}
-	});
-	const { container } = setup({ value: 0 });
-	await flush();
-	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
-	const second =
-		container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
-	if (!panels) throw new Error("Expected panels.");
-	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+test("follows a nested block instead of giving up on its height", async () => {
+	const resize = stubResizeObserver();
+	try {
+		renderMock.mockImplementation(async (_app, markdown, element) => {
+			element.textContent = markdown;
+			if (markdown.startsWith("Second")) {
+				element.createEl("div", { cls: "tabsdown" });
+			}
+		});
+		const { container } = setup({ value: 0 });
+		await flush();
+		const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
+		const second =
+			container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+		if (!panels) throw new Error("Expected panels.");
+		const grow = stubPanelHeights(container, [80, 240]);
 
-	second?.click();
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
+		second?.click();
+		await flush();
+		expect(panels.getBoundingClientRect().height).toBe(240);
 
-	await flush();
-	expect(panels.style.height).toBe("");
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+		// A nested block keeps resizing after its parent resolves. That used to
+		// mean no height could be trusted; now the outer box just follows it.
+		grow(1, 560);
+		resize.fire();
+		expect(panels.getBoundingClientRect().height).toBe(560);
+	} finally {
+		resize.restore();
+	}
 });
 
-test("keeps the selected panel's pin when a superseded render resolves first", async () => {
+test("ignores a superseded render resolving onto a hidden panel", async () => {
 	vi.useFakeTimers();
 	const pending: Record<string, Deferred> = {};
 	renderMock.mockImplementation((_app, markdown, element) => {
@@ -378,25 +383,22 @@ test("keeps the selected panel's pin when a superseded render resolves first", a
 	const panels = container.querySelector<HTMLElement>(".tabsdown__panels");
 	const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
 	if (!panels) throw new Error("Expected panels.");
-	vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+	stubPanelHeights(container, [80, 300, 200]);
 	pending.First?.resolve();
 	await vi.advanceTimersByTimeAsync(0);
 
 	buttons[1]?.click();
 	buttons[2]?.click();
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(true);
 
-	// Both renders are in flight and the superseded one lands first. Its pin is
-	// its own; reading it must not consume the one the selected panel waits on,
-	// or nothing arms the reset and the pinned height never comes off.
+	// The second panel is hidden by now. Its render landing must not pull the
+	// box onto its height instead of the selected panel's.
 	pending.Second?.resolve();
 	await vi.advanceTimersByTimeAsync(0);
+	expect(panels.style.height).not.toBe("300px");
+
 	pending.Third?.resolve();
 	await vi.advanceTimersByTimeAsync(0);
-
-	await vi.advanceTimersByTimeAsync(300);
-	expect(panels.style.height).toBe("");
-	expect(panels.classList.contains("tabsdown__panels--animating")).toBe(false);
+	expect(panels.style.height).toBe("200px");
 });
 
 test("measures the old height before the outgoing panel is emptied", async () => {
@@ -420,6 +422,8 @@ test("measures the old height before the outgoing panel is emptied", async () =>
 
 	// Measuring later than this reads the incoming panel, which is hidden or
 	// already emptied, so every switch would animate up from nothing.
-	expect(measured?.id).toBe(panels.children[0]?.id);
+	expect(measured?.id).toBe(
+		panels.querySelector(".tabsdown__panel")?.id,
+	);
 	expect(measured?.text).toBe("First");
 });
