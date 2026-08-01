@@ -120,15 +120,12 @@ test("demo enables only plugins with tracked runtime bundles", () => {
 	expect(enabled.sort()).toEqual(tracked.sort());
 });
 
-test("binds a release to the exact manually tested commit", () => {
-	expect(releaseWorkflow).toMatch(/commit:\n\s+description:[^\n]+manually tested/);
-	expect(releaseWorkflow).toMatch(/commit:[\s\S]*?required:\s*true[\s\S]*?type:\s*string/);
-	expect(releaseWorkflow).toContain("RELEASE_COMMIT: ${{ inputs.commit }}");
-	const validation = releaseWorkflow.indexOf('"$RELEASE_COMMIT" != "$GITHUB_SHA"');
+test("releases the current main head without a commit input", () => {
+	expect(releaseWorkflow).not.toContain("inputs.commit");
+	expect(releaseWorkflow).not.toContain("RELEASE_COMMIT");
 	const install = releaseWorkflow.indexOf("- run: npm ci");
 	const tag = releaseWorkflow.indexOf('ref="refs/tags/$version"');
-	expect(validation).toBeGreaterThan(-1);
-	expect(install).toBeGreaterThan(validation);
+	expect(install).toBeGreaterThan(-1);
 	expect(tag).toBeGreaterThan(install);
 });
 
