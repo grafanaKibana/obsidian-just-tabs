@@ -54,10 +54,9 @@ Pull requests into `main` need the `quality` check. `main` cannot be force-pushe
 
 1. Run `npm run version -- <x.y.z>`, which updates `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together. Merge that bump into `main` like any other change.
 2. Run the **Release** workflow from the Actions tab with **dry-run** checked. It builds, verifies, and prints the notes it would publish, without tagging anything.
-3. Run it again with **dry-run** unchecked. It creates the exact unprefixed tag at the current `main` commit and a **draft** release carrying `main.js`, `manifest.json`, `styles.css`, checksums, the manual gate, and the commits since the previous tag.
-4. Publish the draft only after installing its assets in a clean vault and completing the manual release matrix.
+3. Complete the relevant manual testing against the current `main`, then run the workflow again with **dry-run** unchecked. It creates the exact unprefixed tag and immediately publishes the latest release with `main.js`, `manifest.json`, `styles.css`, checksums, and the commits since the previous tag.
 
-If a step fails, fix it and re-run the workflow. Tagging accepts an existing tag only when it points at the commit being released, and drafting resumes an existing draft and replaces its assets.
+If a step fails before publication, fix it and re-run the workflow. Tagging accepts an existing tag only when it points at the commit being released.
 
 Do not replace a published tag or its assets; corrections require a higher version.
 

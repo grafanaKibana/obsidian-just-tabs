@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: Report what would be released without tagging or drafting.
+        description: Report what would be released without tagging or publishing.
         type: boolean
         default: true
 
@@ -21,6 +21,7 @@ jobs:
     # dispatch from anywhere else would tag unreviewed work.
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: release
     permissions:
       attestations: write
@@ -51,7 +52,7 @@ jobs:
             manifest.json
             styles.css
 
-      - name: Tag and draft the release
+      - name: Tag and publish the latest release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -98,17 +99,6 @@ jobs:
             echo "- Package, root lockfile, manifest, and versions mapping parity: PASS"
             echo "- Release asset contract: PASS"
             echo
-            echo "## Manual release gate"
-            echo
-            echo "- [ ] Install these three draft assets in a clean vault."
-            echo "- [ ] Link the completed compatibility matrix."
-            echo "- [ ] Record actual-mobile PASS or an explicit GAP with reason."
-            echo "- [ ] Record known incompatibilities or state that none were observed."
-            echo "- [ ] Confirm prerelease for 0.x or stable for 1.0.0."
-            echo "- [ ] For beta, append the BRAT result after publication."
-            echo
-            echo "Publish only after every applicable pre-publication item is complete."
-            echo
             echo "## SHA-256"
             echo
             echo '```text'
@@ -117,7 +107,7 @@ jobs:
           } > release-notes.md
 
           if [[ "$DRY_RUN" == "true" ]]; then
-            echo "Dry run: would tag $version at $GITHUB_SHA and draft a release."
+            echo "Dry run: would tag $version at $GITHUB_SHA and publish it as the latest release."
             cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
@@ -130,32 +120,8 @@ jobs:
             exit 1
           fi
 
-          prerelease=()
-          if [[ "$version" == 0.* ]]; then
-            prerelease=(--prerelease)
-          fi
-
-          # Idempotent, so a failure in a later step can be fixed by re-running the
-          # job instead of by deleting the tag and the draft by hand.
-          drafted=$(gh release view "$version" --json isDraft --jq .isDraft 2>/dev/null) || drafted=""
-
-          if [[ "$drafted" == "false" ]]; then
-            echo "::error::Release $version is already published and cannot be replaced."
-            exit 1
-          fi
-
-          if [[ "$drafted" == "true" ]]; then
-            gh release edit "$version" \
-              --draft \
-              "${prerelease[@]}" \
-              --title "$version" \
-              --notes-file release-notes.md
-          else
-            gh release create "$version" \
-              --draft \
-              "${prerelease[@]}" \
-              --title "$version" \
-              --notes-file release-notes.md
-          fi
-
-          gh release upload "$version" main.js manifest.json styles.css --clobber
+          gh release create "$version" main.js manifest.json styles.css \
+            --latest \
+            --verify-tag \
+            --title "$version" \
+            --notes-file release-notes.md
