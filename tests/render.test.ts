@@ -699,7 +699,7 @@ test("defines the requested control ranges and selected weights", () => {
 	expectFields("Gap between tabs", ["default: 4", "min: 0", "max: 48", "step: 1"]);
 	expectFields("Underline thickness", ["default: 2", "min: 1", "max: 8", "step: 1"]);
 	expectFields("Horizontal padding", ["default: 36", "min: 0", "max: 48", "step: 1"]);
-	expectFields("Side-list width", ["default: 160", "min: 96", "max: 320", "step: 8"]);
+	expectFields("Side-list width", ["default: 160", "min: 144", "max: 320", "step: 8"]);
 	expect(styleSetting(styles, "title", "Use custom horizontal padding")).toBe("");
 	expect(styleSetting(styles, "title", "Use custom side-list width")).toBe("");
 	expectFields("Icon size", ["default: 16", "min: 12", "max: 32", "step: 1"]);
@@ -979,12 +979,10 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	const globalOverflowScope = ".tabsdown:not(.tabsdown--inline-overflow) > .tabsdown__tablist";
 	expect(matchingSelectors(styles, "body.tabsdown-overflow-wrap")).toContain(globalOverflowScope);
 	expect(matchingSelectors(styles, "body.tabsdown-overflow-scroll")).toContain(globalOverflowScope);
-	expect(matchingRuleBodies(styles, "body.tabsdown-overflow-wrap")).toMatch(
-		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
+	expect(matchingRuleBodies(styles, ".tabsdown__tablist")).toContain(
+		"gap: var(--tabsdown-gap, 0.25rem)",
 	);
-	expect(matchingRuleBodies(styles, ".tabsdown--multi > .tabsdown__tablist")).toMatch(
-		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
-	);
+	expect(styles).not.toContain("--tabsdown-effective-gap");
 	expect(styles).not.toContain("body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist");
 	expect(styles).toMatch(/\.tabsdown__tab \{[^}]*max-inline-size:\s*100%/);
 	expect(styles).toMatch(/\.tabsdown__tab-label \{[^}]*min-inline-size:\s*0[^}]*overflow-wrap:\s*anywhere/);
