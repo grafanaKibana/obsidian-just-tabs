@@ -699,7 +699,7 @@ test("defines the requested control ranges and selected weights", () => {
 	expectFields("Gap between tabs", ["default: 4", "min: 0", "max: 48", "step: 1"]);
 	expectFields("Underline thickness", ["default: 2", "min: 1", "max: 8", "step: 1"]);
 	expectFields("Horizontal padding", ["default: 36", "min: 0", "max: 48", "step: 1"]);
-	expectFields("Side-list width", ["default: 160", "min: 144", "max: 320", "step: 8"]);
+	expectFields("Side-list width", ["default: 192", "min: 192", "max: 320", "step: 8"]);
 	expect(styleSetting(styles, "title", "Use custom horizontal padding")).toBe("");
 	expect(styleSetting(styles, "title", "Use custom side-list width")).toBe("");
 	expectFields("Icon size", ["default: 16", "min: 12", "max: 32", "step: 1"]);

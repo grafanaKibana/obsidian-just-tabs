@@ -157,8 +157,8 @@ settings:
     title: Side-list width
     description: Changing the slider applies the value immediately to Left and Right lists.
     type: variable-number-slider
-    default: 160
-    min: 144
+    default: 192
+    min: 192
     max: 320
     step: 8
     format: px
