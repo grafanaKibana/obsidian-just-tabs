@@ -315,6 +315,48 @@ describe("tab interaction", () => {
 		}
 	});
 
+	test.each(["load", "error"] as const)(
+		"holds the outgoing height until an incomplete image emits %s",
+		async (terminalEvent) => {
+			let complete = false;
+			renderMock.mockImplementation(
+				async (_app: unknown, body: unknown, el: HTMLElement) => {
+					if (body !== "Second") {
+						el.textContent = String(body);
+						return;
+					}
+					const image = el.createEl("img", {
+						attr: { src: "https://example.invalid/pending.png" },
+					});
+					Object.defineProperty(image, "complete", {
+						configurable: true,
+						get: () => complete,
+					});
+				},
+			);
+			const { container } = setup();
+			const panels =
+				container.querySelector<HTMLElement>(".tabsdown__panels");
+			const second =
+				container.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1];
+			if (!panels || !second) throw new Error("Expected panels and tab.");
+			const setHeight = stubPanelHeights(container, [240, 40, 0]);
+
+			second.click();
+			await Promise.resolve();
+			const image = panels.querySelector<HTMLImageElement>("img");
+			if (!image) throw new Error("Expected a pending image.");
+			expect(image.complete).toBe(false);
+			expect(panels.getBoundingClientRect().height).toBe(240);
+
+			complete = true;
+			const settledHeight = terminalEvent === "load" ? 300 : 40;
+			setHeight(1, settledHeight);
+			image.dispatchEvent(new Event(terminalEvent));
+			expect(panels.getBoundingClientRect().height).toBe(settledHeight);
+		},
+	);
+
 	test("re-arms the floor on each switch instead of inheriting a stale one", async () => {
 		vi.useFakeTimers();
 		try {

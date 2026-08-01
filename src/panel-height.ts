@@ -12,6 +12,7 @@ const TRANSITION_EVENTS = [
 	"transitionend",
 	"transitioncancel",
 ] as const;
+const RESOURCE_EVENTS = ["load", "error"] as const;
 
 export interface PanelHeightTracker {
 	// Pin the height being left behind, then move to whichever panel is visible.
@@ -49,6 +50,13 @@ export function trackPanelHeight(
 		panelsEl.querySelector<HTMLElement>(
 			":scope > .tabsdown__panel:not([hidden])",
 		);
+	const hasPendingContent = (panel: HTMLElement | null): boolean => {
+		if (!panel) return false;
+		return (
+			panel.querySelector(PENDING_SELECTOR) !== null ||
+			Array.from(panel.querySelectorAll("img")).some((image) => !image.complete)
+		);
+	};
 
 	const dropFloor = (): void => {
 		floor = 0;
@@ -86,8 +94,7 @@ export function trackPanelHeight(
 		// The floor outlives the switch only while content is still on its way, so
 		// a panel that is merely shorter than the last one shrinks straight away.
 		const holding =
-			floor > 0 &&
-			(isLoading() || panel?.querySelector(PENDING_SELECTOR) != null);
+			floor > 0 && (isLoading() || hasPendingContent(panel));
 		if (!holding) dropFloor();
 		const measured = measure(panel);
 		// Rounding up: half a pixel short is a clipped descender for as long as the
@@ -151,6 +158,9 @@ export function trackPanelHeight(
 	for (const type of TRANSITION_EVENTS) {
 		panelsEl.addEventListener(type, onTransition as EventListener);
 	}
+	for (const type of RESOURCE_EVENTS) {
+		panelsEl.addEventListener(type, apply, true);
+	}
 
 	return {
 		switched(from: number): void {
@@ -188,6 +198,9 @@ export function trackPanelHeight(
 			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
 			for (const type of TRANSITION_EVENTS) {
 				panelsEl.removeEventListener(type, onTransition as EventListener);
+			}
+			for (const type of RESOURCE_EVENTS) {
+				panelsEl.removeEventListener(type, apply, true);
 			}
 			panelsEl.style.removeProperty("height");
 			panelsEl.style.removeProperty("min-height");

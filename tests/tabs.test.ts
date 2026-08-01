@@ -374,6 +374,21 @@ describe("keyboard and roles", () => {
 });
 
 describe("animation and teardown", () => {
+	test("removes captured resource listeners on destroy", () => {
+		const panelsEl = document.createElement("div");
+		const add = vi.spyOn(panelsEl, "addEventListener");
+		const remove = vi.spyOn(panelsEl, "removeEventListener");
+		const tracker = trackPanelHeight(panelsEl);
+
+		tracker.destroy();
+
+		for (const type of ["load", "error"] as const) {
+			const listener = add.mock.calls.find(([event]) => event === type)?.[1];
+			expect(listener).toBeDefined();
+			expect(remove).toHaveBeenCalledWith(type, listener, true);
+		}
+	});
+
 	test("measures the visible panel margin box", () => {
 		const resize = stubResizeObserver();
 		try {
