@@ -76,6 +76,12 @@ function matchingSelectors(styles: string, selector: string): string {
 		.join("\n");
 }
 
+function classSelectorCount(selector: string): number {
+	return (
+		selector.replace(/:where\([^)]*\)/g, "").match(/\.[\w-]+/g)?.length ?? 0
+	);
+}
+
 beforeEach(() => {
 	renderMock.mockReset();
 	renderMock.mockImplementation(async (_app, markdown, element) => {
@@ -752,6 +758,106 @@ test("offers flat nested blocks while keeping nested controls subtle", () => {
 	expect(background(deeper)).not.toBe(background(subtle));
 });
 
+test("nested parity tints outrank global and position palettes", () => {
+	const styles = readStyles();
+	const palettes = [
+		"body.tabsdown-palette-secondary .tabsdown",
+		...(["top", "bottom", "left", "right"] as const).flatMap((position) =>
+			(["primary", "secondary"] as const).map(
+				(palette) =>
+					`body.tabsdown-${position}-palette-${palette} .tabsdown--${position}`,
+			),
+		),
+	];
+
+	for (const parity of ["odd", "even"] as const) {
+		const paritySelector = `body .tabsdown--nested-${parity}.tabsdown`;
+		const parityBody = matchingRuleBodies(styles, paritySelector);
+		expect(parityBody, paritySelector).toContain("--tabsdown-tab-background:");
+		for (const paletteSelector of palettes) {
+			expect(styles, paletteSelector).toContain(paletteSelector);
+			expect(classSelectorCount(paritySelector), paletteSelector).toBeGreaterThanOrEqual(
+				classSelectorCount(paletteSelector),
+			);
+			expect(styles.lastIndexOf(paritySelector), paletteSelector).toBeGreaterThan(
+				styles.indexOf(paletteSelector),
+			);
+		}
+	}
+});
+
+test("even Card surfaces beat the base card while Flat stays transparent", () => {
+	const styles = readStyles();
+	const baseSelector = ".tabsdown .tabsdown";
+	const evenSelector = "body .tabsdown--nested-even.tabsdown";
+	const flatSelector = "body.tabsdown-nested-style-flat .tabsdown .tabsdown";
+
+	expect(matchingRuleBodies(styles, baseSelector)).toContain(
+		"background-color: var(--background-secondary)",
+	);
+	expect(matchingRuleBodies(styles, evenSelector)).toContain(
+		"background-color: var(--background-primary)",
+	);
+	expect(classSelectorCount(evenSelector)).toBeGreaterThanOrEqual(
+		classSelectorCount(baseSelector),
+	);
+	expect(matchingRuleBodies(styles, flatSelector)).toContain(
+		"background-color: transparent",
+	);
+	expect(classSelectorCount(flatSelector)).toBeGreaterThan(
+		classSelectorCount(evenSelector),
+	);
+});
+
+test("position Start and Center beat global Equal plus Wrap", () => {
+	const styles = readStyles();
+	const globalSelector =
+		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__tab";
+	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
+	expect(matchingRuleBodies(styles, globalSelector)).toContain(
+		"flex: 1 1 max-content",
+	);
+
+	for (const position of ["top", "bottom", "left", "right"] as const) {
+		for (const alignment of ["start", "center"] as const) {
+			const positionSelector =
+				`body.tabsdown-${position}-alignment-${alignment} ` +
+				`.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`;
+			const body = matchingRuleBodies(styles, positionSelector);
+			expect(body, `${position} ${alignment}`).toContain("flex: 0 0 auto");
+			expect(body, `${position} ${alignment}`).toContain(
+				"min-inline-size: var(--tabsdown-tab-min-size)",
+			);
+			expect(body, `${position} ${alignment}`).toContain("white-space: normal");
+			expect(classSelectorCount(positionSelector)).toBeGreaterThanOrEqual(
+				classSelectorCount(globalSelector),
+			);
+			expect(styles.indexOf(positionSelector)).toBeGreaterThan(
+				styles.indexOf(globalSelector),
+			);
+
+			if (position === "left" || position === "right") {
+				const narrowGlobalSelector =
+					"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width " +
+					`.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`;
+				expect(matchingRuleBodies(narrow, narrowGlobalSelector)).toContain(
+					"flex: 1 1 max-content",
+				);
+				expect(
+					matchingRuleBodies(narrow, positionSelector),
+					`${position} narrow ${alignment}`,
+				).toContain("flex: 0 0 auto");
+				expect(classSelectorCount(positionSelector)).toBeGreaterThanOrEqual(
+					classSelectorCount(narrowGlobalSelector),
+				);
+				expect(narrow.indexOf(positionSelector)).toBeGreaterThan(
+					narrow.indexOf(narrowGlobalSelector),
+				);
+			}
+		}
+	}
+});
+
 test("keeps position overrides direct, ordered, and mounted-global", () => {
 	const styles = readStyles();
 	for (const position of ["top", "bottom", "left", "right"]) {
@@ -999,7 +1105,7 @@ test("equal-width tabs do not stretch down a side list", () => {
 test("equal-width wrap preserves intrinsic tab width before wrapping labels", () => {
 	const styles = readStyles();
 	for (const scope of [
-		"body.tabsdown-overflow-wrap.tabsdown-alignment-equal-width",
+		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width",
 		...(["top", "bottom", "left", "right"] as const).map(
 			(position) =>
 				`body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`,

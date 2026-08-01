@@ -541,7 +541,7 @@ settings:
 
 /* The renderer alternates parity classes at every depth so adjacent cards keep
    distinct surfaces without imposing a nesting limit. */
-.tabsdown--nested-even {
+body .tabsdown--nested-even.tabsdown {
 	background-color: var(--background-primary);
 }
 
@@ -869,7 +869,7 @@ body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__
 	white-space: nowrap;
 }
 
-body.tabsdown-overflow-wrap.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__tab {
+body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -1365,7 +1365,7 @@ body.tabsdown-right-palette-secondary .tabsdown--right {
 /* Nested controls stay quieter than their parent, regardless of the global or
    position palette. Keep this after the palette overrides so it wins equally
    specific selectors without affecting layout or touch targets. */
-body .tabsdown--nested-odd {
+body .tabsdown--nested-odd.tabsdown {
 	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 6%, transparent);
 	--tabsdown-tab-border: color-mix(in srgb, var(--text-normal) 12%, transparent);
 	--tabsdown-tab-color: var(--text-muted);
@@ -1377,7 +1377,7 @@ body .tabsdown--nested-odd {
 	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
-body .tabsdown--nested-even {
+body .tabsdown--nested-even.tabsdown {
 	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 10%, transparent);
 	--tabsdown-tab-border: color-mix(in srgb, var(--text-normal) 12%, transparent);
 	--tabsdown-tab-color: var(--text-muted);
@@ -1547,8 +1547,8 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 		white-space: nowrap;
 	}
 
-	body.tabsdown-overflow-wrap.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-overflow-wrap.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 1 max-content;
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
