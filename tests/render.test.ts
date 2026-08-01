@@ -788,7 +788,7 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(selectedUnderline).toMatch(/border-block-end-width:\s*var\(--tabsdown-underline-thickness/);
 	const underlineHover = matchingRuleBodies(styles, "personality-underline .tabsdown__tab:not(");
 	expect(underlineHover).toMatch(/border-block-end-color:\s*var\(--tabsdown-tab-hover-border\)/);
-	expect(underlineHover).toMatch(/border-block-end-width:\s*1px/);
+	expect(underlineHover).not.toMatch(/border-block-end-width:/);
 	expect(underlineHover).toMatch(/color:\s*var\(--text-normal\)/);
 	expect(styles).toMatch(
 		/personality-underline[^,{]*\.tabsdown__tab:not\(\[aria-selected="true"\]\):not\(\[aria-expanded="true"\]\):hover/,

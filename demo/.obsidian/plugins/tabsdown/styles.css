@@ -857,7 +857,6 @@ body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
 	body.tabsdown-personality-underline .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
 		border-color: transparent;
 		border-block-end-color: var(--tabsdown-tab-hover-border);
-		border-block-end-width: 1px;
 		background-color: transparent;
 		color: var(--text-normal);
 	}
@@ -991,7 +990,6 @@ body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .t
 	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
 		border-color: transparent;
 		border-block-end-color: var(--tabsdown-tab-hover-border);
-		border-block-end-width: 1px;
 		border-radius: 0;
 		background-color: transparent;
 		color: var(--text-normal);
@@ -1117,7 +1115,6 @@ body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablis
 	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
 		border-color: transparent;
 		border-block-end-color: var(--tabsdown-tab-hover-border);
-		border-block-end-width: 1px;
 		border-radius: 0;
 		background-color: transparent;
 		color: var(--text-normal);
@@ -1243,7 +1240,6 @@ body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > 
 	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
 		border-color: transparent;
 		border-block-end-color: var(--tabsdown-tab-hover-border);
-		border-block-end-width: 1px;
 		border-radius: 0;
 		background-color: transparent;
 		color: var(--text-normal);
@@ -1369,7 +1365,6 @@ body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist 
 	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
 		border-color: transparent;
 		border-block-end-color: var(--tabsdown-tab-hover-border);
-		border-block-end-width: 1px;
 		border-radius: 0;
 		background-color: transparent;
 		color: var(--text-normal);
