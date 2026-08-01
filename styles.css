@@ -4,6 +4,12 @@ name: Tabsdown
 id: tabsdown
 settings:
   -
+    id: tabsdown-defaults-heading
+    title: Defaults and global controls
+    type: heading
+    level: 1
+    collapsed: false
+  -
     id: tabsdown-density
     title: Size
     type: class-select
@@ -77,12 +83,26 @@ settings:
         label: Equal width
         value: tabsdown-alignment-equal-width
   -
+    id: tabsdown-theme-button-outline
+    title: Use theme button outline
+    type: class-toggle
+    default: false
+  -
+    id: tabsdown-underline-thickness
+    title: Underline thickness
+    type: variable-number-slider
+    default: 1
+    min: 1
+    max: 8
+    step: 1
+    format: px
+  -
     id: tabsdown-gap
     title: Gap between tabs
     type: variable-number-slider
     default: 4
     min: 0
-    max: 24
+    max: 48
     step: 1
     format: px
   -
@@ -95,6 +115,21 @@ settings:
     step: 1
     format: px
   -
+    id: tabsdown-custom-padding-enabled
+    title: Use custom horizontal padding
+    type: class-toggle
+    default: false
+  -
+    id: tabsdown-horizontal-padding
+    title: Horizontal padding
+    description: Applies only when custom horizontal padding is enabled.
+    type: variable-number-slider
+    default: 36
+    min: 0
+    max: 48
+    step: 1
+    format: px
+  -
     id: tabsdown-content-spacing
     title: Content spacing
     description: Space between the tab list and its content
@@ -104,6 +139,295 @@ settings:
     max: 48
     step: 1
     format: px
+  -
+    id: tabsdown-custom-side-width-enabled
+    title: Use custom side-list width
+    type: class-toggle
+    default: false
+  -
+    id: tabsdown-side-width
+    title: Side-list width
+    description: Applies only when custom side-list width is enabled.
+    type: variable-number-slider
+    default: 160
+    min: 96
+    max: 320
+    step: 8
+    format: px
+  -
+    id: tabsdown-icon-size
+    title: Icon size
+    type: variable-number-slider
+    default: 16
+    min: 12
+    max: 32
+    step: 1
+    format: px
+  -
+    id: tabsdown-icon-spacing
+    title: Icon spacing
+    type: variable-number-slider
+    default: 6
+    min: 0
+    max: 16
+    step: 1
+    format: px
+  -
+    id: tabsdown-selected-font-weight
+    title: Selected tab font weight
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-selected-font-weight-theme-default
+    options:
+      -
+        label: Theme default
+        value: tabsdown-selected-font-weight-theme-default
+      -
+        label: Medium
+        value: tabsdown-selected-font-weight-medium
+      -
+        label: Bold
+        value: tabsdown-selected-font-weight-bold
+  -
+    id: tabsdown-position-overrides-heading
+    title: Position overrides
+    type: heading
+    level: 1
+    collapsed: false
+  -
+    id: tabsdown-top-heading
+    title: Top
+    type: heading
+    level: 2
+    collapsed: true
+  -
+    id: tabsdown-top-personality
+    title: Personality
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-top-personality-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-top-personality-inherit
+      -
+        label: Button
+        value: tabsdown-top-personality-button
+      -
+        label: Underline
+        value: tabsdown-top-personality-underline
+  -
+    id: tabsdown-top-palette
+    title: Palette
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-top-palette-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-top-palette-inherit
+      -
+        label: Primary
+        value: tabsdown-top-palette-primary
+      -
+        label: Secondary
+        value: tabsdown-top-palette-secondary
+  -
+    id: tabsdown-top-alignment
+    title: Alignment
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-top-alignment-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-top-alignment-inherit
+      -
+        label: Start
+        value: tabsdown-top-alignment-start
+      -
+        label: Center
+        value: tabsdown-top-alignment-center
+      -
+        label: Equal width
+        value: tabsdown-top-alignment-equal-width
+  -
+    id: tabsdown-bottom-heading
+    title: Bottom
+    type: heading
+    level: 2
+    collapsed: true
+  -
+    id: tabsdown-bottom-personality
+    title: Personality
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-bottom-personality-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-bottom-personality-inherit
+      -
+        label: Button
+        value: tabsdown-bottom-personality-button
+      -
+        label: Underline
+        value: tabsdown-bottom-personality-underline
+  -
+    id: tabsdown-bottom-palette
+    title: Palette
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-bottom-palette-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-bottom-palette-inherit
+      -
+        label: Primary
+        value: tabsdown-bottom-palette-primary
+      -
+        label: Secondary
+        value: tabsdown-bottom-palette-secondary
+  -
+    id: tabsdown-bottom-alignment
+    title: Alignment
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-bottom-alignment-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-bottom-alignment-inherit
+      -
+        label: Start
+        value: tabsdown-bottom-alignment-start
+      -
+        label: Center
+        value: tabsdown-bottom-alignment-center
+      -
+        label: Equal width
+        value: tabsdown-bottom-alignment-equal-width
+  -
+    id: tabsdown-left-heading
+    title: Left
+    type: heading
+    level: 2
+    collapsed: true
+  -
+    id: tabsdown-left-personality
+    title: Personality
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-left-personality-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-left-personality-inherit
+      -
+        label: Button
+        value: tabsdown-left-personality-button
+      -
+        label: Underline
+        value: tabsdown-left-personality-underline
+  -
+    id: tabsdown-left-palette
+    title: Palette
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-left-palette-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-left-palette-inherit
+      -
+        label: Primary
+        value: tabsdown-left-palette-primary
+      -
+        label: Secondary
+        value: tabsdown-left-palette-secondary
+  -
+    id: tabsdown-left-alignment
+    title: Alignment
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-left-alignment-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-left-alignment-inherit
+      -
+        label: Start
+        value: tabsdown-left-alignment-start
+      -
+        label: Center
+        value: tabsdown-left-alignment-center
+      -
+        label: Equal width
+        value: tabsdown-left-alignment-equal-width
+  -
+    id: tabsdown-right-heading
+    title: Right
+    type: heading
+    level: 2
+    collapsed: true
+  -
+    id: tabsdown-right-personality
+    title: Personality
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-right-personality-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-right-personality-inherit
+      -
+        label: Button
+        value: tabsdown-right-personality-button
+      -
+        label: Underline
+        value: tabsdown-right-personality-underline
+  -
+    id: tabsdown-right-palette
+    title: Palette
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-right-palette-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-right-palette-inherit
+      -
+        label: Primary
+        value: tabsdown-right-palette-primary
+      -
+        label: Secondary
+        value: tabsdown-right-palette-secondary
+  -
+    id: tabsdown-right-alignment
+    title: Alignment
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-right-alignment-inherit
+    options:
+      -
+        label: Inherit defaults
+        value: tabsdown-right-alignment-inherit
+      -
+        label: Start
+        value: tabsdown-right-alignment-start
+      -
+        label: Center
+        value: tabsdown-right-alignment-center
+      -
+        label: Equal width
+        value: tabsdown-right-alignment-equal-width
+  -
+    id: tabsdown-motion-heading
+    title: Motion
+    type: heading
+    level: 1
+    collapsed: true
   -
     id: tabsdown-animation-speed
     title: Animation speed
@@ -121,10 +445,9 @@ settings:
     default: false
 
 */
-
 .tabsdown {
 	--tabsdown-tab-padding-block: 0.5rem;
-	--tabsdown-tab-padding-inline: 0.75rem;
+	--tabsdown-tab-padding-inline: 36px;
 	--tabsdown-accent: var(--tabsdown-accent-override, var(--interactive-accent));
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
@@ -159,13 +482,17 @@ settings:
 	min-inline-size: 0;
 	margin-block-end: var(--tabsdown-content-spacing, 0.75rem);
 	padding: var(--border-width);
-	gap: var(--tabsdown-gap, 0.25rem);
+	gap: var(--tabsdown-effective-gap, var(--tabsdown-gap, 0.25rem));
 	overflow-x: auto;
 	overflow-y: hidden;
 	overscroll-behavior-inline: contain;
 	scroll-behavior: smooth;
 	scrollbar-width: thin;
 	-webkit-overflow-scrolling: touch;
+}
+
+.tabsdown--top > .tabsdown__tablist {
+	margin-block-end: var(--tabsdown-content-spacing, 0.75rem);
 }
 
 /* A surface rather than a rule: an inline border reads as a tab underline under
@@ -195,6 +522,7 @@ settings:
 }
 
 .tabsdown--multi > .tabsdown__tablist {
+	--tabsdown-effective-gap: calc(var(--tabsdown-gap, 0.25rem) / 2);
 	flex-wrap: wrap;
 	overflow-x: visible;
 }
@@ -242,7 +570,8 @@ settings:
 
 .tabsdown--bottom > .tabsdown__tablist {
 	order: 1;
-	margin-block: var(--tabsdown-content-spacing, 0.75rem) 0;
+	margin-block-start: var(--tabsdown-content-spacing, 0.75rem);
+	margin-block-end: 0;
 }
 
 .tabsdown__tab {
@@ -250,6 +579,7 @@ settings:
 	box-sizing: border-box;
 	height: auto;
 	max-height: none;
+	max-inline-size: 100%;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	min-block-size: var(--tabsdown-tab-min-size);
 	padding: var(--tabsdown-tab-padding-block)
@@ -274,22 +604,41 @@ settings:
    applies to every button. It lands on top of the tab's own border and survives
    the underline personality making that border transparent, so it reads there as
    a stray outline around an underlined tab. The tab owns its whole surface. */
-.tabsdown__tab,
-.tabsdown__tab:hover,
-.tabsdown__tab:active {
+.tabsdown__tab.tabsdown__tab,
+.tabsdown__tab.tabsdown__tab:active {
 	box-shadow: none;
 }
 
+body.tabsdown-theme-button-outline .tabsdown__tab {
+	box-shadow: var(--input-shadow);
+}
+
+body.tabsdown-theme-button-outline .tabsdown__tab:active {
+	box-shadow: var(--input-shadow-hover);
+}
+
 .tabsdown__tab-icon {
-	--icon-size: 1em;
+	--icon-size: var(--tabsdown-icon-size, 1em);
 	display: inline-flex;
-	margin-inline-end: 0.35em;
+	margin-inline-end: var(--tabsdown-icon-spacing, 0.35em);
 	vertical-align: -0.15em;
 }
 
-.tabsdown__tab:hover {
-	border-color: var(--tabsdown-tab-hover-border);
-	background-color: var(--tabsdown-tab-hover-background);
+.tabsdown__tab-label {
+	min-inline-size: 0;
+	overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+	.tabsdown__tab:hover {
+		border-color: var(--tabsdown-tab-hover-border);
+		background-color: var(--tabsdown-tab-hover-background);
+		box-shadow: none;
+	}
+
+	body.tabsdown-theme-button-outline .tabsdown__tab:hover {
+		box-shadow: var(--input-shadow-hover);
+	}
 }
 
 .tabsdown__tab[aria-selected="true"],
@@ -299,10 +648,12 @@ settings:
 	color: var(--tabsdown-tab-selected-color);
 }
 
-.tabsdown__tab[aria-selected="true"]:hover,
-.tabsdown__tab[aria-expanded="true"]:hover {
-	border-color: var(--tabsdown-tab-selected-border);
-	background-color: var(--tabsdown-tab-selected-background);
+@media (hover: hover) {
+	.tabsdown__tab[aria-selected="true"]:hover,
+	.tabsdown__tab[aria-expanded="true"]:hover {
+		border-color: var(--tabsdown-tab-selected-border);
+		background-color: var(--tabsdown-tab-selected-background);
+	}
 }
 
 .tabsdown__tab:focus-visible,
@@ -406,41 +757,31 @@ body.tabsdown-animations-disabled .tabsdown__tab {
 body.tabsdown-density-compact .tabsdown {
 	--tabsdown-tab-min-size: 32px;
 	--tabsdown-tab-padding-block: 0.375rem;
-	--tabsdown-tab-padding-inline: 0.75rem;
+	--tabsdown-tab-padding-inline: 12px;
 }
 
 body.tabsdown-density-default .tabsdown {
 	--tabsdown-tab-padding-block: 0.5rem;
-	--tabsdown-tab-padding-inline: 0.75rem;
-	--tabsdown-content-spacing: 0.75rem;
+	--tabsdown-tab-padding-inline: 36px;
 }
 
-body.tabsdown-personality-underline .tabsdown__tab {
-	border-color: transparent;
-	border-radius: 0;
-	background-color: transparent;
+body.tabsdown-custom-padding-enabled .tabsdown {
+	--tabsdown-tab-padding-inline: var(--tabsdown-horizontal-padding);
 }
 
-body.tabsdown-personality-underline .tabsdown__tab:hover {
-	border-color: transparent;
-	background-color: transparent;
-}
-
-body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"],
-body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
-	border-block-end-color: var(--tabsdown-tab-selected-border);
-	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
-}
-
-body.tabsdown-overflow-wrap .tabsdown__tablist {
+body.tabsdown-overflow-wrap .tabsdown > .tabsdown__tablist {
+	--tabsdown-effective-gap: calc(var(--tabsdown-gap, 0.25rem) / 2);
 	flex-wrap: wrap;
 	overflow-x: visible;
 }
 
-body.tabsdown-overflow-scroll .tabsdown__tablist {
+body.tabsdown-overflow-scroll .tabsdown > .tabsdown__tablist {
 	flex-wrap: nowrap;
 	overflow-x: auto;
+}
+
+body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist {
+	--tabsdown-effective-gap: var(--tabsdown-gap, 0.25rem);
 }
 
 body.tabsdown-palette-secondary .tabsdown {
@@ -455,34 +796,588 @@ body.tabsdown-palette-secondary .tabsdown {
 	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
-body.tabsdown-alignment-start .tabsdown__tablist {
+body.tabsdown-alignment-start .tabsdown > .tabsdown__tablist {
 	justify-content: flex-start;
 }
 
-body.tabsdown-alignment-center .tabsdown__tablist {
+body.tabsdown-alignment-start .tabsdown > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-alignment-center .tabsdown > .tabsdown__tablist {
 	justify-content: safe center;
 }
 
-body.tabsdown-alignment-equal-width .tabsdown__tab {
+body.tabsdown-alignment-center .tabsdown > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 0 7rem;
 	white-space: normal;
 }
 
-/* A side list runs down the block axis, where that grow factor equalises height
-   instead of width and leaves every tab as tall as the panel beside it. Their
-   widths already match, from the list's own cross-axis stretch. */
+body.tabsdown-personality-underline .tabsdown__tab {
+	border-color: transparent;
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-block-end-color: var(--tabsdown-tab-selected-border);
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	background-color: transparent;
+	color: var(--tabsdown-tab-underline-color);
+}
+
+@media (hover: hover) {
+	body.tabsdown-personality-underline .tabsdown__tab:hover {
+		border-color: transparent;
+		border-block-end-color: var(--tabsdown-tab-underline-color);
+		border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+
+	body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"]:hover {
+		border-block-end-color: var(--tabsdown-tab-selected-border);
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+body.tabsdown-custom-side-width-enabled .tabsdown--left > .tabsdown__tablist,
+body.tabsdown-custom-side-width-enabled .tabsdown--right > .tabsdown__tablist {
+	inline-size: var(--tabsdown-side-width);
+}
+
+body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-expanded="true"] {
+	font-weight: var(--font-medium);
+}
+
+body.tabsdown-selected-font-weight-bold .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-bold .tabsdown__tab[aria-expanded="true"] {
+	font-weight: var(--font-bold, 700);
+}
+
+/* Top position overrides are complete resets so changing a global
+   setting cannot leave declarations from the opposite option behind. */
+body.tabsdown-top-palette-primary .tabsdown--top {
+	--tabsdown-tab-background: var(--interactive-normal);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-hover-background: var(--interactive-hover);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--tabsdown-accent);
+	--tabsdown-tab-selected-border: var(--tabsdown-accent);
+	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+}
+
+body.tabsdown-top-palette-secondary .tabsdown--top {
+	--tabsdown-tab-background: var(--background-secondary-alt);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--background-secondary);
+	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+body.tabsdown-top-alignment-start .tabsdown--top > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-top-alignment-start .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-top-alignment-center .tabsdown--top > .tabsdown__tablist {
+	justify-content: safe center;
+}
+
+body.tabsdown-top-alignment-center .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-top-alignment-equal-width .tabsdown--top > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-top-alignment-equal-width .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
+	flex: 1 0 7rem;
+	white-space: normal;
+}
+
+body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: var(--tabsdown-tab-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-background);
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-width: var(--border-width);
+	border-color: var(--tabsdown-tab-selected-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-selected-background);
+	color: var(--tabsdown-tab-selected-color);
+}
+
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: transparent;
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-block-end-color: var(--tabsdown-tab-selected-border);
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-underline-color);
+}
+
+@media (hover: hover) {
+	body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-width: var(--border-width);
+		border-color: var(--tabsdown-tab-hover-border);
+		border-radius: var(--tabsdown-radius, var(--radius-s));
+		background-color: var(--tabsdown-tab-hover-background);
+		color: var(--tabsdown-tab-color);
+	}
+
+	body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-color: var(--tabsdown-tab-selected-border);
+		background-color: var(--tabsdown-tab-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-color: transparent;
+		border-block-end-color: var(--tabsdown-tab-underline-color);
+		border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+		border-radius: 0;
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+
+	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-block-end-color: var(--tabsdown-tab-selected-border);
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+/* Bottom position overrides are complete resets so changing a global
+   setting cannot leave declarations from the opposite option behind. */
+body.tabsdown-bottom-palette-primary .tabsdown--bottom {
+	--tabsdown-tab-background: var(--interactive-normal);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-hover-background: var(--interactive-hover);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--tabsdown-accent);
+	--tabsdown-tab-selected-border: var(--tabsdown-accent);
+	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+}
+
+body.tabsdown-bottom-palette-secondary .tabsdown--bottom {
+	--tabsdown-tab-background: var(--background-secondary-alt);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--background-secondary);
+	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+body.tabsdown-bottom-alignment-start .tabsdown--bottom > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-bottom-alignment-start .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-bottom-alignment-center .tabsdown--bottom > .tabsdown__tablist {
+	justify-content: safe center;
+}
+
+body.tabsdown-bottom-alignment-center .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
+	flex: 1 0 7rem;
+	white-space: normal;
+}
+
+body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: var(--tabsdown-tab-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-background);
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-width: var(--border-width);
+	border-color: var(--tabsdown-tab-selected-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-selected-background);
+	color: var(--tabsdown-tab-selected-color);
+}
+
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: transparent;
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-block-end-color: var(--tabsdown-tab-selected-border);
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-underline-color);
+}
+
+@media (hover: hover) {
+	body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-width: var(--border-width);
+		border-color: var(--tabsdown-tab-hover-border);
+		border-radius: var(--tabsdown-radius, var(--radius-s));
+		background-color: var(--tabsdown-tab-hover-background);
+		color: var(--tabsdown-tab-color);
+	}
+
+	body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-color: var(--tabsdown-tab-selected-border);
+		background-color: var(--tabsdown-tab-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-color: transparent;
+		border-block-end-color: var(--tabsdown-tab-underline-color);
+		border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+		border-radius: 0;
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-block-end-color: var(--tabsdown-tab-selected-border);
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+/* Left position overrides are complete resets so changing a global
+   setting cannot leave declarations from the opposite option behind. */
+body.tabsdown-left-palette-primary .tabsdown--left {
+	--tabsdown-tab-background: var(--interactive-normal);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-hover-background: var(--interactive-hover);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--tabsdown-accent);
+	--tabsdown-tab-selected-border: var(--tabsdown-accent);
+	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+}
+
+body.tabsdown-left-palette-secondary .tabsdown--left {
+	--tabsdown-tab-background: var(--background-secondary-alt);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--background-secondary);
+	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist {
+	justify-content: safe center;
+}
+
+body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+	flex: 1 0 7rem;
+	white-space: normal;
+}
+
+body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: var(--tabsdown-tab-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-background);
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-width: var(--border-width);
+	border-color: var(--tabsdown-tab-selected-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-selected-background);
+	color: var(--tabsdown-tab-selected-color);
+}
+
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: transparent;
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-block-end-color: var(--tabsdown-tab-selected-border);
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-underline-color);
+}
+
+@media (hover: hover) {
+	body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-width: var(--border-width);
+		border-color: var(--tabsdown-tab-hover-border);
+		border-radius: var(--tabsdown-radius, var(--radius-s));
+		background-color: var(--tabsdown-tab-hover-background);
+		color: var(--tabsdown-tab-color);
+	}
+
+	body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-color: var(--tabsdown-tab-selected-border);
+		background-color: var(--tabsdown-tab-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-color: transparent;
+		border-block-end-color: var(--tabsdown-tab-underline-color);
+		border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+		border-radius: 0;
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+
+	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-block-end-color: var(--tabsdown-tab-selected-border);
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+/* Right position overrides are complete resets so changing a global
+   setting cannot leave declarations from the opposite option behind. */
+body.tabsdown-right-palette-primary .tabsdown--right {
+	--tabsdown-tab-background: var(--interactive-normal);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-hover-background: var(--interactive-hover);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--tabsdown-accent);
+	--tabsdown-tab-selected-border: var(--tabsdown-accent);
+	--tabsdown-tab-selected-color: var(--text-on-accent);
+	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+}
+
+body.tabsdown-right-palette-secondary .tabsdown--right {
+	--tabsdown-tab-background: var(--background-secondary-alt);
+	--tabsdown-tab-border: var(--background-modifier-border);
+	--tabsdown-tab-color: var(--text-muted);
+	--tabsdown-tab-hover-background: var(--background-secondary);
+	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-background: var(--background-secondary);
+	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
+	--tabsdown-tab-selected-color: var(--text-normal);
+	--tabsdown-tab-underline-color: var(--text-normal);
+}
+
+body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist {
+	justify-content: safe center;
+}
+
+body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist {
+	justify-content: flex-start;
+}
+
+body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 1 0 7rem;
+	white-space: normal;
+}
+
+body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: var(--tabsdown-tab-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-background);
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-width: var(--border-width);
+	border-color: var(--tabsdown-tab-selected-border);
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--tabsdown-tab-selected-background);
+	color: var(--tabsdown-tab-selected-color);
+}
+
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: transparent;
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-color);
+}
+
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-block-end-color: var(--tabsdown-tab-selected-border);
+	border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--tabsdown-tab-underline-color);
+}
+
+@media (hover: hover) {
+	body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-width: var(--border-width);
+		border-color: var(--tabsdown-tab-hover-border);
+		border-radius: var(--tabsdown-radius, var(--radius-s));
+		background-color: var(--tabsdown-tab-hover-background);
+		color: var(--tabsdown-tab-color);
+	}
+
+	body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-color: var(--tabsdown-tab-selected-border);
+		background-color: var(--tabsdown-tab-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-color: transparent;
+		border-block-end-color: var(--tabsdown-tab-underline-color);
+		border-block-end-width: var(--tabsdown-underline-thickness, 1px);
+		border-radius: 0;
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+
+	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		border-block-end-color: var(--tabsdown-tab-selected-border);
+		background-color: transparent;
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+/* A side list runs down the block axis. Never let inline equal-width controls
+   stretch its tabs along the block axis. */
 body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 	flex: 0 0 auto;
 }
 
-/* Too narrow for a side list: give the panels their own line and lay the list out
-   along the top, since a full-width column of tabs is mostly empty space.
+body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
 
-   Last in the file on purpose. Every rule here overrides an earlier one at the
-   same specificity — the side positions above and the Style Settings alignment
-   classes — so document order is what decides, and moving this block earlier
-   silently reverts whichever rules then follow it. */
+body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	flex: 0 0 auto;
+}
+
+/* Too narrow for a side list: move the list above the panels and restore the
+   inline-axis alignment cascade in global -> explicit reset order. */
 @container (max-width: 28rem) {
 	.tabsdown--left > .tabsdown__panels,
 	.tabsdown--right > .tabsdown__panels {
@@ -491,15 +1386,38 @@ body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tab
 
 	.tabsdown--left > .tabsdown__tablist,
 	.tabsdown--right > .tabsdown__tablist {
+		flex-basis: auto;
 		flex-direction: row;
 		inline-size: 100%;
 		overflow-x: auto;
 		overflow-y: hidden;
 	}
 
-	/* Back along the inline axis, so equal width means what it says again. */
+	body.tabsdown-custom-side-width-enabled .tabsdown--left > .tabsdown__tablist,
+	body.tabsdown-custom-side-width-enabled .tabsdown--right > .tabsdown__tablist {
+		inline-size: 100%;
+	}
+
 	body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+		flex: 1 0 7rem;
+	}
+
+	body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+		flex: 0 0 auto;
+	}
+
+	body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
+		flex: 1 0 7rem;
+	}
+
+	body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+		flex: 0 0 auto;
+	}
+
+	body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 0 7rem;
 	}
 }
