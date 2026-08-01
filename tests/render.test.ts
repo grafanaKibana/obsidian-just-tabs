@@ -104,6 +104,7 @@ describe("tab interaction", () => {
 		const buttons = container.querySelectorAll<HTMLButtonElement>('[role="tab"]');
 		const panels = container.querySelectorAll<HTMLElement>('[role="tabpanel"]');
 
+		expect(container.classList.contains("tabsdown--inline-overflow")).toBe(false);
 		expect(buttons).toHaveLength(3);
 		expect(buttons[0]?.getAttribute("aria-selected")).toBe("true");
 		expect(buttons[0]?.tabIndex).toBe(0);
@@ -566,6 +567,7 @@ test("applies the final position and layout configuration without showing it in 
 
 	expect(container.classList.contains("tabsdown--bottom")).toBe(true);
 	expect(container.classList.contains("tabsdown--one")).toBe(true);
+	expect(container.classList.contains("tabsdown--inline-overflow")).toBe(true);
 	expect(container.classList.contains("tabsdown--left")).toBe(false);
 	expect(container.classList.contains("tabsdown--multi")).toBe(false);
 	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
@@ -974,18 +976,16 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 		'personality-underline .tabsdown__tab[aria-selected="true"]:hover',
 	);
 	expect(selectedUnderlineHover).not.toMatch(/border-block-end-(color|width):/);
+	const globalOverflowScope = ".tabsdown:not(.tabsdown--inline-overflow) > .tabsdown__tablist";
+	expect(matchingSelectors(styles, "body.tabsdown-overflow-wrap")).toContain(globalOverflowScope);
+	expect(matchingSelectors(styles, "body.tabsdown-overflow-scroll")).toContain(globalOverflowScope);
 	expect(matchingRuleBodies(styles, "body.tabsdown-overflow-wrap")).toMatch(
 		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
 	);
 	expect(matchingRuleBodies(styles, ".tabsdown--multi > .tabsdown__tablist")).toMatch(
 		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
 	);
-	expect(
-		matchingRuleBodies(
-			styles,
-			"body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist",
-		),
-	).toMatch(/gap:\s*var\(--tabsdown-gap/);
+	expect(styles).not.toContain("body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist");
 	expect(styles).toMatch(/\.tabsdown__tab \{[^}]*max-inline-size:\s*100%/);
 	expect(styles).toMatch(/\.tabsdown__tab-label \{[^}]*min-inline-size:\s*0[^}]*overflow-wrap:\s*anywhere/);
 	expect(styles).not.toMatch(/\.tabsdown__tab-label \{[^}]*(text-overflow:\s*ellipsis|white-space:\s*nowrap)/);

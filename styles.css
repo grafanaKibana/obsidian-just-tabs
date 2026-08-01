@@ -812,19 +812,15 @@ body.tabsdown-density-default .tabsdown {
 	--tabsdown-tab-padding-inline: var(--tabsdown-horizontal-padding, 36px);
 }
 
-body.tabsdown-overflow-wrap .tabsdown > .tabsdown__tablist {
+body.tabsdown-overflow-wrap .tabsdown:not(.tabsdown--inline-overflow) > .tabsdown__tablist {
 	--tabsdown-effective-gap: calc(var(--tabsdown-gap, 0.25rem) / 2);
 	flex-wrap: wrap;
 	overflow-x: visible;
 }
 
-body.tabsdown-overflow-scroll .tabsdown > .tabsdown__tablist {
+body.tabsdown-overflow-scroll .tabsdown:not(.tabsdown--inline-overflow) > .tabsdown__tablist {
 	flex-wrap: nowrap;
 	overflow-x: auto;
-}
-
-body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist {
-	--tabsdown-effective-gap: var(--tabsdown-gap, 0.25rem);
 }
 
 body.tabsdown-palette-secondary .tabsdown {

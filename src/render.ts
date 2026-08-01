@@ -75,6 +75,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.containerEl.replaceChildren();
 		this.containerEl.classList.add("tabsdown");
 		this.applyNestingClass();
+		if (this.configuration.some((value) => value === "one" || value === "multi")) {
+			this.containerEl.classList.add("tabsdown--inline-overflow");
+		}
 		for (const configuration of this.resolveConfiguration()) {
 			this.containerEl.classList.add(`tabsdown--${configuration}`);
 		}
