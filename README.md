@@ -194,19 +194,13 @@ This is a collapsible switch, not a tab strip: selection starts at `null` unless
 
 ## Style Settings
 
-Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings). If Style Settings is installed, it exposes appearance controls like:
+Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings); its CSS defaults and active-theme colors still apply when that optional plugin is absent.
 
-- Size: default or compact
-- Personality: default or underline
-- Overflow behavior: scroll or wrap
-- Palette: primary or secondary
-- Accent: optional override, with the active theme accent used by default
-- Tab alignment: start, center, or equal width
-- Gap between tabs
-- Corner radius
-- Content spacing below the tab list
+**Defaults and global controls** contains Size, Personality, Overflow behavior, Palette, Accent, Alignment, theme button outline, underline thickness, tab gap and radius, horizontal padding, side-list width, icon size and spacing, selected-tab weight, and content spacing. Custom horizontal padding and side-list width each have a separate enable toggle; changing a disabled slider has no effect. Narrow Left/Right blocks still use the full-width responsive layout.
 
-Colors, typography, borders, accents, and focus styling continue to come from the active Obsidian theme.
+**Position overrides** lets Top, Bottom, Left, and Right independently choose Personality, Palette, and Alignment. **Inherit defaults** keeps the global choice. These overrides apply to fenced Markdown blocks only; tabs created with `mountTabs` remain on the global settings.
+
+**Motion** contains animation speed and the animation-disable toggle. Colors, typography, borders, accents, focus styling, and reduced-motion behavior continue to come from the active Obsidian theme.
 
 ## CSS snippets
 
@@ -217,6 +211,7 @@ For further customization, open **Settings → Appearance → CSS snippets**, se
 	--tabsdown-gap: 0.5rem;
 	--tabsdown-radius: 999px;
 	--tabsdown-content-spacing: 1rem;
+	--tabsdown-tab-padding-inline: 1.5rem;
 }
 
 .tabsdown__tab {

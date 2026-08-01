@@ -42,6 +42,40 @@ function keys(element: HTMLElement, key: string): void {
 	element.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
 }
 
+function readStyles(): string {
+	return readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
+		"utf8",
+	);
+}
+
+function styleSetting(styles: string, field: "id" | "title", value: string): string {
+	const metadata = /\/\* @settings([\s\S]*?)\*\//.exec(styles)?.[1] ?? "";
+	return (
+		metadata
+			.split("\n  -\n")
+			.find((entry) => entry.includes(`    ${field}: ${value}\n`)) ?? ""
+	);
+}
+
+function settingId(setting: string): string {
+	return /^\s{4}id: (.+)$/m.exec(setting)?.[1] ?? "";
+}
+
+function matchingRuleBodies(styles: string, selector: string): string {
+	return [...styles.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+		.filter((match) => match[1]?.includes(selector))
+		.map((match) => match[2])
+		.join("\n");
+}
+
+function matchingSelectors(styles: string, selector: string): string {
+	return [...styles.matchAll(/([^{}]+)\{[^{}]*\}/g)]
+		.map((match) => match[1] ?? "")
+		.filter((candidate) => candidate.includes(selector))
+		.join("\n");
+}
+
 beforeEach(() => {
 	renderMock.mockReset();
 	renderMock.mockImplementation(async (_app, markdown, element) => {
@@ -556,12 +590,250 @@ test("renders a tab icon beside the label and hides it from assistive tech", () 
 });
 
 test("layout modifiers style only their own tab list", () => {
-	const styles = readFileSync(
-		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
-		"utf8",
-	);
+	const styles = readStyles();
 
 	expect(styles).not.toMatch(/\.tabsdown--[a-z]+\s+\.tabsdown__/);
+});
+
+test("preserves global Style Settings and adds the approved hierarchy", () => {
+	const styles = readStyles();
+	for (const [id, fragments] of Object.entries({
+		"tabsdown-density": ["default: tabsdown-density-default", "value: tabsdown-density-compact"],
+		"tabsdown-personality": ["default: tabsdown-personality-default", "value: tabsdown-personality-underline"],
+		"tabsdown-overflow": ["default: tabsdown-overflow-scroll", "value: tabsdown-overflow-wrap"],
+		"tabsdown-palette": ["default: tabsdown-palette-primary", "value: tabsdown-palette-secondary"],
+		"tabsdown-accent-override": ["type: variable-color"],
+		"tabsdown-alignment": ["default: tabsdown-alignment-start", "value: tabsdown-alignment-center", "value: tabsdown-alignment-equal-width"],
+		"tabsdown-gap": ["default: 4", "min: 0", "step: 1", "format: px"],
+		"tabsdown-radius": ["default: 4", "min: 0", "max: 24", "step: 1", "format: px"],
+		"tabsdown-content-spacing": ["default: 12", "min: 0", "max: 48", "step: 1", "format: px"],
+		"tabsdown-animation-speed": ["default: 160", "min: 0", "max: 500", "step: 20", "format: ms"],
+		"tabsdown-animations-disabled": ["type: class-toggle", "default: false"],
+	})) {
+		const setting = styleSetting(styles, "id", id);
+		for (const fragment of fragments) expect(setting, `${id}: ${fragment}`).toContain(fragment);
+	}
+
+	for (const [title, level, collapsed] of [
+		["Defaults and global controls", "1", "false"],
+		["Position overrides", "1", "false"],
+		["Top", "2", "true"],
+		["Bottom", "2", "true"],
+		["Left", "2", "true"],
+		["Right", "2", "true"],
+		["Motion", "1", "true"],
+	] as const) {
+		const heading = styleSetting(styles, "title", title);
+		expect(heading, title).toMatch(/type: heading/);
+		expect(heading, title).toContain(`level: ${level}`);
+		expect(heading, title).toContain(`collapsed: ${collapsed}`);
+	}
+});
+
+test("gives every position explicit inheritable appearance controls", () => {
+	const styles = readStyles();
+	for (const position of ["top", "bottom", "left", "right"]) {
+		for (const [axis, options] of [
+			["personality", ["inherit", "button", "underline"]],
+			["palette", ["inherit", "primary", "secondary"]],
+			["alignment", ["inherit", "start", "center", "equal-width"]],
+		] as const) {
+			const id = `tabsdown-${position}-${axis}`;
+			const setting = styleSetting(styles, "id", id);
+			expect(setting, id).toMatch(/type: class-select/);
+			expect(setting, id).toMatch(/allowEmpty: false/);
+			expect(setting, id).toContain(`default: ${id}-inherit`);
+			for (const option of options) {
+				expect(setting, `${id}-${option}`).toContain(`value: ${id}-${option}`);
+			}
+		}
+	}
+});
+
+test("defines the requested control ranges and selected weights", () => {
+	const styles = readStyles();
+	const expectFields = (title: string, fields: readonly string[]): void => {
+		const setting = styleSetting(styles, "title", title);
+		for (const field of fields) expect(setting, `${title}: ${field}`).toContain(field);
+	};
+
+	expectFields("Gap between tabs", ["default: 4", "min: 0", "max: 48", "step: 1"]);
+	expectFields("Underline thickness", ["default: 1", "min: 1", "max: 8", "step: 1"]);
+	expectFields("Use custom horizontal padding", ["type: class-toggle", "default: false"]);
+	expectFields("Horizontal padding", ["default: 36", "min: 0", "max: 48", "step: 1"]);
+	expectFields("Use custom side-list width", ["type: class-toggle", "default: false"]);
+	expectFields("Side-list width", ["default: 160", "min: 96", "max: 320", "step: 8"]);
+	expectFields("Icon size", ["default: 16", "min: 12", "max: 32", "step: 1"]);
+	expectFields("Icon spacing", ["default: 6", "min: 0", "max: 16", "step: 1"]);
+	const weight = styleSetting(styles, "title", "Selected tab font weight");
+	for (const option of ["Theme default", "Medium", "Bold"]) {
+		expect(weight).toContain(`label: ${option}`);
+	}
+	expect(weight).toMatch(/default: tabsdown-[\w-]+-theme-default/);
+	expect(weight).toMatch(/value: tabsdown-[\w-]+-medium/);
+	expect(weight).toMatch(/value: tabsdown-[\w-]+-bold/);
+	const weightId = settingId(weight);
+	expect(matchingRuleBodies(styles, `body.${weightId}-medium`)).toMatch(/font-weight:\s*var\(--font-medium\)/);
+	expect(matchingRuleBodies(styles, `body.${weightId}-bold`)).toMatch(/font-weight:\s*var\(--font-bold,\s*700\)/);
+	expect(styles).not.toContain(`body.${weightId}-theme-default`);
+});
+
+test("keeps position overrides direct, ordered, and mounted-global", () => {
+	const styles = readStyles();
+	for (const position of ["top", "bottom", "left", "right"]) {
+		for (const axis of ["personality", "palette", "alignment"]) {
+			const positionClass = `body.tabsdown-${position}-${axis}-`;
+			expect(styles, positionClass).toContain(positionClass);
+			expect(styles, positionClass).toMatch(
+				new RegExp(`tabsdown--${position}[^,{]*> \\.tabsdown__tablist`),
+			);
+		}
+		expect(styles).not.toMatch(
+			new RegExp(`\\.tabsdown--${position}\\s+\\.tabsdown__`),
+		);
+	}
+
+	const globalFallback = styles.indexOf("body.tabsdown-personality-underline");
+	const positionOverride = styles.indexOf("body.tabsdown-top-personality-");
+	const responsiveReset = styles.indexOf("@container (max-width: 28rem)");
+	expect(globalFallback).toBeGreaterThan(-1);
+	expect(positionOverride).toBeGreaterThan(globalFallback);
+	expect(responsiveReset).toBeGreaterThan(positionOverride);
+	expect(styles).not.toMatch(/tabsdown--mounted[^,{]*tabsdown-(top|bottom|left|right)-/);
+});
+
+test("fully resets position personality, palette, and alignment", () => {
+	const styles = readStyles();
+	for (const position of ["top", "bottom", "left", "right"]) {
+		const button = matchingRuleBodies(styles, `body.tabsdown-${position}-personality-button`);
+		for (const property of [
+			"border-width:",
+			"border-color:",
+			"border-radius:",
+			"background-color:",
+			"color:",
+		]) {
+			expect(button, `${position} Button ${property}`).toContain(property);
+		}
+		expect(button).toContain("--tabsdown-tab-hover-");
+		expect(button).toContain("--tabsdown-tab-selected-");
+
+		const underline = matchingRuleBodies(styles, `body.tabsdown-${position}-personality-underline`);
+		for (const declaration of [
+			"border-color: transparent",
+			"border-radius: 0",
+			"background-color: transparent",
+			"border-block-end-width: var(--tabsdown-underline-thickness",
+		]) {
+			expect(underline, `${position} Underline ${declaration}`).toContain(declaration);
+		}
+
+		for (const palette of ["primary", "secondary"]) {
+			const body = matchingRuleBodies(styles, `body.tabsdown-${position}-palette-${palette}`);
+			for (const variable of [
+				"--tabsdown-tab-background:",
+				"--tabsdown-tab-border:",
+				"--tabsdown-tab-color:",
+				"--tabsdown-tab-hover-background:",
+				"--tabsdown-tab-hover-border:",
+				"--tabsdown-tab-selected-background:",
+				"--tabsdown-tab-selected-border:",
+				"--tabsdown-tab-selected-color:",
+				"--tabsdown-tab-underline-color:",
+			]) {
+				expect(body, `${position} ${palette} ${variable}`).toContain(variable);
+			}
+		}
+
+		for (const [alignment, justify, flex] of [
+			["start", "flex-start", "0 0 auto"],
+			["center", "safe center", "0 0 auto"],
+			["equal-width", "flex-start", "1 0 7rem"],
+		] as const) {
+			const body = matchingRuleBodies(styles, `body.tabsdown-${position}-alignment-${alignment}`);
+			expect(body, `${position} ${alignment}`).toContain(`justify-content: ${justify}`);
+			expect(body, `${position} ${alignment}`).toContain(`flex: ${flex}`);
+		}
+	}
+
+	for (const position of ["left", "right"]) {
+		for (const alignment of ["start", "center"]) {
+			const reset = styles.indexOf(`body.tabsdown-${position}-alignment-${alignment}`, styles.indexOf("@container (max-width: 28rem)"));
+			const restore = styles.indexOf(`body.tabsdown-${position}-alignment-equal-width`, styles.indexOf("@container (max-width: 28rem)"));
+			expect(reset, `${position} narrow ${alignment}`).toBeGreaterThan(-1);
+			expect(restore, `${position} narrow equal`).toBeGreaterThan(reset);
+		}
+		expect(matchingRuleBodies(styles, `body.tabsdown-${position}-alignment-equal-width`)).toContain("flex: 0 0 auto");
+		expect(matchingSelectors(styles, `body.tabsdown-${position}-alignment-equal-width`)).toContain(
+			`.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`,
+		);
+	}
+});
+
+test("wires appearance controls without breaking touch, labels, or spacing", () => {
+	const styles = readStyles();
+
+	expect(styles).toMatch(/@media \(hover: hover\) \{[\s\S]*?\.tabsdown__tab:hover/);
+	expect(styles).toMatch(/\.tabsdown__tab:focus-visible[\s\S]*?outline:/);
+	expect(styles).toMatch(/box-shadow:\s*none/);
+	const outlineId = settingId(styleSetting(styles, "title", "Use theme button outline"));
+	const outline = matchingRuleBodies(styles, `body.${outlineId}`);
+	expect(outline).toContain("--input-shadow");
+	expect(outline).toContain("--input-shadow-hover");
+	expect(outline).not.toContain("outline:");
+	const selectedUnderline = matchingRuleBodies(styles, "personality-underline");
+	expect(selectedUnderline).toMatch(/border-block-end-width:\s*var\(--tabsdown-underline-thickness/);
+	expect(matchingRuleBodies(styles, "personality-underline .tabsdown__tab:hover")).toMatch(
+		/border-block-end-width:\s*var\(--tabsdown-underline-thickness/,
+	);
+	expect(matchingRuleBodies(styles, "body.tabsdown-overflow-wrap")).toMatch(
+		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
+	);
+	expect(matchingRuleBodies(styles, ".tabsdown--multi > .tabsdown__tablist")).toMatch(
+		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
+	);
+	expect(
+		matchingRuleBodies(
+			styles,
+			"body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist",
+		),
+	).toMatch(/gap:\s*var\(--tabsdown-gap/);
+	expect(styles).toMatch(/\.tabsdown__tab \{[^}]*max-inline-size:\s*100%/);
+	expect(styles).toMatch(/\.tabsdown__tab-label \{[^}]*min-inline-size:\s*0[^}]*overflow-wrap:\s*anywhere/);
+	expect(styles).not.toMatch(/\.tabsdown__tab-label \{[^}]*(text-overflow:\s*ellipsis|white-space:\s*nowrap)/);
+	expect(styles).toMatch(/\.tabsdown__tab-icon \{[^}]*--icon-size:\s*var\([^,]+,\s*1em\)/);
+	expect(styles).toMatch(/\.tabsdown__tab-icon \{[^}]*margin-inline-end:\s*var\([^,]+,\s*0\.35em\)/);
+
+	const defaultDensity = /body\.tabsdown-density-default \.tabsdown \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+	const compactDensity = /body\.tabsdown-density-compact \.tabsdown \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+	expect(defaultDensity).not.toContain("--tabsdown-content-spacing");
+	expect(defaultDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(36px|2\.25rem)/);
+	expect(compactDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(12px|0\.75rem)/);
+	const paddingToggle = settingId(styleSetting(styles, "title", "Use custom horizontal padding"));
+	const paddingSlider = settingId(styleSetting(styles, "title", "Horizontal padding"));
+	expect(matchingRuleBodies(styles, `body.${paddingToggle}`)).toContain(`var(--${paddingSlider})`);
+	const sideToggle = settingId(styleSetting(styles, "title", "Use custom side-list width"));
+	const sideSlider = settingId(styleSetting(styles, "title", "Side-list width"));
+	for (const position of ["left", "right"]) {
+		expect(matchingRuleBodies(styles, `body.${sideToggle} .tabsdown--${position}`)).toContain(
+			`var(--${sideSlider})`,
+		);
+	}
+	const weightId = settingId(styleSetting(styles, "title", "Selected tab font weight"));
+	for (const value of ["medium", "bold"]) {
+		const selectors = [...styles.matchAll(/([^{}]+)\{[^{}]*font-weight:[^{}]*\}/g)]
+			.map((match) => match[1] ?? "")
+			.filter((selector) => selector.includes(`body.${weightId}-${value}`))
+			.join("\n");
+		expect(selectors).toMatch(/\[aria-(selected|expanded)="true"\]/);
+		expect(selectors).not.toMatch(/\.tabsdown__tab\s*(,|$)/m);
+	}
+	expect(styles).toMatch(/\.tabsdown--top > \.tabsdown__tablist \{[^}]*margin-block-end:\s*var\(--tabsdown-content-spacing/);
+	expect(styles).toMatch(/\.tabsdown--bottom > \.tabsdown__tablist \{[^}]*margin-block-start:\s*var\(--tabsdown-content-spacing/);
+	expect(styles).toMatch(/\.tabsdown--left,[\s\S]*?\.tabsdown--right \{[^}]*gap:\s*var\(--tabsdown-content-spacing/);
+	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
+	expect(narrow).toMatch(/inline-size:\s*100%/);
+	expect(narrow).not.toContain(`var(--${sideSlider})`);
 });
 
 test("panels contain their own margins so height stays stable", () => {

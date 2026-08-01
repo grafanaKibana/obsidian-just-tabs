@@ -7,6 +7,21 @@ tags:
 
 Every syntax and rendering variation in one note. Open in Reading View. Not pretty on purpose.
 
+## Style Settings QA
+
+Reuse the Positions, Icons, and Labels sections below while changing settings; no duplicate blocks are needed.
+
+| Check | Expected |
+| --- | --- |
+| Leave every Top/Bottom/Left/Right override on **Inherit defaults**, then change each global Personality, Palette, and Alignment value. | All four positions follow the globals; any `mountTabs` demo remains global-only. |
+| Reverse each global with one position: Underline → Button, Button → Underline, Secondary → Primary, Start/Center → Equal width, and Equal width → Start/Center. | Only that position changes, nested blocks keep their own position, and Left/Right tabs do not stretch vertically. Repeat Left/Right above and below the 28rem container threshold. |
+| Try underline thickness 1/8, gap 0/48 in Scroll/Wrap, content spacing 0/12/48, and selected weight Theme default/Medium/Bold. | Indicators match, Wrap uses half the gap, spacing appears exactly once, and only selected/expanded labels change weight. |
+| Leave custom padding disabled, then enable 0/36/48 in Default and Compact. | Disabled uses 36px Default and 12px Compact; enabled uses the selected value without hiding overflow. |
+| Leave custom side-list width disabled, then enable 96/160/320 on Left/Right and resize narrowly. | Wide lists use the selected width; narrow lists return to a full-width row and panels remain visible. |
+| Set icon size 12/32 and spacing 0/16, using the Icons section. | Icon boxes and gaps change without moving plain-label tabs off baseline. |
+| Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Text wraps without truncation and never widens the note or squeezes panels to zero. |
+| Toggle theme button outline and test mouse hover, keyboard focus, touch taps, reduced motion, light/dark themes, and rapid setting changes. | Theme shadow toggles without replacing the focus outline; hover never sticks on touch; motion and selected state remain correct. |
+
 ## 1. Positions
 
 ```tabsdown
