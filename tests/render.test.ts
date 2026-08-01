@@ -1102,25 +1102,30 @@ test("equal-width tabs do not stretch down a side list", () => {
 	expect(restore!.index).toBeGreaterThan(reset!.index);
 });
 
-test("global equal-width wrap does not alter inline overflow", () => {
+test("equal-width sizing follows the block's effective overflow", () => {
 	const styles = readStyles();
-	const cases: readonly (readonly [string, string])[] = [
+	const cases: readonly (readonly [string, string, string, string])[] = [
 		[
 			"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width",
 			".tabsdown:where(:not(.tabsdown--inline-overflow))",
+			"body.tabsdown-alignment-equal-width",
+			".tabsdown:where(.tabsdown--inline-overflow.tabsdown--multi)",
 		],
 		...(["top", "bottom", "left", "right"] as const).map(
 			(position) => [
 				`body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`,
 				`.tabsdown--${position}:where(:not(.tabsdown--inline-overflow))`,
+				`body.tabsdown-${position}-alignment-equal-width`,
+				`.tabsdown--${position}:where(.tabsdown--inline-overflow.tabsdown--multi)`,
 			] as const,
 		),
 	];
-	for (const [scope, target] of cases) {
-		const body = matchingRuleBodies(styles, scope);
-		expect(matchingSelectors(styles, scope), scope).toContain(target);
-		expect(body, scope).toContain("flex: 1 1 max-content");
-		expect(body, scope).toContain("min-inline-size: var(--tabsdown-tab-min-size)");
-		expect(body, scope).toContain("white-space: normal");
+	for (const [globalScope, globalTarget, inlineScope, inlineTarget] of cases) {
+		expect(matchingSelectors(styles, globalScope), globalScope).toContain(globalTarget);
+		expect(matchingSelectors(styles, inlineScope), inlineScope).toContain(inlineTarget);
+		const inlineBody = matchingRuleBodies(styles, inlineTarget);
+		expect(inlineBody, inlineTarget).toContain("flex: 1 1 max-content");
+		expect(inlineBody, inlineTarget).toContain("min-inline-size: var(--tabsdown-tab-min-size)");
+		expect(inlineBody, inlineTarget).toContain("white-space: normal");
 	}
 });

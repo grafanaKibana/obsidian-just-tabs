@@ -865,7 +865,8 @@ body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__
 	white-space: nowrap;
 }
 
-body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-alignment-equal-width .tabsdown:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -983,7 +984,8 @@ body.tabsdown-top-alignment-equal-width .tabsdown--top > .tabsdown__tablist > .t
 	white-space: nowrap;
 }
 
-body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -1114,7 +1116,8 @@ body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom > .tabsdown__tablis
 	white-space: nowrap;
 }
 
-body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -1245,7 +1248,8 @@ body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > 
 	white-space: nowrap;
 }
 
-body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -1415,7 +1419,8 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 	white-space: nowrap;
 }
 
-body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 	flex: 1 1 max-content;
 	min-inline-size: var(--tabsdown-tab-min-size);
 	white-space: normal;
@@ -1544,7 +1549,9 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 	}
 
 	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 1 max-content;
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
@@ -1567,7 +1574,9 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 	}
 
 	body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab {
+	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 1 max-content;
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
