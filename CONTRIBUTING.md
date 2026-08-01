@@ -53,11 +53,10 @@ Pull requests into `main` need the `quality` check. `main` cannot be force-pushe
 `main` is always releasable, and a release is cut on demand rather than as a side effect of merging.
 
 1. Run `npm run version -- <x.y.z>`, which updates `package.json`, `package-lock.json`, `manifest.json`, and `versions.json` together. Merge that bump into `main` like any other change.
-2. Run the **Release** workflow from the Actions tab with **dry-run** checked. It builds, verifies, and prints the notes it would publish, without tagging anything.
-3. Run it again with **dry-run** unchecked. It creates the exact unprefixed tag at the current `main` commit and a **draft** release carrying `main.js`, `manifest.json`, `styles.css`, checksums, the manual gate, and the commits since the previous tag.
-4. Publish the draft only after installing its assets in a clean vault and completing the manual release matrix.
+2. Record the full 40-character SHA at the head of `main`, then run the **Release** workflow with that **commit** and **dry-run** checked. It builds, verifies, and prints the notes it would publish, without tagging anything.
+3. Complete the relevant manual testing against that exact commit, then run the workflow again with the same **commit** and **dry-run** unchecked. If `main` moved, the workflow fails so the new head can be tested instead. The workflow creates the exact unprefixed tag, prepares a draft, uploads `main.js`, `manifest.json`, and `styles.css`, and publishes the latest release only after every asset succeeds.
 
-If a step fails, fix it and re-run the workflow. Tagging accepts an existing tag only when it points at the commit being released, and drafting resumes an existing draft and replaces its assets.
+If an upload fails, the release remains a resumable draft; re-running the workflow refreshes its notes and draft assets before publication. Tagging accepts an existing tag only when it points at the commit being released.
 
 Do not replace a published tag or its assets; corrections require a higher version.
 

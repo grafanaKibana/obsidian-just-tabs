@@ -5,7 +5,23 @@ tags:
 
 # Tabsdown test matrix
 
-Every syntax and rendering variation in one note. Open in Reading View. Not pretty on purpose.
+A practical workspace that also exercises every syntax and rendering variation. Open it in Reading View and treat each section like a small product, engineering, or research note.
+
+## Style Settings QA
+
+Reuse the Positions, Icons, and Labels sections below while changing settings; no duplicate blocks are needed.
+
+| Check | Expected |
+| --- | --- |
+| Leave every Top/Bottom/Left/Right override on **Inherit defaults**, then change each global Personality, Palette, and Alignment value. | All four positions follow the globals; any `mountTabs` demo remains global-only. |
+| Reverse each global with one position: Underline → Button, Button → Underline, Secondary → Primary, Start/Center → Equal width, and Equal width → Start/Center. | Only that position changes, nested blocks keep their own position, and Left/Right tabs do not stretch vertically. Repeat Left/Right above and below the 28rem container threshold. |
+| Try underline thickness 1/2/8, hover selected and unselected tabs, gap 0/48 in Scroll/Wrap, content spacing 0/12/48, and selected weight Theme default/Medium/Bold. | The default indicator is 2px; unselected hover changes only the underline color and readable text without changing its width; selected hover keeps its configured underline; Scroll and Wrap use the configured gap unchanged; spacing appears exactly once; only selected/expanded labels change weight. |
+| Change horizontal padding directly to 0/36/48 in Default and Compact. | Each slider change applies immediately without a separate toggle and overflow remains usable. |
+| Change side-list width directly to 192/256/320 on Left/Right and resize narrowly. | Each slider change applies immediately on wide lists; even with 48px horizontal padding, a 32px icon, and 16px icon spacing, labels retain usable space; narrow lists return to a full-width row and panels remain visible. |
+| Set icon size 12/32 and spacing 0/16, using the Icons section. | Icon boxes and gaps change without moving plain-label tabs off baseline. |
+| In Nested blocks, switch Nested block style between Card and Flat while viewing section 9 with Primary and Secondary palettes. | Card shows a bordered nested surface; Flat shows tabs directly under their parent without a wrapper surface; nested controls remain subtly colored in both modes and at every depth. |
+| Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Equal width shares spare space without squeezing labels: Scroll scrolls and Wrap moves whole tabs to another row; panels never collapse to zero. |
+| Toggle theme button outline and test mouse hover, keyboard focus, touch taps, reduced motion, light/dark themes, and rapid setting changes. | Theme shadow toggles without replacing the focus outline; hover never sticks on touch; motion and selected state remain correct. |
 
 ## 1. Positions
 
@@ -13,48 +29,57 @@ Every syntax and rendering variation in one note. Open in Reading View. Not pret
 config: top
 
 tab: Installation notes
-top / first
+1. Copy the plugin files into `.obsidian/plugins/tabsdown/`.
+2. Enable **Tabsdown** under Community plugins.
+3. Open this note in Reading View and switch between panels.
+
+> [!tip] Quick check
+> The selected tab should remain visible after reopening the note.
 tab: Configuration reference
-top / second
+Use `config: top`, `left`, `right`, or `bottom` to place the tab list. Add `one` for a scrollable row or `multi` to allow wrapping.
 tab: Migration from version one
-top / third
+- [x] Rename legacy fences to `tabsdown`
+- [x] Keep every `tab:` marker at column zero
+- [ ] Review custom CSS snippets for old class names
 ```
 
 ```tabsdown
 config: left
 
 tab: Installation notes
-left / first
+### Local development
+
+Run `npm install`, then `npm run dev`. Reload Obsidian after rebuilding the plugin bundle.
 tab: Configuration reference
-left / second
+The left list uses a configurable width on wide panels and moves above the content when the block becomes narrow.
 tab: Migration from version one
-left / third
+Existing labels and panel Markdown remain unchanged; only the fence language and any legacy CSS selectors need migration.
 tab: Troubleshooting a failed sync
-left / fourth
+Check that `main.js`, `manifest.json`, and `styles.css` were copied together. A stale stylesheet can make a current bundle look broken.
 ```
 
 ```tabsdown
 config: right
 
 tab: Installation notes
-right / first
+Install the release assets together, then restart Obsidian so the plugin registry and stylesheet refresh at the same time.
 tab: Configuration reference
-right / second
+Right-positioned tabs remain first in reading order while appearing beside the panel on wide layouts.
 tab: Migration from version one
-right / third
+Verify keyboard navigation, saved CSS snippets, and any notes that use nested fenced blocks.
 tab: Troubleshooting a failed sync
-right / fourth
+Compare the plugin folder against the release checksums, then disable and re-enable Tabsdown before testing again.
 ```
 
 ```tabsdown
 config: bottom
 
 tab: Installation notes
-bottom / first
+For a vault-wide install, distribute the three release assets and document the minimum supported Obsidian version for collaborators.
 tab: Configuration reference
-bottom / second
+Bottom placement keeps the content first and moves the tab list below it without changing keyboard order.
 tab: Migration from version one
-bottom / third
+Finish by checking desktop and mobile themes, long labels, and any tab panels that contain embeds or queries.
 ```
 
 ## 2. Overflow: one vs multi
@@ -63,34 +88,34 @@ bottom / third
 config: one
 
 tab: Authentication and sessions
-one
+Access tokens expire after 15 minutes; refresh tokens rotate after every successful renewal.
 tab: Background job scheduling
-one
+Daily exports run at 02:00 UTC with exponential retry and an operator-visible dead-letter queue.
 tab: Content addressable storage
-one
+Attachments are deduplicated by SHA-256 while note metadata retains the original filename.
 tab: Distributed tracing spans
-one
+API, queue, and worker spans share the request ID so a delayed job can be followed end to end.
 tab: Eventual consistency notes
-one
+Search results may lag writes by up to 30 seconds; the detail view always reads from the primary store.
 tab: Feature flag rollout plan
-one
+Enable for staff, then 5%, 25%, and 100% of workspaces with error-rate gates between stages.
 ```
 
 ```tabsdown
 config: multi
 
 tab: Authentication and sessions
-multi
+Access tokens expire after 15 minutes; refresh tokens rotate after every successful renewal.
 tab: Background job scheduling
-multi
+Daily exports run at 02:00 UTC with exponential retry and an operator-visible dead-letter queue.
 tab: Content addressable storage
-multi
+Attachments are deduplicated by SHA-256 while note metadata retains the original filename.
 tab: Distributed tracing spans
-multi
+API, queue, and worker spans share the request ID so a delayed job can be followed end to end.
 tab: Eventual consistency notes
-multi
+Search results may lag writes by up to 30 seconds; the detail view always reads from the primary store.
 tab: Feature flag rollout plan
-multi
+Enable for staff, then 5%, 25%, and 100% of workspaces with error-rate gates between stages.
 ```
 
 ## 3. Config precedence
@@ -103,9 +128,9 @@ config: left
 config: bottom, multi
 
 tab: Resolved position and layout
-bottom, multi
+This list should render below the panel and wrap when needed. The final value for each configuration axis wins.
 tab: Second panel
-second
+Use this panel to confirm that duplicate `config:` lines do not leak into rendered content.
 ```
 
 Single line, reversed order, whitespace around values.
@@ -114,46 +139,52 @@ Single line, reversed order, whitespace around values.
 config:  multi ,  right
 
 tab: Resolved position and layout
-right, multi
+This block should place its list on the right and allow multiple rows when the available inline space is exhausted.
 tab: Second panel with a much longer label
-second
+Resize the note until the side list moves above the panel; the active content must remain readable throughout the transition.
 ```
 
 ## 4. Icons
 
-```tabsdown
+````tabsdown
 tab: icon:code Code
-valid icon
-tab: icon:file-text Notes
-valid icon
-tab: icon:not-a-real-icon-name Unknown
-unknown icon renders nothing, label stays
-tab: No icon
-plain label
-tab: icon:git-branch ✅ Unicode ✨ 中文 label
-unicode after icon
+```ts
+const release = { version: "1.3.3", channel: "preview" };
 ```
+tab: icon:file-text Notes
+- Decision: keep theme-native colors
+- Owner: plugin maintainers
+- Review: before release candidate
+tab: icon:not-a-real-icon-name Unknown
+The missing icon is ignored, but this label and panel remain available.
+tab: No icon
+Use a plain label when an icon would add noise rather than meaning.
+tab: icon:git-branch ✅ Unicode ✨ 中文 label
+Localization review: English, emoji, and 中文 remain legible in the same tab label.
+````
 
 Escaped icon token — label should read literally `icon:code Not an icon`.
 
 ```tabsdown
 tab: \icon:code Not an icon
-escaped icon token
+Use the escaped form when documentation needs to show the literal `icon:code` prefix.
 tab: Second panel
-second
+The neighboring panel confirms that escaping one label does not affect the rest of the block.
 ```
 
 ## 5. Labels
 
 ```tabsdown
 tab: A very long label that should force the tab list to overflow or wrap depending on the layout value
-long
+This release-readiness summary deliberately uses a long label so Scroll, Wrap, and Equal width can be compared without collapsing the text.
 tab: **not bold** `not code` [not a link](https://example.com)
-markdown in labels is literal text
+Markdown punctuation in a label stays literal; formatting is allowed in the panel body instead.
 tab: 1
-short
+Quarter-one planning notes and the current delivery target.
 tab: ・
-punctuation only
+Punctuation-only labels remain valid for compact visual workflows.
+tab: release-readiness-owner-handoff-checklist-without-any-natural-break-opportunities-0123456789abcdefghijklmnopqrstuvwxyz
+This deliberately unbroken label must stay inside the note when Equal width and Wrap are enabled together.
 ```
 
 ## 6. Bodies
@@ -166,7 +197,7 @@ tab: Whitespace only
 
    
 tab: Has content
-content
+The empty panels above are intentional; this one confirms that a later non-empty panel still renders normally.
 ```
 
 Mixed Markdown, one tab per feature.
@@ -174,73 +205,73 @@ Mixed Markdown, one tab per feature.
 `````tabsdown
 tab: Headings + text
 
-# H1
-## H2
-### H3
+# Project Atlas
+## Release 1.3.3
+### Objective
 
-Paragraph with **bold**, *italic*, `code`, [external link](https://obsidian.md), and a footnote[^1].
+Ship **extended Style Settings** without changing the authoring syntax. The release keeps *theme-native behavior*, documents `tabsdown` configuration, and links to the [Obsidian documentation](https://obsidian.md)[^1].
 
-[^1]: Footnote body inside a tab panel.
+[^1]: External documentation is useful for collaborators who are new to Reading View and Community plugins.
 
 tab: Lists
 
-- bullet
-- bullet
-  - nested
-    - deeper
-1. ordered
-2. ordered
+- Release scope
+  - Nested Card and Flat styles
+    - Distinct subtle coloring for deeper levels
+  - Position-specific appearance overrides
+1. Build and synchronize the demo vault
+2. Run tests, lint, typecheck, and release verification
 
-- [ ] task open
-- [x] task done
+- [x] Preserve keyboard and touch behavior
+- [ ] Complete light/dark visual review
 
 tab: Table
 
-| Left | Center | Right |
-| :--- | :----: | ----: |
-| a | b | c |
-| longer cell content to force horizontal pressure | b | c |
+| Area | Owner | Status |
+| :--- | :---: | ---: |
+| Parser compatibility | Core | Ready |
+| Responsive side-list behavior in narrow desktop and mobile panes | UI | Review |
 
 tab: Callouts
 
-> [!info] Info
-> Body.
+> [!info] Release candidate
+> All automated checks pass and the demo bundle matches the source stylesheet.
 
-> [!warning]- Collapsed warning
-> Hidden until expanded.
+> [!warning]- Remaining visual review
+> Expand this callout to record any alternate-theme or mobile findings.
 
-> [!quote] Nested
-> > [!tip] Inner
-> > Inner body.
+> [!quote] Design principle
+> > [!tip] Theme native
+> > Prefer Obsidian variables over a hard-coded product palette.
 
 tab: Code fences
 
 ```js
-const tabsdown = { fence: "backtick" };
-console.log(tabsdown);
+const release = { plugin: "tabsdown", fence: "backtick" };
+console.log(`${release.plugin} is ready for preview`);
 ```
 
 ~~~python
-print("tilde fence inside a backtick tabsdown block")
+print("Verify tilde fences inside a backtick Tabsdown block")
 ~~~
 
-    indented code block
+    npm run check
 
 tab: Math
 
-Inline $E = mc^2$ and block:
+If each stage keeps $p = 0.99$ of requests healthy, four independent stages retain $p^4$ of the original success rate:
 
 $$
-\sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+p_{end\text{-}to\text{-}end} = \prod_{i=1}^{4} p_i
 $$
 
 tab: Mermaid
 
 ```mermaid
 graph LR
-  A[Parse] --> B{Valid?}
-  B -->|yes| C[Render tabs]
-  B -->|no| D[Diagnostic]
+  A[Write fenced note] --> B{Parser accepts it?}
+  B -->|yes| C[Render accessible tabs]
+  B -->|no| D[Show source diagnostic]
 ```
 
 tab: Links + embeds
@@ -254,10 +285,10 @@ tab: Links + embeds
 tab: HTML + raw
 
 <div style="border: 1px solid var(--text-accent); padding: 4px;">
-  raw HTML div
+  Release status: ready for visual review
 </div>
 
-<details><summary>details/summary</summary>body</details>
+<details><summary>Deployment notes</summary>Publish the release assets together and verify their checksums.</details>
 
 Horizontal rule:
 
@@ -265,30 +296,30 @@ Horizontal rule:
 
 tab: Tall panel
 
-Line 1
-Line 2
-Line 3
-Line 4
-Line 5
-Line 6
-Line 7
-Line 8
-Line 9
-Line 10
-Line 11
-Line 12
-Line 13
-Line 14
-Line 15
-Line 16
-Line 17
-Line 18
-Line 19
-Line 20
+- [x] Confirm release scope
+- [x] Update Style Settings metadata
+- [x] Preserve global defaults
+- [x] Preserve position overrides
+- [x] Add nested Card styling
+- [x] Add nested Flat styling
+- [x] Add subtle nested colors
+- [x] Check underline hover geometry
+- [x] Check long labels
+- [x] Check equal-width overflow
+- [x] Check wrapped gaps
+- [x] Check side-list width
+- [x] Check icon sizing
+- [x] Check content spacing
+- [x] Check selected weight
+- [x] Sync demo stylesheet
+- [x] Run lint
+- [x] Run typecheck
+- [x] Run automated tests
+- [ ] Complete final visual review
 
 tab: Short panel
 
-One line. Switching between this and the tall panel exercises the height animation.
+No release blockers. Switching between this summary and the checklist exercises the height animation.
 `````
 
 ## 7. Escaped markers
@@ -297,12 +328,12 @@ Literal `tab:` and `config:` lines inside a body.
 
 ```tabsdown
 tab: Escaped marker
-\tab: this line is body text, not a tab
-still body
+\tab: keep this literal marker in the migration guide
+The escaped line remains part of this panel's documentation.
 
 tab: Config-looking body
 config: top
-above line is body text, not config, because it follows a tab marker
+The line above is a configuration example in the body, not block configuration, because it follows a tab marker.
 ```
 
 ## 8. Tilde fences
@@ -311,89 +342,102 @@ above line is body text, not config, because it follows a tab marker
 config: left
 
 tab: Tilde-fenced block
-tilde-fenced block
+Use tilde fences when the panel needs to demonstrate an inner backtick code block.
 tab: Second panel of the tilde block
-second
+Both fence styles should render the same accessible tab interaction.
 ~~~
 
 ## 9. Nesting
 
-Two levels. Each level keeps its own config and active tab.
+Four levels. Each level keeps its own config and active tab.
 
-`````tabsdown
+``````tabsdown
 config: top, multi
 
-tab: Outer with a nested block
+tab: Release planning workspace
 
-Outer body before nested block.
+The parent panel summarizes the release while the nested blocks keep workstream details close to the decision that needs them.
 
-````tabsdown
+`````tabsdown
 config: left
 
-tab: Middle level, left placed
+tab: Engineering workstreams
 
-```tabsdown
-config: bottom
-
-tab: Inner level, bottom placed
-depth 3
-tab: Inner sibling panel
-depth 3
-```
-
-tab: Middle sibling panel
-depth 2
-````
-
-Outer body after nested block.
-
-tab: Outer whose body is only a nested block
-
-Nested block as the entire body:
+Owners use the inner tabs to switch between rollout details without leaving the release note.
 
 ````tabsdown
-tab: Nested first panel
-first
-tab: Nested second panel
-second
+config: bottom
+
+tab: API rollout
+Ship the read path first, monitor error budgets, then enable writes for staff workspaces.
+
+```tabsdown
+tab: Staged enablement
+Move from staff to 5%, 25%, and 100% only while error and latency budgets remain healthy.
+tab: Rollback trigger
+Disable the flag when the five-minute error rate exceeds the release threshold.
+```
+
+tab: Data migration
+Backfill in batches of 500 records and pause automatically when replication lag exceeds 30 seconds.
 ````
 
-tab: Outer without nesting
-
-No nesting here.
+tab: Documentation workstream
+Update installation, migration, and troubleshooting guides before the release candidate is published.
 `````
+
+After the workstream details, the parent note can continue with shared decisions, launch dates, and final approval.
+
+tab: Support playbooks
+
+This panel is entirely organized by a nested block:
+
+`````tabsdown
+tab: Customer reports
+Capture the vault type, Obsidian version, theme, and exact fence before reproducing a rendering issue.
+tab: Known workarounds
+Reload the app after replacing plugin assets and disable conflicting CSS snippets during diagnosis.
+`````
+
+tab: Release summary
+
+Version 1.3.3 expands visual controls while keeping the Markdown contract and accessible interaction unchanged.
+``````
 
 Nested with mixed fence characters.
 
 ~~~~tabsdown
-tab: Tilde outer fence
+tab: Research notebook
+
+The outer tilde fence leaves room for an ordinary backtick-fenced Tabsdown block inside the literature note.
 
 ```tabsdown
-tab: Backtick inner panel
-first
-tab: Backtick inner sibling
-second
+tab: Sources to review
+- Obsidian theme variable guidance
+- Accessibility notes for tab-like navigation
+tab: Findings
+Nested blocks need clear hierarchy without introducing a fixed palette.
 ```
 
-tab: Tilde outer sibling
-second
+tab: Research decisions
+Use theme-derived tints and keep the authoring syntax independent at every level.
 ~~~~
 
 Nested block inside a callout inside a tab.
 
 `````tabsdown
-tab: Callout host
+tab: Architecture decision
 
-> [!info] Nested inside a callout
+> [!info] Choose a nested presentation
 > ````tabsdown
-> tab: Callout nested panel
-> first
-> tab: Callout nested sibling
-> second
+> tab: Card surface
+> Use a bordered surface when the nested group should read as a self-contained reference.
+> tab: Flat tabs
+> Use tabs directly in the parent panel when hierarchy is already clear from the surrounding note.
 > ````
 
-tab: Sibling of the callout host
-second
+tab: Decision outcome
+Card remains the default for compatibility; Flat is available through Style Settings.
 `````
 
 ## 10. Stress
@@ -403,52 +447,52 @@ Twenty tabs, `one` layout.
 ```tabsdown
 config: one
 
-tab: 01
-1
-tab: 02
-2
-tab: 03
-3
-tab: 04
-4
-tab: 05
-5
-tab: 06
-6
-tab: 07
-7
-tab: 08
-8
-tab: 09
-9
-tab: 10
-10
-tab: 11
-11
-tab: 12
-12
-tab: 13
-13
-tab: 14
-14
-tab: 15
-15
-tab: 16
-16
-tab: 17
-17
-tab: 18
-18
-tab: 19
-19
-tab: 20
-20
+tab: 01 Overview
+Release goal, audience, and the user-visible outcome.
+tab: 02 Goals
+Success means more visual control without changing note syntax.
+tab: 03 Scope
+Style Settings, nested presentation, responsive spacing, and hover fixes.
+tab: 04 Timeline
+Implementation, visual review, release candidate, and staged publication.
+tab: 05 Owners
+Engineering owns behavior; documentation owns migration and examples.
+tab: 06 Risks
+Theme variance, narrow layouts, touch hover, and long localized labels.
+tab: 07 Decisions
+Card remains the nested default; Flat removes only the wrapper surface.
+tab: 08 Design
+Theme variables provide hierarchy without a Tabsdown-specific palette.
+tab: 09 API
+No parser or programmatic mounting API changes are required.
+tab: 10 Data
+No note migration or persisted plugin data migration is required.
+tab: 11 Security
+Panels continue to render through Obsidian's Markdown renderer.
+tab: 12 QA
+Run automated checks and review desktop, mobile, light, and dark themes.
+tab: 13 Rollout
+Publish a preview, collect vault feedback, then promote the release.
+tab: 14 Metrics
+Track rendering errors, support reports, and release adoption.
+tab: 15 Support
+Ask for the note source, theme, Obsidian version, and a screenshot.
+tab: 16 Training
+Show authors the fence syntax, nested blocks, and Style Settings groups.
+tab: 17 Budget
+The change is CSS-only and requires no new runtime dependency.
+tab: 18 Legal
+Third-party documentation links remain external references only.
+tab: 19 Changelog
+Summarize new settings, defaults, fixes, and compatibility notes.
+tab: 20 Archive
+Keep final screenshots, checksums, and verification output with the release.
 ```
 
 ## 11. Asynchronous content
 
-These fill their panel after the markdown renderer resolves. Switch away and back
-between each of them and the short panel, repeatedly: the panels box must hold
+These workspace views fill their panel after the Markdown renderer resolves. Switch away and back
+between each of them and the compact status panel, repeatedly: the panel box must hold
 the outgoing height until the content lands and then resize once. A collapse to
 nothing followed by a spring open is the bug.
 
@@ -460,7 +504,7 @@ tab: Embedded note
 
 ![[Launch workspace]]
 
-tab: Dataview table
+tab: Recently modified notes
 
 ```dataview
 TABLE file.mtime AS Modified
@@ -469,14 +513,14 @@ SORT file.mtime DESC
 LIMIT 15
 ```
 
-tab: Dataview JS, delayed
+tab: Delayed reading queue
 
 ```dataviewjs
 await new Promise((resolve) => setTimeout(resolve, 800));
 dv.list(dv.pages().file.name.slice(0, 10));
 ```
 
-tab: Datacore
+tab: Vault inventory
 
 ```datacorejsx
 return function View() {
@@ -485,13 +529,13 @@ return function View() {
 }
 ```
 
-tab: Remote image
+tab: Brand reference
 
-![](https://obsidian.md/images/obsidian-logo-gradient.svg)
+![Obsidian logo used as a remote asset check](https://obsidian.md/images/obsidian-logo-gradient.svg)
 
-tab: Short panel
+tab: Compact status
 
-One line. This is the height the tall query panels must not flash through.
+No recent indexing issues. This compact summary is the height the query panels must not flash through.
 `````
 
 Async content inside a nested block: the outer panel resizes while the inner one
@@ -500,8 +544,10 @@ is still filling.
 `````tabsdown
 tab: Outer with a nested query
 
+The release dashboard nests an index-backed report inside the current milestone panel.
+
 ````tabsdown
-tab: Inner query panel
+tab: Recently updated notes
 
 ```dataview
 LIST
@@ -509,13 +555,13 @@ FROM ""
 LIMIT 10
 ```
 
-tab: Inner short panel
-one line
+tab: Index status
+The workspace index is healthy and ready for the next scheduled refresh.
 ````
 
-tab: Outer short panel
+tab: Milestone summary
 
-One line.
+The current milestone has no open documentation blockers.
 `````
 
 ## 12. Diagnostics
@@ -526,36 +572,36 @@ Each block below is intentionally invalid and should render a diagnostic with th
 
 ```tabsdown
 tab: Only one
-body
+This draft forgot to include a second comparison panel.
 ```
 
 `empty-label`
 
 ```tabsdown
 tab:
-body
+The onboarding checklist was accidentally given an empty label.
 tab: Second panel
-body
+This valid sibling helps confirm the diagnostic points to the empty label.
 ```
 
 `duplicate-label`
 
 ```tabsdown
 tab: Repeated label
-first
+Initial rollout notes for staff workspaces.
 tab: Repeated label
-second
+Public rollout notes accidentally reused the same label.
 ```
 
 `content-before-first-tab`
 
 ```tabsdown
-stray text before any marker
+Release context was placed before the first tab marker.
 
-tab: First panel
-first
-tab: Second panel
-second
+tab: Rollout plan
+Enable the feature in stages.
+tab: Rollback plan
+Disable the flag and restore the previous stylesheet.
 ```
 
 `invalid-config` — unknown value
@@ -563,10 +609,10 @@ second
 ```tabsdown
 config: sideways
 
-tab: First panel
-first
-tab: Second panel
-second
+tab: Deployment
+The requested `sideways` placement is not supported.
+tab: Recovery
+Choose top, bottom, left, or right instead.
 ```
 
 `invalid-config` — empty value list
@@ -574,32 +620,33 @@ second
 ```tabsdown
 config:
 
-tab: First panel
-first
-tab: Second panel
-second
+tab: Deployment
+The configuration line needs at least one value.
+tab: Recovery
+Remove the empty line or provide a supported placement or layout.
 ```
 
 `unclosed-nested-block` — reports the opening line of the inner block
 
 `````tabsdown
-tab: Outer first panel
+tab: Release workstreams
 
 ````tabsdown
-tab: Never closed inner panel
-first
-tab: Swallowed by the unclosed fence
+tab: Engineering
+The inner block never closes, so the remaining release panels are swallowed.
+tab: Documentation
+This marker still belongs to the unclosed inner block.
 
-tab: Also swallowed
-third
+tab: Support
+This panel is swallowed as well.
 `````
 
 Config after the first tab is body text, not config, so this renders `top`/`one` with a literal line.
 
 ```tabsdown
-tab: First panel
-first
+tab: Current behavior
+The block keeps its default top position.
 config: bottom
-tab: Second panel
-second
+tab: Migration note
+The `config: bottom` line above is rendered as body text instead of moving the list.
 ```
