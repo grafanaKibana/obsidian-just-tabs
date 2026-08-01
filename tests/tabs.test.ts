@@ -551,6 +551,28 @@ describe("animation and teardown", () => {
 		expect(panelsEl.getBoundingClientRect().height).toBe(80);
 	});
 
+	test("ignores slotted pending content under a hidden shadow ancestor", () => {
+		const host = panel("");
+		const shadow = host.attachShadow({ mode: "open" });
+		const hidden = shadow.appendChild(document.createElement("div"));
+		hidden.hidden = true;
+		const slot = hidden.appendChild(document.createElement("slot"));
+		slot.name = "pending";
+		const query = host.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		query.slot = "pending";
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), host],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		expect(query.assignedSlot).toBe(slot);
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
 	test("removes captured resource listeners on destroy", () => {
 		const panelsEl = document.createElement("div");
 		const add = vi.spyOn(panelsEl, "addEventListener");

@@ -54,6 +54,7 @@ export function trackPanelHeight(
 			":scope > .tabsdown__panel:not([hidden])",
 		);
 	const composedParent = (element: Element): Element | null => {
+		if (element.assignedSlot) return element.assignedSlot;
 		if (element.parentElement) return element.parentElement;
 		const root = element.getRootNode();
 		return root.nodeType === 11 && "host" in root
