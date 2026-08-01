@@ -189,7 +189,7 @@ test("holds the outgoing height while a lazy panel renders", async () => {
 
 	pending.resolve();
 	await flush();
-	expect(panels.style.height).toBe("240px");
+	expect(panels.getBoundingClientRect().height).toBe(240);
 });
 
 test("ignores a superseded hidden render and installs only its replacement", async () => {
