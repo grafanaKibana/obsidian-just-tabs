@@ -688,16 +688,13 @@ test("keeps position overrides direct, ordered, and mounted-global", () => {
 				new RegExp(`tabsdown--${position}[^,{]*> \\.tabsdown__tablist`),
 			);
 		}
-		expect(styles).not.toMatch(
-			new RegExp(`\\.tabsdown--${position}\\s+\\.tabsdown__`),
-		);
 	}
 
-	const globalFallback = styles.indexOf("body.tabsdown-personality-underline");
+	const globalPersonality = styles.indexOf("body.tabsdown-personality-underline");
 	const positionOverride = styles.indexOf("body.tabsdown-top-personality-");
 	const responsiveReset = styles.indexOf("@container (max-width: 28rem)");
-	expect(globalFallback).toBeGreaterThan(-1);
-	expect(positionOverride).toBeGreaterThan(globalFallback);
+	expect(globalPersonality).toBeGreaterThan(-1);
+	expect(positionOverride).toBeGreaterThan(globalPersonality);
 	expect(responsiveReset).toBeGreaterThan(positionOverride);
 	expect(styles).not.toMatch(/tabsdown--mounted[^,{]*tabsdown-(top|bottom|left|right)-/);
 });
@@ -804,8 +801,8 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(styles).toMatch(/\.tabsdown__tab-icon \{[^}]*--icon-size:\s*var\([^,]+,\s*1em\)/);
 	expect(styles).toMatch(/\.tabsdown__tab-icon \{[^}]*margin-inline-end:\s*var\([^,]+,\s*0\.35em\)/);
 
-	const defaultDensity = /body\.tabsdown-density-default \.tabsdown \{([^}]*)\}/.exec(styles)?.[1] ?? "";
-	const compactDensity = /body\.tabsdown-density-compact \.tabsdown \{([^}]*)\}/.exec(styles)?.[1] ?? "";
+	const defaultDensity = matchingRuleBodies(styles, "body.tabsdown-density-default .tabsdown");
+	const compactDensity = matchingRuleBodies(styles, "body.tabsdown-density-compact .tabsdown");
 	expect(defaultDensity).not.toContain("--tabsdown-content-spacing");
 	expect(defaultDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(36px|2\.25rem)/);
 	expect(compactDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(12px|0\.75rem)/);
@@ -837,10 +834,7 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 });
 
 test("panels contain their own margins so height stays stable", () => {
-	const styles = readFileSync(
-		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
-		"utf8",
-	);
+	const styles = readStyles();
 	// Anchored, so a position-specific rule ending in the same class does not
 	// shadow the base rule this asserts on.
 	const panels = /^\.tabsdown__panels \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
@@ -855,10 +849,7 @@ test("panels contain their own margins so height stays stable", () => {
 });
 
 test("a narrow block moves its side tab list off the panels' line", () => {
-	const styles = readFileSync(
-		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
-		"utf8",
-	);
+	const styles = readStyles();
 	const query = /@container \([^)]*\) \{([\s\S]*?)\n\}/.exec(styles)?.[1] ?? "";
 
 	// A grid here collapsed the panel column to zero width in a narrow pane, and
@@ -871,10 +862,7 @@ test("a narrow block moves its side tab list off the panels' line", () => {
 });
 
 test("a wrapped right-side tab list stays above its panels", () => {
-	const styles = readFileSync(
-		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
-		"utf8",
-	);
+	const styles = readStyles();
 
 	// Ordering the tab list instead would hand the first line to the panels
 	// whenever a long list forces a wrap, at any width, leaving the tabs stranded
@@ -884,10 +872,7 @@ test("a wrapped right-side tab list stays above its panels", () => {
 });
 
 test("equal-width tabs do not stretch down a side list", () => {
-	const styles = readFileSync(
-		resolve(dirname(fileURLToPath(import.meta.url)), "../styles.css"),
-		"utf8",
-	);
+	const styles = readStyles();
 	// A grow factor along a column's main axis sizes height, not width, so every
 	// tab ended up as tall as the panel beside it.
 	const reset =

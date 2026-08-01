@@ -1360,17 +1360,11 @@ body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist 
 /* A side list runs down the block axis. Never let inline equal-width controls
    stretch its tabs along the block axis. */
 body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-	flex: 0 0 auto;
-}
-
+body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-	flex: 0 0 auto;
-}
-
+body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 	flex: 0 0 auto;
@@ -1404,19 +1398,13 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 	}
 
 	body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
-		flex: 0 0 auto;
-	}
-
-	body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
-		flex: 1 0 7rem;
-	}
-
+	body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 		flex: 0 0 auto;
 	}
 
+	body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 		flex: 1 0 7rem;
 	}
