@@ -814,7 +814,7 @@ test("even Card surfaces beat the base card while Flat stays transparent", () =>
 test("position Start and Center beat global Equal plus Wrap", () => {
 	const styles = readStyles();
 	const globalSelector =
-		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__tab";
+		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab";
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
 	expect(matchingRuleBodies(styles, globalSelector)).toContain(
 		"flex: 1 1 max-content",
@@ -841,7 +841,7 @@ test("position Start and Center beat global Equal plus Wrap", () => {
 			if (position === "left" || position === "right") {
 				const narrowGlobalSelector =
 					"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width " +
-					`.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`;
+					`.tabsdown--${position}:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab`;
 				expect(matchingRuleBodies(narrow, narrowGlobalSelector)).toContain(
 					"flex: 1 1 max-content",
 				);
@@ -1102,16 +1102,23 @@ test("equal-width tabs do not stretch down a side list", () => {
 	expect(restore!.index).toBeGreaterThan(reset!.index);
 });
 
-test("equal-width wrap preserves intrinsic tab width before wrapping labels", () => {
+test("global equal-width wrap does not alter inline overflow", () => {
 	const styles = readStyles();
-	for (const scope of [
-		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width",
+	const cases: readonly (readonly [string, string])[] = [
+		[
+			"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width",
+			".tabsdown:where(:not(.tabsdown--inline-overflow))",
+		],
 		...(["top", "bottom", "left", "right"] as const).map(
-			(position) =>
+			(position) => [
 				`body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`,
+				`.tabsdown--${position}:where(:not(.tabsdown--inline-overflow))`,
+			] as const,
 		),
-	]) {
+	];
+	for (const [scope, target] of cases) {
 		const body = matchingRuleBodies(styles, scope);
+		expect(matchingSelectors(styles, scope), scope).toContain(target);
 		expect(body, scope).toContain("flex: 1 1 max-content");
 		expect(body, scope).toContain("min-inline-size: var(--tabsdown-tab-min-size)");
 		expect(body, scope).toContain("white-space: normal");
