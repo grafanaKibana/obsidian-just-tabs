@@ -74,6 +74,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	onload(): void {
 		this.containerEl.replaceChildren();
 		this.containerEl.classList.add("tabsdown");
+		this.applyNestingClass();
 		for (const configuration of this.resolveConfiguration()) {
 			this.containerEl.classList.add(`tabsdown--${configuration}`);
 		}
@@ -134,6 +135,21 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		this.containerEl.append(tabList, panels);
 		this.updateState();
 		this.ensureRendered(0);
+	}
+
+	private applyNestingClass(): void {
+		this.containerEl.classList.remove(
+			"tabsdown--nested-odd",
+			"tabsdown--nested-even",
+		);
+		const parent = this.containerEl.parentElement?.closest(".tabsdown");
+		if (!parent) return;
+
+		this.containerEl.classList.add(
+			parent.classList.contains("tabsdown--nested-odd")
+				? "tabsdown--nested-even"
+				: "tabsdown--nested-odd",
+		);
 	}
 
 	private resolveConfiguration(): TabConfiguration[] {

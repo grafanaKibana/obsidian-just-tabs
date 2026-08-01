@@ -565,6 +565,32 @@ test("applies the final position and layout configuration without showing it in 
 	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
 });
 
+test("alternates nested tint parity at every depth", () => {
+	const root = document.body.appendChild(document.createElement("div"));
+	root.className = "tabsdown";
+	const classes: string[] = [];
+	let parent = root;
+
+	for (let depth = 1; depth <= 4; depth += 1) {
+		const container = parent.appendChild(document.createElement("div"));
+		const child = new TabBlockRenderChild(
+			{} as App,
+			container,
+			"Folder/Note.md",
+			tabs,
+			[],
+			() => 0,
+		);
+		child.load();
+		classes.push(
+			container.classList.contains("tabsdown--nested-odd") ? "odd" : "even",
+		);
+		parent = container;
+	}
+
+	expect(classes).toEqual(["odd", "even", "odd", "even"]);
+});
+
 test("renders a tab icon beside the label and hides it from assistive tech", () => {
 	const container = document.createElement("div");
 	const child = new TabBlockRenderChild(
@@ -678,6 +704,8 @@ test("defines the requested control ranges and selected weights", () => {
 	expect(weight).toMatch(/value: tabsdown-[\w-]+-medium/);
 	expect(weight).toMatch(/value: tabsdown-[\w-]+-bold/);
 	const weightId = settingId(weight);
+	const baseTab = /^\.tabsdown__tab \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
+	expect(baseTab).toMatch(/font-weight:\s*inherit/);
 	expect(matchingRuleBodies(styles, `body.${weightId}-medium`)).toMatch(/font-weight:\s*var\(--font-medium\)/);
 	expect(matchingRuleBodies(styles, `body.${weightId}-bold`)).toMatch(/font-weight:\s*var\(--font-bold,\s*700\)/);
 	expect(styles).not.toContain(`body.${weightId}-theme-default`);
@@ -693,12 +721,14 @@ test("defines the requested control ranges and selected weights", () => {
 test("offers flat nested blocks while keeping nested controls subtle", () => {
 	const styles = readStyles();
 	const card = matchingRuleBodies(styles, ".tabsdown .tabsdown");
+	const evenCard = matchingRuleBodies(styles, ".tabsdown--nested-even");
 	const flat = matchingRuleBodies(styles, "body.tabsdown-nested-style-flat .tabsdown .tabsdown");
-	const subtle = matchingRuleBodies(styles, "body .tabsdown .tabsdown");
-	const deeper = matchingRuleBodies(styles, "body .tabsdown .tabsdown .tabsdown");
+	const subtle = matchingRuleBodies(styles, "body .tabsdown--nested-odd");
+	const deeper = matchingRuleBodies(styles, "body .tabsdown--nested-even");
 
 	expect(card).toMatch(/border:\s*var\(--border-width\) solid/);
 	expect(card).toMatch(/background-color:\s*var\(--background-secondary\)/);
+	expect(evenCard).toMatch(/background-color:\s*var\(--background-primary\)/);
 	for (const reset of ["margin-block: 0", "padding: 0", "border: 0", "border-radius: 0", "background-color: transparent"]) {
 		expect(flat).toContain(reset);
 	}
@@ -711,7 +741,7 @@ test("offers flat nested blocks while keeping nested controls subtle", () => {
 	]) {
 		expect(subtle).toContain(variable);
 	}
-	expect(styles.indexOf("body .tabsdown .tabsdown")).toBeGreaterThan(
+	expect(styles.indexOf("body .tabsdown--nested-odd")).toBeGreaterThan(
 		styles.indexOf("body.tabsdown-right-palette-secondary"),
 	);
 	const background = (body: string): string =>
@@ -864,9 +894,21 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(compactDensity).toContain(`var(--${paddingSlider}, 12px)`);
 	const sideSlider = settingId(styleSetting(styles, "title", "Side-list width"));
 	for (const position of ["left", "right"]) {
-		expect(matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist`)).toContain(
+		const sideList = matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist`);
+		expect(sideList).toContain(
 			`var(--${sideSlider}, auto)`,
 		);
+		expect(sideList).toContain("max-inline-size: calc(");
+		expect(sideList).toContain("--tabsdown-side-panel-min");
+		expect(sideList).toContain("align-items: var(--tabsdown-side-tab-alignment, stretch)");
+	}
+	for (const [alignment, value] of [
+		["start", "flex-start"],
+		["center", "center"],
+		["equal-width", "stretch"],
+	] as const) {
+		const sideAlignment = matchingRuleBodies(styles, `body.tabsdown-alignment-${alignment} .tabsdown--left`);
+		expect(sideAlignment).toContain(`--tabsdown-side-tab-alignment: ${value}`);
 	}
 	const weightId = settingId(styleSetting(styles, "title", "Selected tab font weight"));
 	for (const value of ["medium", "bold"]) {
@@ -882,7 +924,18 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(styles).toMatch(/\.tabsdown--left,[\s\S]*?\.tabsdown--right \{[^}]*gap:\s*var\(--tabsdown-content-spacing/);
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
 	expect(narrow).toMatch(/inline-size:\s*100%/);
+	expect(narrow).toMatch(/max-inline-size:\s*100%/);
+	expect(narrow).toContain("--tabsdown-side-tab-alignment: stretch");
 	expect(narrow).not.toContain(`var(--${sideSlider})`);
+});
+
+test("documents the public horizontal padding variable", () => {
+	const readme = readFileSync(
+		resolve(dirname(fileURLToPath(import.meta.url)), "../README.md"),
+		"utf8",
+	);
+	expect(readme).toContain("--tabsdown-horizontal-padding: 1.5rem");
+	expect(readme).not.toContain("--tabsdown-tab-padding-inline");
 });
 
 test("panels contain their own margins so height stays stable", () => {
@@ -941,4 +994,20 @@ test("equal-width tabs do not stretch down a side list", () => {
 	expect(reset).not.toBeNull();
 	expect(restore).not.toBeNull();
 	expect(restore!.index).toBeGreaterThan(reset!.index);
+});
+
+test("equal-width wrap preserves intrinsic tab width before wrapping labels", () => {
+	const styles = readStyles();
+	for (const scope of [
+		"body.tabsdown-overflow-wrap.tabsdown-alignment-equal-width",
+		...(["top", "bottom", "left", "right"] as const).map(
+			(position) =>
+				`body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`,
+		),
+	]) {
+		const body = matchingRuleBodies(styles, scope);
+		expect(body, scope).toContain("flex: 1 1 max-content");
+		expect(body, scope).toContain("min-inline-size: var(--tabsdown-tab-min-size)");
+		expect(body, scope).toContain("white-space: normal");
+	}
 });

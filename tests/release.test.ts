@@ -42,6 +42,10 @@ type VersionsFixture = Record<string, string>;
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const versionScript = resolve(repositoryRoot, "scripts/version.mjs");
 const verifyScript = resolve(repositoryRoot, "scripts/verify-release.mjs");
+const releaseWorkflow = readFileSync(
+	resolve(repositoryRoot, ".github/workflows/release.yml"),
+	"utf8",
+);
 const fixtures: string[] = [];
 
 function writeJson(path: string, value: unknown): void {
@@ -114,6 +118,30 @@ test("demo enables only plugins with tracked runtime bundles", () => {
 		.map((path) => basename(dirname(path)));
 
 	expect(enabled.sort()).toEqual(tracked.sort());
+});
+
+test("binds a release to the exact manually tested commit", () => {
+	expect(releaseWorkflow).toMatch(/commit:\n\s+description:[^\n]+manually tested/);
+	expect(releaseWorkflow).toMatch(/commit:[\s\S]*?required:\s*true[\s\S]*?type:\s*string/);
+	expect(releaseWorkflow).toContain("RELEASE_COMMIT: ${{ inputs.commit }}");
+	const validation = releaseWorkflow.indexOf('"$RELEASE_COMMIT" != "$GITHUB_SHA"');
+	const install = releaseWorkflow.indexOf("- run: npm ci");
+	const tag = releaseWorkflow.indexOf('ref="refs/tags/$version"');
+	expect(validation).toBeGreaterThan(-1);
+	expect(install).toBeGreaterThan(validation);
+	expect(tag).toBeGreaterThan(install);
+});
+
+test("uploads release assets to a draft before publishing", () => {
+	const create = releaseWorkflow.indexOf('gh release create "$version"');
+	const upload = releaseWorkflow.indexOf('gh release upload "$version" main.js manifest.json styles.css --clobber');
+	const publish = releaseWorkflow.indexOf('gh release edit "$version" --draft=false --latest');
+	expect(create).toBeGreaterThan(-1);
+	expect(releaseWorkflow.slice(create, upload)).toContain("--draft");
+	expect(releaseWorkflow.slice(create, upload)).not.toMatch(/gh release create[^\n]*(main\.js|manifest\.json|styles\.css)/);
+	expect(upload).toBeGreaterThan(create);
+	expect(publish).toBeGreaterThan(upload);
+	expect(releaseWorkflow.indexOf('release_state" == "false"')).toBeLessThan(upload);
 });
 
 test("updates package, lockfile, manifest, and versions together", () => {

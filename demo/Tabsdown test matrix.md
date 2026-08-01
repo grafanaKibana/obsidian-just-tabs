@@ -183,6 +183,8 @@ tab: 1
 Quarter-one planning notes and the current delivery target.
 tab: ・
 Punctuation-only labels remain valid for compact visual workflows.
+tab: release-readiness-owner-handoff-checklist-without-any-natural-break-opportunities-0123456789abcdefghijklmnopqrstuvwxyz
+This deliberately unbroken label must stay inside the note when Equal width and Wrap are enabled together.
 ```
 
 ## 6. Bodies
@@ -347,34 +349,42 @@ Both fence styles should render the same accessible tab interaction.
 
 ## 9. Nesting
 
-Three levels. Each level keeps its own config and active tab.
+Four levels. Each level keeps its own config and active tab.
 
-`````tabsdown
+``````tabsdown
 config: top, multi
 
 tab: Release planning workspace
 
 The parent panel summarizes the release while the nested blocks keep workstream details close to the decision that needs them.
 
-````tabsdown
+`````tabsdown
 config: left
 
 tab: Engineering workstreams
 
 Owners use the inner tabs to switch between rollout details without leaving the release note.
 
-```tabsdown
+````tabsdown
 config: bottom
 
 tab: API rollout
 Ship the read path first, monitor error budgets, then enable writes for staff workspaces.
+
+```tabsdown
+tab: Staged enablement
+Move from staff to 5%, 25%, and 100% only while error and latency budgets remain healthy.
+tab: Rollback trigger
+Disable the flag when the five-minute error rate exceeds the release threshold.
+```
+
 tab: Data migration
 Backfill in batches of 500 records and pause automatically when replication lag exceeds 30 seconds.
-```
+````
 
 tab: Documentation workstream
 Update installation, migration, and troubleshooting guides before the release candidate is published.
-````
+`````
 
 After the workstream details, the parent note can continue with shared decisions, launch dates, and final approval.
 
@@ -382,17 +392,17 @@ tab: Support playbooks
 
 This panel is entirely organized by a nested block:
 
-````tabsdown
+`````tabsdown
 tab: Customer reports
 Capture the vault type, Obsidian version, theme, and exact fence before reproducing a rendering issue.
 tab: Known workarounds
 Reload the app after replacing plugin assets and disable conflicting CSS snippets during diagnosis.
-````
+`````
 
 tab: Release summary
 
 Version 1.3.3 expands visual controls while keeping the Markdown contract and accessible interaction unchanged.
-`````
+``````
 
 Nested with mixed fence characters.
 

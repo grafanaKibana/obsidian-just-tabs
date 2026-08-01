@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      commit:
+        description: Full 40-character SHA from main that was manually tested.
+        required: true
+        type: string
       dry-run:
         description: Report what would be released without tagging or publishing.
         type: boolean
@@ -39,6 +43,23 @@ jobs:
         with:
           node-version: 24
           cache: npm
+
+      - name: Validate the manually tested commit
+        env:
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Commit must be the full 40-character lowercase SHA that was manually tested."
+            exit 1
+          fi
+
+          if [[ "$(git rev-parse HEAD)" != "$GITHUB_SHA" || "$RELEASE_COMMIT" != "$GITHUB_SHA" ]]; then
+            echo "::error::The tested commit $RELEASE_COMMIT is not this release commit $GITHUB_SHA. Re-run the dry run and manual tests for the current main head."
+            exit 1
+          fi
 
       - run: npm ci
       - run: npm run check
@@ -120,8 +141,30 @@ jobs:
             exit 1
           fi
 
-          gh release create "$version" main.js manifest.json styles.css \
-            --latest \
-            --verify-tag \
-            --title "$version" \
-            --notes-file release-notes.md
+          release_state=$(gh release view "$version" --json isDraft --jq .isDraft 2>/dev/null) || release_state=""
+
+          if [[ "$release_state" == "false" ]]; then
+            echo "::error::Release $version is already published and cannot be replaced."
+            exit 1
+          fi
+
+          if [[ "$release_state" == "true" ]]; then
+            gh release edit "$version" \
+              --draft \
+              --title "$version" \
+              --notes-file release-notes.md
+          else
+            gh release create "$version" \
+              --draft \
+              --verify-tag \
+              --title "$version" \
+              --notes-file release-notes.md
+          fi
+
+          if [[ "$(gh release view "$version" --json isDraft --jq .isDraft)" != "true" ]]; then
+            echo "::error::Release $version must remain a draft while assets upload."
+            exit 1
+          fi
+
+          gh release upload "$version" main.js manifest.json styles.css --clobber
+          gh release edit "$version" --draft=false --latest

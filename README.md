@@ -211,7 +211,7 @@ For further customization, open **Settings → Appearance → CSS snippets**, se
 	--tabsdown-gap: 0.5rem;
 	--tabsdown-radius: 999px;
 	--tabsdown-content-spacing: 1rem;
-	--tabsdown-tab-padding-inline: 1.5rem;
+	--tabsdown-horizontal-padding: 1.5rem;
 }
 
 .tabsdown__tab {
