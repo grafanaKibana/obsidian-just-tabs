@@ -616,6 +616,10 @@ test("preserves global Style Settings and adds the approved hierarchy", () => {
 
 	for (const [title, level, collapsed] of [
 		["Defaults and global controls", "1", "false"],
+		["General", "2", "true"],
+		["Layout", "2", "true"],
+		["Tab appearance", "2", "true"],
+		["Icons and labels", "2", "true"],
 		["Position overrides", "1", "false"],
 		["Top", "2", "true"],
 		["Bottom", "2", "true"],
@@ -658,11 +662,11 @@ test("defines the requested control ranges and selected weights", () => {
 	};
 
 	expectFields("Gap between tabs", ["default: 4", "min: 0", "max: 48", "step: 1"]);
-	expectFields("Underline thickness", ["default: 1", "min: 1", "max: 8", "step: 1"]);
-	expectFields("Use custom horizontal padding", ["type: class-toggle", "default: false"]);
+	expectFields("Underline thickness", ["default: 2", "min: 1", "max: 8", "step: 1"]);
 	expectFields("Horizontal padding", ["default: 36", "min: 0", "max: 48", "step: 1"]);
-	expectFields("Use custom side-list width", ["type: class-toggle", "default: false"]);
 	expectFields("Side-list width", ["default: 160", "min: 96", "max: 320", "step: 8"]);
+	expect(styleSetting(styles, "title", "Use custom horizontal padding")).toBe("");
+	expect(styleSetting(styles, "title", "Use custom side-list width")).toBe("");
 	expectFields("Icon size", ["default: 16", "min: 12", "max: 32", "step: 1"]);
 	expectFields("Icon spacing", ["default: 6", "min: 0", "max: 16", "step: 1"]);
 	const weight = styleSetting(styles, "title", "Selected tab font weight");
@@ -742,14 +746,16 @@ test("fully resets position personality, palette, and alignment", () => {
 			}
 		}
 
-		for (const [alignment, justify, flex] of [
-			["start", "flex-start", "0 0 auto"],
-			["center", "safe center", "0 0 auto"],
-			["equal-width", "flex-start", "1 0 7rem"],
+		for (const [alignment, justify, flex, minWidth, whiteSpace] of [
+			["start", "flex-start", "0 0 auto", "var(--tabsdown-tab-min-size)", "normal"],
+			["center", "safe center", "0 0 auto", "var(--tabsdown-tab-min-size)", "normal"],
+			["equal-width", "flex-start", "1 0 0", "max-content", "nowrap"],
 		] as const) {
 			const body = matchingRuleBodies(styles, `body.tabsdown-${position}-alignment-${alignment}`);
 			expect(body, `${position} ${alignment}`).toContain(`justify-content: ${justify}`);
 			expect(body, `${position} ${alignment}`).toContain(`flex: ${flex}`);
+			expect(body, `${position} ${alignment}`).toContain(`min-inline-size: ${minWidth}`);
+			expect(body, `${position} ${alignment}`).toContain(`white-space: ${whiteSpace}`);
 		}
 	}
 
@@ -780,9 +786,18 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(outline).not.toContain("outline:");
 	const selectedUnderline = matchingRuleBodies(styles, "personality-underline");
 	expect(selectedUnderline).toMatch(/border-block-end-width:\s*var\(--tabsdown-underline-thickness/);
-	expect(matchingRuleBodies(styles, "personality-underline .tabsdown__tab:hover")).toMatch(
-		/border-block-end-width:\s*var\(--tabsdown-underline-thickness/,
+	const underlineHover = matchingRuleBodies(styles, "personality-underline .tabsdown__tab:not(");
+	expect(underlineHover).toMatch(/border-block-end-color:\s*var\(--tabsdown-tab-hover-border\)/);
+	expect(underlineHover).toMatch(/border-block-end-width:\s*1px/);
+	expect(underlineHover).toMatch(/color:\s*var\(--text-normal\)/);
+	expect(styles).toMatch(
+		/personality-underline[^,{]*\.tabsdown__tab:not\(\[aria-selected="true"\]\):not\(\[aria-expanded="true"\]\):hover/,
 	);
+	const selectedUnderlineHover = matchingRuleBodies(
+		styles,
+		'personality-underline .tabsdown__tab[aria-selected="true"]:hover',
+	);
+	expect(selectedUnderlineHover).not.toMatch(/border-block-end-(color|width):/);
 	expect(matchingRuleBodies(styles, "body.tabsdown-overflow-wrap")).toMatch(
 		/calc\(var\(--tabsdown-gap[^)]*\)\s*\/\s*2\)/,
 	);
@@ -804,16 +819,13 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	const defaultDensity = matchingRuleBodies(styles, "body.tabsdown-density-default .tabsdown");
 	const compactDensity = matchingRuleBodies(styles, "body.tabsdown-density-compact .tabsdown");
 	expect(defaultDensity).not.toContain("--tabsdown-content-spacing");
-	expect(defaultDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(36px|2\.25rem)/);
-	expect(compactDensity).toMatch(/--tabsdown-tab-padding-inline:\s*(12px|0\.75rem)/);
-	const paddingToggle = settingId(styleSetting(styles, "title", "Use custom horizontal padding"));
 	const paddingSlider = settingId(styleSetting(styles, "title", "Horizontal padding"));
-	expect(matchingRuleBodies(styles, `body.${paddingToggle}`)).toContain(`var(--${paddingSlider})`);
-	const sideToggle = settingId(styleSetting(styles, "title", "Use custom side-list width"));
+	expect(defaultDensity).toContain(`var(--${paddingSlider}, 36px)`);
+	expect(compactDensity).toContain(`var(--${paddingSlider}, 12px)`);
 	const sideSlider = settingId(styleSetting(styles, "title", "Side-list width"));
 	for (const position of ["left", "right"]) {
-		expect(matchingRuleBodies(styles, `body.${sideToggle} .tabsdown--${position}`)).toContain(
-			`var(--${sideSlider})`,
+		expect(matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist`)).toContain(
+			`var(--${sideSlider}, auto)`,
 		);
 	}
 	const weightId = settingId(styleSetting(styles, "title", "Selected tab font weight"));
@@ -882,7 +894,7 @@ test("equal-width tabs do not stretch down a side list", () => {
 	// Restored where the list is a row again. Both rules carry the same
 	// specificity, so this one only wins by coming later in the file.
 	const restore =
-		/@container \([^)]*\) \{[\s\S]*?body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 7rem/.exec(
+		/@container \([^)]*\) \{[\s\S]*?body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 0[\s\S]*?min-inline-size:\s*max-content/.exec(
 			styles,
 		);
 

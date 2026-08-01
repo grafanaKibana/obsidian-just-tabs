@@ -196,7 +196,7 @@ This is a collapsible switch, not a tab strip: selection starts at `null` unless
 
 Tabsdown works without [Style Settings](https://github.com/mgmeyers/obsidian-style-settings); its CSS defaults and active-theme colors still apply when that optional plugin is absent.
 
-**Defaults and global controls** contains Size, Personality, Overflow behavior, Palette, Accent, Alignment, theme button outline, underline thickness, tab gap and radius, horizontal padding, side-list width, icon size and spacing, selected-tab weight, and content spacing. Custom horizontal padding and side-list width each have a separate enable toggle; changing a disabled slider has no effect. Narrow Left/Right blocks still use the full-width responsive layout.
+**Defaults and global controls** is split into **General**, **Tab appearance**, **Layout**, and **Icons and labels** groups. It contains Size, Personality, Overflow behavior, Palette, Accent, Alignment, theme button outline, underline thickness, tab gap and radius, horizontal padding, side-list width, icon size and spacing, selected-tab weight, and content spacing. Padding and side-list width sliders apply immediately; narrow Left/Right blocks still use the full-width responsive layout. Equal width shares unused space but keeps each label intact, so excess tabs scroll or wrap instead of squeezing their text.
 
 **Position overrides** lets Top, Bottom, Left, and Right independently choose Personality, Palette, and Alignment. **Inherit defaults** keeps the global choice. These overrides apply to fenced Markdown blocks only; tabs created with `mountTabs` remain on the global settings.
 
