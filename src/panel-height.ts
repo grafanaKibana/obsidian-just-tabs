@@ -32,7 +32,10 @@ export function trackPanelHeight(
 ): PanelHeightTracker {
 	const view = panelsEl.ownerDocument.defaultView;
 	let observer: ResizeObserver | undefined;
+	let mutationObserver: MutationObserver | undefined;
 	let watched: HTMLElement | undefined;
+	let resizeTargets: Element[] = [];
+	let shadowRoots: ShadowRoot[] = [];
 	let floor = 0;
 	let floorTimer: number | undefined;
 	let settleFrame: number | undefined;
@@ -50,12 +53,68 @@ export function trackPanelHeight(
 		panelsEl.querySelector<HTMLElement>(
 			":scope > .tabsdown__panel:not([hidden])",
 		);
+	const composedParent = (element: Element): Element | null => {
+		if (element.parentElement) return element.parentElement;
+		const root = element.getRootNode();
+		return root.nodeType === 11 && "host" in root
+			? (root as ShadowRoot).host
+			: null;
+	};
+	const openShadowRoots = (panel: HTMLElement): ShadowRoot[] => {
+		const roots: ShadowRoot[] = [];
+		const visit = (root: ParentNode, includeRoot?: Element): void => {
+			const elements = includeRoot
+				? [includeRoot, ...Array.from(root.querySelectorAll("*"))]
+				: Array.from(root.querySelectorAll("*"));
+			for (const element of elements) {
+				if (!element.shadowRoot) continue;
+				roots.push(element.shadowRoot);
+				visit(element.shadowRoot);
+			}
+		};
+		visit(panel, panel);
+		return roots;
+	};
+	const participatesInLayout = (
+		candidate: Element,
+		panel: HTMLElement,
+	): boolean => {
+		if (!panel.isConnected) return false;
+		let current: Element | null = candidate;
+		while (current && current !== panelsEl) {
+			if (current.hasAttribute("hidden")) return false;
+			const style = view?.getComputedStyle(current);
+			if (style?.display === "none" || style?.contentVisibility === "hidden") {
+				return false;
+			}
+			const parent = composedParent(current);
+			if (parent?.tagName === "DETAILS" && !parent.hasAttribute("open")) {
+				const summary = Array.from(parent.children).find(
+					(child) => child.tagName === "SUMMARY",
+				);
+				if (!summary?.contains(current)) return false;
+			}
+			current = parent;
+		}
+		return current === panelsEl;
+	};
 	const hasPendingContent = (panel: HTMLElement | null): boolean => {
 		if (!panel) return false;
-		return (
-			panel.querySelector(PENDING_SELECTOR) !== null ||
-			(panel.matches("img") && !(panel as HTMLImageElement).complete) ||
-			Array.from(panel.querySelectorAll("img")).some((image) => !image.complete)
+		const roots: ParentNode[] = [panel, ...openShadowRoots(panel)];
+		const candidates: Element[] = panel.matches(`${PENDING_SELECTOR}, img`)
+			? [panel]
+			: [];
+		for (const root of roots) {
+			candidates.push(
+				...Array.from(root.querySelectorAll(`${PENDING_SELECTOR}, img`)),
+			);
+		}
+		return candidates.some(
+			(candidate) =>
+				participatesInLayout(candidate, panel) &&
+				(candidate.matches(PENDING_SELECTOR) ||
+					(candidate.tagName === "IMG" &&
+						!(candidate as HTMLImageElement).complete)),
 		);
 	};
 
@@ -98,7 +157,8 @@ export function trackPanelHeight(
 		// a panel that is merely shorter than the last one shrinks straight away.
 		const holding =
 			floor > 0 && (isLoading() || hasPendingContent(panel));
-		if (!holding) dropFloor();
+		// Keep the switch floor available until its cap even when it is not needed
+		// yet. An async host can insert its placeholder just after the switch.
 		const measured = measure(panel);
 		const physical = Math.max(measured.content, measured.natural);
 		// Rounding up: half a pixel short is a clipped descender for as long as the
@@ -118,11 +178,66 @@ export function trackPanelHeight(
 			panelsEl.style.removeProperty("min-height");
 		}
 	};
-	const watch = (panel: HTMLElement | null): void => {
-		if (panel === (watched ?? null)) return;
-		if (watched) observer?.unobserve(watched);
+	const boxTargets = (panel: HTMLElement): Element[] => {
+		if (view?.getComputedStyle(panel).display !== "contents") return [panel];
+		const targets: Element[] = [panelsEl];
+		const visit = (root: ParentNode): void => {
+			for (const child of Array.from(root.children)) {
+				const display = view?.getComputedStyle(child).display;
+				if (display === "none") continue;
+				if (display === "contents") {
+					visit(child);
+					if (child.shadowRoot) visit(child.shadowRoot);
+				} else {
+					targets.push(child);
+				}
+			}
+		};
+		visit(panel);
+		if (panel.shadowRoot) visit(panel.shadowRoot);
+		return targets;
+	};
+	const watch = (panel: HTMLElement | null, rescan = false): void => {
+		if (!rescan && panel === (watched ?? null)) return;
+		for (const target of resizeTargets) observer?.unobserve(target);
+		for (const root of shadowRoots) {
+			for (const type of RESOURCE_EVENTS) {
+				root.removeEventListener(type, apply, true);
+			}
+		}
+		mutationObserver?.disconnect();
 		watched = panel ?? undefined;
-		if (watched) observer?.observe(watched);
+		resizeTargets = [];
+		shadowRoots = [];
+		if (!watched) return;
+
+		resizeTargets = boxTargets(watched);
+		for (const target of resizeTargets) observer?.observe(target);
+		shadowRoots = openShadowRoots(watched);
+		for (const root of shadowRoots) {
+			for (const type of RESOURCE_EVENTS) {
+				root.addEventListener(type, apply, true);
+			}
+		}
+		const mutationOptions: MutationObserverInit = {
+			attributes: true,
+			attributeFilter: [
+				"class",
+				"hidden",
+				"open",
+				"sizes",
+				"src",
+				"srcset",
+				"style",
+			],
+			characterData: true,
+			childList: true,
+			subtree: true,
+		};
+		mutationObserver?.observe(watched, mutationOptions);
+		for (const root of shadowRoots) {
+			mutationObserver?.observe(root, mutationOptions);
+		}
 	};
 	const settle = (): void => {
 		settleFrame = undefined;
@@ -179,6 +294,13 @@ export function trackPanelHeight(
 			if (!observer && view?.ResizeObserver) {
 				observer = new view.ResizeObserver(apply);
 			}
+			if (!mutationObserver && view?.MutationObserver) {
+				mutationObserver = new view.MutationObserver(() => {
+					if (!tracking) return;
+					watch(visiblePanel(), true);
+					apply();
+				});
+			}
 			watch(visiblePanel());
 			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
 			panelsEl.style.removeProperty("min-height");
@@ -198,7 +320,16 @@ export function trackPanelHeight(
 			dropFloor();
 			observer?.disconnect();
 			observer = undefined;
+			mutationObserver?.disconnect();
+			mutationObserver = undefined;
+			for (const root of shadowRoots) {
+				for (const type of RESOURCE_EVENTS) {
+					root.removeEventListener(type, apply, true);
+				}
+			}
 			watched = undefined;
+			resizeTargets = [];
+			shadowRoots = [];
 			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
 			for (const type of TRANSITION_EVENTS) {
 				panelsEl.removeEventListener(type, onTransition as EventListener);

@@ -414,27 +414,137 @@ describe("animation and teardown", () => {
 		expect(panelsEl.getBoundingClientRect().height).toBe(40);
 	});
 
-	test("measures a boxless mounted panel through its wrapper", () => {
+	test.each(["block-language-dataview", "internal-embed"])(
+		"holds the outgoing height for a root %s until it fills",
+		async (className) => {
+			const query = document.createElement("div");
+			query.className = className;
+			const { container, buttons, panelsEl } = setup({
+				selection: "trace",
+				panels: [panel("Trace"), query],
+			});
+			const setHeight = stubPanelHeights(container, [240, 40]);
+
+			buttons[1]?.click();
+			expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+			query.append(document.createElement("table"));
+			setHeight(1, 80);
+			await Promise.resolve();
+
+			expect(panelsEl.getBoundingClientRect().height).toBe(80);
+		},
+	);
+
+	test("reuses the switch floor when a placeholder appears asynchronously", async () => {
+		const target = panel("Ready");
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), target],
+		});
+		const setHeight = stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+
+		const query = target.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		await Promise.resolve();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+		query.append(document.createElement("table"));
+		setHeight(1, 80);
+		await Promise.resolve();
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
+	});
+
+	test("ignores pending resources suppressed inside the visible panel", () => {
+		const target = panel("Visible content");
+		const hidden = target.appendChild(document.createElement("div"));
+		hidden.hidden = true;
+		hidden.appendChild(document.createElement("div")).className =
+			"block-language-dataview";
+		const image = hidden.appendChild(document.createElement("img"));
+		Object.defineProperty(image, "complete", { value: false });
+		const displayNone = target.appendChild(document.createElement("div"));
+		displayNone.style.display = "none";
+		displayNone.appendChild(document.createElement("div")).className =
+			"internal-embed";
+		const skipped = target.appendChild(document.createElement("div"));
+		skipped.style.contentVisibility = "hidden";
+		skipped.appendChild(document.createElement("div")).className =
+			"block-language-datacore";
+		const details = target.appendChild(document.createElement("details"));
+		details.appendChild(document.createElement("div")).className =
+			"block-language-mermaid";
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), target],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
+	test("tracks a boxless mounted panel when its async content fills", async () => {
+		const resize = stubResizeObserver();
 		const trace = panel("Trace");
-		const boxless = panel("Boxless");
+		const boxless = panel("");
 		boxless.style.display = "contents";
-		const { buttons, panelsEl } = setup({
+		const query = boxless.appendChild(document.createElement("div"));
+		query.className = "block-language-dataview";
+		const { container, buttons, panelsEl } = setup({
 			selection: "trace",
 			panels: [trace, boxless],
 		});
-		vi.spyOn(boxless, "getBoundingClientRect").mockReturnValue({
-			height: 0,
-		} as DOMRect);
+		const setHeight = stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
+		expect(resize.observed()).toEqual([panelsEl, query]);
+
+		query.append(document.createElement("table"));
+		setHeight(1, 80);
+		await Promise.resolve();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
+		resize.restore();
+	});
+
+	test("tracks pending content in an open shadow root", async () => {
+		const host = panel("");
+		const shadow = host.attachShadow({ mode: "open" });
+		const image = shadow.appendChild(document.createElement("img"));
+		let complete = false;
+		Object.defineProperty(image, "complete", {
+			configurable: true,
+			get: () => complete,
+		});
+		const { buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), host],
+		});
+		let height = 40;
+		vi.spyOn(host, "getBoundingClientRect").mockImplementation(
+			() => ({ height }) as DOMRect,
+		);
 		vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => {
 			const pinned = Number.parseFloat(panelsEl.style.height);
 			return {
-				height: Number.isFinite(pinned) ? pinned : boxless.hidden ? 240 : 180,
+				height: Number.isFinite(pinned) ? pinned : host.hidden ? 240 : height,
 			} as DOMRect;
 		});
 
 		buttons[1]?.click();
+		expect(panelsEl.getBoundingClientRect().height).toBe(240);
 
-		expect(panelsEl.style.height).toBe("180px");
+		height = 80;
+		complete = true;
+		image.dispatchEvent(new Event("load"));
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(80);
 	});
 
 	test("removes captured resource listeners on destroy", () => {
