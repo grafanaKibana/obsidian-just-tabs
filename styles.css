@@ -327,6 +327,7 @@ settings:
    margin escapes once the animating class drops its clipping, and the block
    gains that margin as a gap the moment the animation ends. */
 .tabsdown__panels {
+	box-sizing: border-box;
 	display: flow-root;
 	transition: height var(--tabsdown-animation-duration) var(--anim-motion-swing);
 }

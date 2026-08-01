@@ -120,6 +120,7 @@ export function trackPanelHeight(
 
 	const dropFloor = (): void => {
 		floor = 0;
+		mutationObserver?.disconnect();
 		if (floorTimer !== undefined) {
 			view?.clearTimeout(floorTimer);
 			floorTimer = undefined;
@@ -234,9 +235,11 @@ export function trackPanelHeight(
 			childList: true,
 			subtree: true,
 		};
-		mutationObserver?.observe(watched, mutationOptions);
-		for (const root of shadowRoots) {
-			mutationObserver?.observe(root, mutationOptions);
+		if (floor > 0) {
+			mutationObserver?.observe(watched, mutationOptions);
+			for (const root of shadowRoots) {
+				mutationObserver?.observe(root, mutationOptions);
+			}
 		}
 	};
 	const settle = (): void => {
@@ -296,12 +299,12 @@ export function trackPanelHeight(
 			}
 			if (!mutationObserver && view?.MutationObserver) {
 				mutationObserver = new view.MutationObserver(() => {
-					if (!tracking) return;
+					if (!tracking || floor === 0) return;
 					watch(visiblePanel(), true);
 					apply();
 				});
 			}
-			watch(visiblePanel());
+			watch(visiblePanel(), true);
 			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
 			panelsEl.style.removeProperty("min-height");
 			panelsEl.style.height = `${Math.ceil(from)}px`;

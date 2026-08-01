@@ -6,7 +6,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { trackPanelHeight } from "../src/panel-height";
 import { mountTabs, type TabSpec, type TabsController } from "../src/tabs";
-import { stubPanelHeights, stubResizeObserver } from "./panel-size";
+import {
+	stubMutationObserver,
+	stubPanelHeights,
+	stubResizeObserver,
+} from "./panel-size";
 
 function panel(text: string): HTMLElement {
 	const element = document.createElement("div");
@@ -559,6 +563,46 @@ describe("animation and teardown", () => {
 			const listener = add.mock.calls.find(([event]) => event === type)?.[1];
 			expect(listener).toBeDefined();
 			expect(remove).toHaveBeenCalledWith(type, listener, true);
+		}
+	});
+
+	test("scopes mutation rescans to the floor window and re-arms them", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		const mutation = stubMutationObserver();
+		const resize = stubResizeObserver();
+		try {
+			const panelsEl = document.createElement("div");
+			const panelElement = panel("Ready");
+			let panelHeight = 40;
+			panelElement.className = "tabsdown__panel";
+			panelsEl.append(panelElement);
+			document.body.append(panelsEl);
+			vi.spyOn(panelElement, "getBoundingClientRect").mockImplementation(
+				() => ({ height: panelHeight }) as DOMRect,
+			);
+			vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => ({
+				height: Number.parseFloat(panelsEl.style.height) || 40,
+			}) as DOMRect);
+			const tracker = trackPanelHeight(panelsEl);
+
+			tracker.switched(240);
+			expect(mutation.observed()).toEqual([panelElement]);
+
+			vi.advanceTimersByTime(2499);
+			expect(mutation.observed()).toEqual([panelElement]);
+			vi.advanceTimersByTime(1);
+			expect(mutation.observed()).toEqual([]);
+			panelHeight = 80;
+			resize.fire();
+			expect(panelsEl.style.height).toBe("80px");
+
+			tracker.switched(240);
+			expect(mutation.observed()).toEqual([panelElement]);
+			tracker.destroy();
+			expect(mutation.observed()).toEqual([]);
+		} finally {
+			mutation.restore();
+			resize.restore();
 		}
 	});
 

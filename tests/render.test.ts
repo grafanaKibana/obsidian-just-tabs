@@ -577,6 +577,7 @@ test("panels contain their own margins so height stays stable", () => {
 		"";
 
 	expect(panels).toMatch(/display:\s*flow-root/);
+	expect(panels).toMatch(/box-sizing:\s*border-box/);
 	expect(styles).toMatch(/^\.tabsdown__content \{\s*display:\s*flow-root/m);
 	expect(panel).not.toMatch(/\bdisplay\s*:/);
 });

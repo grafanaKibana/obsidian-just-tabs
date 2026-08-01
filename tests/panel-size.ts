@@ -6,6 +6,33 @@ export interface ResizeObserverStub {
 	restore(): void;
 }
 
+export interface MutationObserverStub {
+	observed(): Node[];
+	restore(): void;
+}
+
+export function stubMutationObserver(
+	target: Window = window,
+): MutationObserverStub {
+	const nodes: Node[] = [];
+	class Stub {
+		observe(node: Node): void {
+			if (!nodes.includes(node)) nodes.push(node);
+		}
+		disconnect(): void {
+			nodes.length = 0;
+		}
+	}
+	const original = Reflect.get(target, "MutationObserver") as unknown;
+	Reflect.set(target, "MutationObserver", Stub);
+	return {
+		observed: () => [...nodes],
+		restore(): void {
+			Reflect.set(target, "MutationObserver", original);
+		},
+	};
+}
+
 // jsdom ships no ResizeObserver, and the tracker needs one to follow content that
 // arrives after a panel is shown.
 export function stubResizeObserver(target: Window = window): ResizeObserverStub {
