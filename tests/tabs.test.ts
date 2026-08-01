@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { trackPanelHeight } from "../src/panel-height";
 import { mountTabs, type TabSpec, type TabsController } from "../src/tabs";
 import { stubPanelHeights, stubResizeObserver } from "./panel-size";
 
@@ -248,6 +249,8 @@ describe("availability", () => {
 		// the main window's timers do not run on this document's frames.
 		expect(setTimer).toHaveBeenCalled();
 		buttons[0]?.click();
+		// The visible panel is observed in its own pop-out window rather than the
+		// main window, whose timers and ResizeObserver cannot follow it.
 		expect(popupResize.observed()).toEqual([trace]);
 		expect(adoptionCount).toBe(0);
 		controller.destroy();
@@ -371,6 +374,31 @@ describe("keyboard and roles", () => {
 });
 
 describe("animation and teardown", () => {
+	test("measures the visible panel margin box", () => {
+		const resize = stubResizeObserver();
+		try {
+			const panelsEl = document.createElement("div");
+			const panelElement = document.createElement("div");
+			panelElement.className = "tabsdown__panel";
+			panelElement.style.margin = "12px 0 18px";
+			panelsEl.append(panelElement);
+			vi.spyOn(panelsEl, "getBoundingClientRect").mockReturnValue({
+				height: 240,
+			} as DOMRect);
+			vi.spyOn(panelElement, "getBoundingClientRect").mockReturnValue({
+				height: 240,
+			} as DOMRect);
+			const tracker = trackPanelHeight(panelsEl);
+			tracker.switched(240);
+
+			expect(panelsEl.style.height).toBe("270px");
+			expect(resize.observed()).toEqual([panelElement]);
+			tracker.destroy();
+		} finally {
+			resize.restore();
+		}
+	});
+
 	test("keeps the box on the visible panel through rapid switches", () => {
 		vi.useFakeTimers();
 		const { container, buttons, panelsEl } = setup();
@@ -398,7 +426,7 @@ describe("animation and teardown", () => {
 		buttons[1]?.click();
 		vi.advanceTimersByTime(300);
 
-		expect(panelsEl.style.height).toBe("40px");
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
 		document.body.classList.remove("tabsdown-animations-disabled");
 	});
 

@@ -34,12 +34,17 @@ export function trackPanelHeight(
 	let watched: HTMLElement | undefined;
 	let floor = 0;
 	let floorTimer: number | undefined;
-	let unclip: number | undefined;
+	let settleFrame: number | undefined;
+	let target = 0;
+	let minimum = 0;
+	let transitioning = false;
 	// Until the first switch the box is left on its own height, so a block still
 	// rendering when its note opens grows the way any other content does. Pinning
 	// that early would fix the box before anything is watching it.
 	let tracking = false;
 
+	// Scoped to the visible panel: a hidden panel keeps its own unfilled
+	// containers in the tree, and those must not hold the floor down.
 	const visiblePanel = (): HTMLElement | null =>
 		panelsEl.querySelector<HTMLElement>(
 			":scope > .tabsdown__panel:not([hidden])",
@@ -52,6 +57,28 @@ export function trackPanelHeight(
 			floorTimer = undefined;
 		}
 	};
+	const pixels = (value: string | undefined): number => {
+		const parsed = Number.parseFloat(value ?? "");
+		return Number.isFinite(parsed) ? parsed : 0;
+	};
+	const measure = (
+		panel: HTMLElement | null,
+	): { content: number; natural: number } => {
+		if (!panel) return { content: 0, natural: 0 };
+		const pinned = panelsEl.style.height;
+		const reserved = panelsEl.style.minHeight;
+		panelsEl.style.removeProperty("height");
+		panelsEl.style.removeProperty("min-height");
+		const style = view?.getComputedStyle(panel);
+		const content =
+			panel.getBoundingClientRect().height +
+			pixels(style?.marginTop) +
+			pixels(style?.marginBottom);
+		const natural = panelsEl.getBoundingClientRect().height;
+		if (pinned) panelsEl.style.height = pinned;
+		if (reserved) panelsEl.style.minHeight = reserved;
+		return { content, natural };
+	};
 
 	const apply = (): void => {
 		if (!tracking) return;
@@ -62,36 +89,63 @@ export function trackPanelHeight(
 			floor > 0 &&
 			(isLoading() || panel?.querySelector(PENDING_SELECTOR) != null);
 		if (!holding) dropFloor();
-		const content = panel?.getBoundingClientRect().height ?? 0;
+		const measured = measure(panel);
 		// Rounding up: half a pixel short is a clipped descender for as long as the
 		// container is clipping its overflow.
-		const target = `${Math.ceil(holding ? Math.max(content, floor) : content)}px`;
-		if (panelsEl.style.height !== target) panelsEl.style.height = target;
+		target = Math.ceil(
+			holding ? Math.max(measured.content, floor) : measured.content,
+		);
+		minimum = measured.natural < target ? target : 0;
+		const value = `${target}px`;
+		if (transitioning) {
+			if (panelsEl.style.height !== value) panelsEl.style.height = value;
+		} else if (minimum > 0) {
+			if (panelsEl.style.minHeight !== `${minimum}px`) {
+				panelsEl.style.minHeight = `${minimum}px`;
+			}
+		} else {
+			panelsEl.style.removeProperty("min-height");
+		}
 	};
-
 	const watch = (panel: HTMLElement | null): void => {
 		if (panel === (watched ?? null)) return;
 		if (watched) observer?.unobserve(watched);
 		watched = panel ?? undefined;
 		if (watched) observer?.observe(watched);
 	};
+	const settle = (): void => {
+		settleFrame = undefined;
+		transitioning = false;
+		if (minimum > 0) {
+			panelsEl.style.minHeight = `${minimum}px`;
+		} else {
+			panelsEl.style.removeProperty("min-height");
+		}
+		panelsEl.style.removeProperty("height");
+		panelsEl.classList.remove("tabsdown__panels--animating");
+	};
+	const scheduleSettle = (): void => {
+		if (!view) {
+			settle();
+			return;
+		}
+		if (settleFrame !== undefined) view.cancelAnimationFrame(settleFrame);
+		settleFrame = view.requestAnimationFrame(settle);
+	};
 
 	const onTransition = (event: TransitionEvent): void => {
 		if (event.target !== panelsEl || event.propertyName !== "height") return;
-		if (unclip !== undefined) {
-			view?.cancelAnimationFrame(unclip);
-			unclip = undefined;
-		}
 		if (event.type === "transitionstart") {
+			if (settleFrame !== undefined) {
+				view?.cancelAnimationFrame(settleFrame);
+				settleFrame = undefined;
+			}
 			panelsEl.classList.add("tabsdown__panels--animating");
 			return;
 		}
 		// Retargeting mid-flight cancels one transition and starts another in the
 		// same frame, so releasing on the next one keeps the clip on across the gap.
-		unclip = view?.requestAnimationFrame(() => {
-			unclip = undefined;
-			panelsEl.classList.remove("tabsdown__panels--animating");
-		});
+		scheduleSettle();
 	};
 
 	for (const type of TRANSITION_EVENTS) {
@@ -112,11 +166,15 @@ export function trackPanelHeight(
 				observer = new view.ResizeObserver(apply);
 			}
 			watch(visiblePanel());
+			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
+			panelsEl.style.removeProperty("min-height");
 			panelsEl.style.height = `${Math.ceil(from)}px`;
 			// Flushing the pin makes it the value the transition starts from. Both
 			// writes otherwise land in one frame and the box jumps to the target.
 			void panelsEl.offsetHeight;
+			transitioning = true;
 			apply();
+			scheduleSettle();
 		},
 
 		refresh: apply,
@@ -127,11 +185,12 @@ export function trackPanelHeight(
 			observer?.disconnect();
 			observer = undefined;
 			watched = undefined;
-			if (unclip !== undefined) view?.cancelAnimationFrame(unclip);
+			if (settleFrame !== undefined) view?.cancelAnimationFrame(settleFrame);
 			for (const type of TRANSITION_EVENTS) {
 				panelsEl.removeEventListener(type, onTransition as EventListener);
 			}
 			panelsEl.style.removeProperty("height");
+			panelsEl.style.removeProperty("min-height");
 			panelsEl.classList.remove("tabsdown__panels--animating");
 		},
 	};

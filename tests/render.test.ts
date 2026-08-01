@@ -285,7 +285,7 @@ describe("tab interaction", () => {
 			expect(panels.style.height).toBe("240px");
 
 			await vi.advanceTimersByTimeAsync(1000);
-			expect(panels.style.height).toBe("240px");
+			expect(panels.getBoundingClientRect().height).toBe(240);
 
 			const query = container.querySelectorAll<HTMLElement>(
 				".block-language-dataview",
@@ -299,16 +299,16 @@ describe("tab interaction", () => {
 			query.createEl("table");
 			grow(1, 300);
 			resize.fire();
-			expect(panels.style.height).toBe("300px");
+			expect(panels.getBoundingClientRect().height).toBe(300);
 
 			grow(1, 90);
 			resize.fire();
-			expect(panels.style.height).toBe("240px");
+			expect(panels.getBoundingClientRect().height).toBe(240);
 
 			slower.createEl("table");
 			grow(1, 700);
 			resize.fire();
-			expect(panels.style.height).toBe("700px");
+			expect(panels.getBoundingClientRect().height).toBe(700);
 		} finally {
 			vi.useRealTimers();
 			resize.restore();
@@ -336,13 +336,13 @@ describe("tab interaction", () => {
 
 			buttons[1].click();
 			await vi.advanceTimersByTimeAsync(2400);
-			expect(panels.style.height).toBe("240px");
+			expect(panels.getBoundingClientRect().height).toBe(240);
 
 			// The second switch owns the floor now. Leaving the first switch's cap
 			// armed drops the box two seconds after the user already moved on.
 			buttons[2].click();
 			await vi.advanceTimersByTimeAsync(200);
-			expect(panels.style.height).toBe("240px");
+			expect(panels.getBoundingClientRect().height).toBe(240);
 		} finally {
 			vi.useRealTimers();
 		}
@@ -366,10 +366,10 @@ describe("tab interaction", () => {
 
 			second.click();
 			await vi.advanceTimersByTimeAsync(2000);
-			expect(panels.style.height).toBe("240px");
+			expect(panels.getBoundingClientRect().height).toBe(240);
 
 			await vi.advanceTimersByTimeAsync(600);
-			expect(panels.style.height).toBe("20px");
+			expect(panels.getBoundingClientRect().height).toBe(20);
 		} finally {
 			vi.useRealTimers();
 		}
@@ -530,15 +530,13 @@ test("panels contain their own margins so height stays stable", () => {
 	// Anchored, so a position-specific rule ending in the same class does not
 	// shadow the base rule this asserts on.
 	const panels = /^\.tabsdown__panels \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
-	// The tracked height is the panel's own box, so the panel has to contain its
-	// content's margins too. Without this the first and last margin collapse
-	// through it and the box is pinned short by exactly that much.
 	const panel =
 		/^\.tabsdown__panel,\s*\n\.tabsdown__content \{([^}]*)\}/m.exec(styles)?.[1] ??
 		"";
 
 	expect(panels).toMatch(/display:\s*flow-root/);
-	expect(panel).toMatch(/display:\s*flow-root/);
+	expect(styles).toMatch(/^\.tabsdown__content \{\s*display:\s*flow-root/m);
+	expect(panel).not.toMatch(/\bdisplay\s*:/);
 });
 
 test("a narrow block moves its side tab list off the panels' line", () => {

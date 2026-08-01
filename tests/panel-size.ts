@@ -70,13 +70,21 @@ export function stubPanelHeights(
 			() => ({ height: measure(index) }) as DOMRect,
 		);
 	});
-	vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => {
-		// Once the box is pinned its rect is that pin, not the panel underneath it.
-		// Reporting the panel instead would hand every switch a floor it never had.
-		const pinned = Number.parseFloat(panelsEl.style.height);
-		if (Number.isFinite(pinned)) return { height: pinned } as DOMRect;
+	const visibleHeight = (): number => {
 		const visible = panels.findIndex((panel) => !panel.hidden);
-		return { height: visible < 0 ? 0 : measure(visible) } as DOMRect;
+		return visible < 0 ? 0 : measure(visible);
+	};
+	vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => {
+		// The transition uses height; after it settles, min-height keeps an async or
+		// out-of-flow panel's reserved space while normal content stays auto-sized.
+		const pinned = Number.parseFloat(panelsEl.style.height);
+		const minimum = Number.parseFloat(panelsEl.style.minHeight);
+		const content = visibleHeight();
+		return {
+			height: Number.isFinite(pinned)
+				? pinned
+				: Math.max(content, Number.isFinite(minimum) ? minimum : 0),
+		} as DOMRect;
 	});
 	return (index: number, height: number): void => {
 		current[index] = height;

@@ -86,18 +86,18 @@ test("re-arms the floor on each switch instead of inheriting a stale one", async
 
 	buttons[1]?.click();
 	await vi.advanceTimersByTimeAsync(2400);
-	expect(panels.style.height).toBe("120px");
+	expect(panels.getBoundingClientRect().height).toBe(120);
 
 	// The third panel is still rendering, so its own floor has to be the one in
 	// force. Letting the first switch's cap expire underneath it drops the box
 	// onto an empty panel two seconds after the user moved on.
 	buttons[2]?.click();
 	await vi.advanceTimersByTimeAsync(200);
-	expect(panels.style.height).toBe("120px");
+	expect(panels.getBoundingClientRect().height).toBe(120);
 
 	pending.resolve();
 	await vi.advanceTimersByTimeAsync(0);
-	expect(panels.style.height).toBe("200px");
+	expect(panels.getBoundingClientRect().height).toBe(200);
 });
 
 test("renders lazily, keeps current panels, and rebuilds stale hidden panels once", async () => {
@@ -353,13 +353,13 @@ test("follows a nested block instead of giving up on its height", async () => {
 
 		second?.click();
 		await flush();
-		expect(panels.style.height).toBe("240px");
+		expect(panels.getBoundingClientRect().height).toBe(240);
 
 		// A nested block keeps resizing after its parent resolves. That used to
 		// mean no height could be trusted; now the outer box just follows it.
 		grow(1, 560);
 		resize.fire();
-		expect(panels.style.height).toBe("560px");
+		expect(panels.getBoundingClientRect().height).toBe(560);
 	} finally {
 		resize.restore();
 	}
@@ -422,6 +422,8 @@ test("measures the old height before the outgoing panel is emptied", async () =>
 
 	// Measuring later than this reads the incoming panel, which is hidden or
 	// already emptied, so every switch would animate up from nothing.
-	expect(measured?.id).toBe(panels.children[0]?.id);
+	expect(measured?.id).toBe(
+		panels.querySelector(".tabsdown__panel")?.id,
+	);
 	expect(measured?.text).toBe("First");
 });
