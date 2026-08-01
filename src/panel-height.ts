@@ -54,6 +54,7 @@ export function trackPanelHeight(
 		if (!panel) return false;
 		return (
 			panel.querySelector(PENDING_SELECTOR) !== null ||
+			(panel.matches("img") && !(panel as HTMLImageElement).complete) ||
 			Array.from(panel.querySelectorAll("img")).some((image) => !image.complete)
 		);
 	};
@@ -78,14 +79,16 @@ export function trackPanelHeight(
 		panelsEl.style.removeProperty("height");
 		panelsEl.style.removeProperty("min-height");
 		const style = view?.getComputedStyle(panel);
-		const content =
-			panel.getBoundingClientRect().height +
-			pixels(style?.marginTop) +
-			pixels(style?.marginBottom);
+		const marginBox =
+			style?.display === "contents"
+				? 0
+				: panel.getBoundingClientRect().height +
+					pixels(style?.marginTop) +
+					pixels(style?.marginBottom);
 		const natural = panelsEl.getBoundingClientRect().height;
 		if (pinned) panelsEl.style.height = pinned;
 		if (reserved) panelsEl.style.minHeight = reserved;
-		return { content, natural };
+		return { content: marginBox, natural };
 	};
 
 	const apply = (): void => {
@@ -97,10 +100,11 @@ export function trackPanelHeight(
 			floor > 0 && (isLoading() || hasPendingContent(panel));
 		if (!holding) dropFloor();
 		const measured = measure(panel);
+		const physical = Math.max(measured.content, measured.natural);
 		// Rounding up: half a pixel short is a clipped descender for as long as the
 		// container is clipping its overflow.
 		target = Math.ceil(
-			holding ? Math.max(measured.content, floor) : measured.content,
+			holding ? Math.max(physical, floor) : physical,
 		);
 		minimum = measured.natural < target ? target : 0;
 		const value = `${target}px`;

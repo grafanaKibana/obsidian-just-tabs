@@ -374,6 +374,69 @@ describe("keyboard and roles", () => {
 });
 
 describe("animation and teardown", () => {
+	test.each(["load", "error"] as const)(
+		"holds the outgoing height until an incomplete root image emits %s",
+		(terminalEvent) => {
+			let complete = false;
+			const image = document.createElement("img");
+			Object.defineProperty(image, "complete", {
+				configurable: true,
+				get: () => complete,
+			});
+			const { container, buttons, panelsEl } = setup({
+				selection: "trace",
+				panels: [panel("Trace"), image],
+			});
+			const setHeight = stubPanelHeights(container, [240, 40]);
+
+			buttons[1]?.click();
+			expect(panelsEl.getBoundingClientRect().height).toBe(240);
+
+			complete = true;
+			const settledHeight = terminalEvent === "load" ? 300 : 40;
+			setHeight(1, settledHeight);
+			image.dispatchEvent(new Event(terminalEvent));
+			expect(panelsEl.getBoundingClientRect().height).toBe(settledHeight);
+		},
+	);
+
+	test("does not hold the outgoing height for a complete root image", () => {
+		const image = document.createElement("img");
+		Object.defineProperty(image, "complete", { value: true });
+		const { container, buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [panel("Trace"), image],
+		});
+		stubPanelHeights(container, [240, 40]);
+
+		buttons[1]?.click();
+
+		expect(panelsEl.getBoundingClientRect().height).toBe(40);
+	});
+
+	test("measures a boxless mounted panel through its wrapper", () => {
+		const trace = panel("Trace");
+		const boxless = panel("Boxless");
+		boxless.style.display = "contents";
+		const { buttons, panelsEl } = setup({
+			selection: "trace",
+			panels: [trace, boxless],
+		});
+		vi.spyOn(boxless, "getBoundingClientRect").mockReturnValue({
+			height: 0,
+		} as DOMRect);
+		vi.spyOn(panelsEl, "getBoundingClientRect").mockImplementation(() => {
+			const pinned = Number.parseFloat(panelsEl.style.height);
+			return {
+				height: Number.isFinite(pinned) ? pinned : boxless.hidden ? 240 : 180,
+			} as DOMRect;
+		});
+
+		buttons[1]?.click();
+
+		expect(panelsEl.style.height).toBe("180px");
+	});
+
 	test("removes captured resource listeners on destroy", () => {
 		const panelsEl = document.createElement("div");
 		const add = vi.spyOn(panelsEl, "addEventListener");

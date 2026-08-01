@@ -62,7 +62,9 @@ export function stubPanelHeights(
 		const content =
 			panel.querySelector<HTMLElement>(".tabsdown__content") ?? panel;
 		const filled =
-			content.childElementCount > 0 || (content.textContent ?? "") !== "";
+			content.matches("img") ||
+			content.childElementCount > 0 ||
+			(content.textContent ?? "") !== "";
 		return filled ? (current[index] ?? 0) : 0;
 	};
 	panels.forEach((panel, index) => {
