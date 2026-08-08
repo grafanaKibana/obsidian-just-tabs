@@ -113,6 +113,8 @@ describe("tab interaction", () => {
 
 		expect(container.classList.contains("tabsdown--inline-overflow")).toBe(false);
 		expect(buttons).toHaveLength(3);
+		expect(container.querySelectorAll('.tabsdown__separator[aria-hidden="true"]')).toHaveLength(3);
+		expect(buttons[0]?.querySelector<HTMLElement>(".tabsdown__separator")?.hidden).toBe(true);
 		expect(buttons[0]?.getAttribute("aria-selected")).toBe("true");
 		expect(buttons[0]?.tabIndex).toBe(0);
 		expect(buttons[1]?.getAttribute("aria-selected")).toBe("false");
@@ -784,18 +786,18 @@ test("defines the requested control ranges and selected weights", () => {
 	expectFields("Icon size", ["default: 16", "min: 12", "max: 32", "step: 1"]);
 	expectFields("Icon spacing", ["default: 6", "min: 0", "max: 16", "step: 1"]);
 	const weight = styleSetting(styles, "title", "Selected tab font weight");
-	for (const option of ["Theme default", "Medium", "Bold"]) {
+	for (const option of ["Thinner", "Default", "Bolder"]) {
 		expect(weight).toContain(`label: ${option}`);
 	}
-	expect(weight).toMatch(/default: tabsdown-[\w-]+-theme-default/);
-	expect(weight).toMatch(/value: tabsdown-[\w-]+-medium/);
-	expect(weight).toMatch(/value: tabsdown-[\w-]+-bold/);
+	expect(weight).toMatch(/default: tabsdown-[\w-]+-default/);
+	expect(weight).toMatch(/value: tabsdown-[\w-]+-thinner/);
+	expect(weight).toMatch(/value: tabsdown-[\w-]+-bolder/);
 	const weightId = settingId(weight);
 	const baseTab = /^\.tabsdown__tab \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
 	expect(baseTab).toMatch(/font-weight:\s*var\(--font-normal,\s*400\)/);
-	expect(matchingRuleBodies(styles, `body.${weightId}-medium`)).toMatch(/font-weight:\s*var\(--font-medium\)/);
-	expect(matchingRuleBodies(styles, `body.${weightId}-bold`)).toMatch(/font-weight:\s*var\(--font-bold,\s*700\)/);
-	expect(styles).not.toContain(`body.${weightId}-theme-default`);
+	expect(matchingRuleBodies(styles, `.tabsdown__tab[aria-selected="true"]`)).toMatch(/font-weight:\s*600/);
+	expect(matchingRuleBodies(styles, `body.${weightId}-thinner`)).toMatch(/font-weight:\s*400/);
+	expect(matchingRuleBodies(styles, `body.${weightId}-bolder`)).toMatch(/font-weight:\s*700/);
 
 	const nested = styleSetting(styles, "title", "Nested block style");
 	expect(nested).toMatch(/type: class-select/);
@@ -918,22 +920,12 @@ test("position Start and Center beat global Equal plus Wrap", () => {
 			);
 
 			if (position === "left" || position === "right") {
-				const narrowGlobalSelector =
-					"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width " +
-					`.tabsdown--${position}:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab`;
-				expect(matchingRuleBodies(narrow, narrowGlobalSelector)).toContain(
-					"flex: 1 1 max-content",
+				const forced = matchingRuleBodies(
+					narrow,
+					`body .tabsdown.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab.tabsdown__tab`,
 				);
-				expect(
-					matchingRuleBodies(narrow, positionSelector),
-					`${position} narrow ${alignment}`,
-				).toContain("flex: 0 0 auto");
-				expect(classSelectorCount(positionSelector)).toBeGreaterThanOrEqual(
-					classSelectorCount(narrowGlobalSelector),
-				);
-				expect(narrow.indexOf(positionSelector)).toBeGreaterThan(
-					narrow.indexOf(narrowGlobalSelector),
-				);
+				expect(forced).toContain("flex: 1 1 0");
+				expect(forced).toContain("inline-size: 0");
 			}
 		}
 	}
@@ -990,7 +982,7 @@ test("fully resets position personality, palette, and alignment", () => {
 		expect(separator).toContain("border-color: transparent");
 		expect(separator).toContain("background-color: transparent");
 		expect(separator).toContain("color: var(--text-muted)");
-		expect(matchingSelectors(styles, `body.tabsdown-${position}-personality-separator`)).toContain(":not([hidden])");
+		expect(matchingSelectors(styles, `body.tabsdown-${position}-personality-separator`)).toContain(".tabsdown__separator:not([hidden])");
 
 		const rail = matchingRuleBodies(styles, `body.tabsdown-${position}-personality-rail`);
 		expect(rail).toContain("border-color: transparent");
@@ -1029,16 +1021,9 @@ test("fully resets position personality, palette, and alignment", () => {
 	}
 
 	for (const position of ["left", "right"]) {
-		for (const alignment of ["start", "center"]) {
-			const reset = styles.indexOf(`body.tabsdown-${position}-alignment-${alignment}`, styles.indexOf("@container (max-width: 28rem)"));
-			const restore = styles.indexOf(`body.tabsdown-${position}-alignment-equal-width`, styles.indexOf("@container (max-width: 28rem)"));
-			expect(reset, `${position} narrow ${alignment}`).toBeGreaterThan(-1);
-			expect(restore, `${position} narrow equal`).toBeGreaterThan(reset);
-		}
-		expect(matchingRuleBodies(styles, `body.tabsdown-${position}-alignment-equal-width`)).toContain("flex: 0 0 auto");
-		expect(matchingSelectors(styles, `body.tabsdown-${position}-alignment-equal-width`)).toContain(
-			`.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`,
-		);
+		expect(
+			matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`),
+		).toContain("inline-size: 100%");
 	}
 });
 
@@ -1064,28 +1049,14 @@ test("resolves underline placement after position overrides", () => {
 	);
 });
 
-test("keeps separator adjacency visible-only and rotates it in narrow side lists", () => {
+test("renders separators as centered, non-layout elements", () => {
 	const styles = readStyles();
-	const adjacency =
-		'.tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden])';
-	expect(styles).toContain(adjacency);
-	expect(styles.lastIndexOf(adjacency)).toBeGreaterThan(
-		styles.indexOf('body.tabsdown-personality-separator .tabsdown__tab[aria-selected="true"]'),
-	);
-	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
-	expect(narrow).toContain("tabsdown-left-personality-separator");
-	expect(narrow).toContain("border-block-start-color: transparent");
-	expect(narrow).toContain("border-inline-start-color: var(--tabsdown-tab-border)");
-	for (const selector of [
-		"body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover",
-		"body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover",
-	]) {
-		const hover = matchingRuleBodies(narrow, selector);
-		expect(hover, selector).toContain("border-block-start-color: transparent");
-		expect(hover, selector).toContain(
-			"border-inline-start-color: var(--tabsdown-tab-border)",
-		);
-	}
+	const separator = matchingRuleBodies(styles, ".tabsdown__separator");
+	expect(separator).toContain("position: absolute");
+	expect(separator).toContain("inline-size: 1px");
+	expect(separator).toContain("block-size: 1cap");
+	expect(separator).toContain("pointer-events: none");
+	expect(styles).not.toContain("~ .tabsdown__tab");
 });
 
 test("computed global personalities yield to every explicit position override", () => {
@@ -1105,6 +1076,7 @@ test("computed global personalities yield to every explicit position override", 
 			--background-secondary: rgb(200, 201, 202);
 			--background-primary: rgb(240, 241, 242);
 		}
+		.tabsdown__separator { display: none; }
 		${personalityRules(readStyles())}
 	`;
 
@@ -1119,17 +1091,13 @@ test("computed global personalities yield to every explicit position override", 
 				const first = list.appendChild(document.createElement("button"));
 				const second = list.appendChild(document.createElement("button"));
 				first.className = second.className = "tabsdown__tab";
+				const separator = second.appendChild(document.createElement("span"));
+				separator.className = "tabsdown__separator";
 
-				const firstStyle = getComputedStyle(first);
-				const secondStyle = getComputedStyle(second);
 				if (override === "separator") {
-					expect(secondStyle.borderInlineStartColor, `${global} → ${position} ${override}`).not.toBe(
-						firstStyle.borderInlineStartColor,
-					);
+					expect(getComputedStyle(separator).display, `${global} → ${position} ${override}`).toBe("block");
 				} else {
-					expect(secondStyle.borderInlineStartColor, `${global} → ${position} ${override}`).toBe(
-						firstStyle.borderInlineStartColor,
-					);
+					expect(getComputedStyle(separator).display, `${global} → ${position} ${override}`).toBe("none");
 				}
 				const track = getComputedStyle(list).backgroundColor;
 				if (override === "rail") {
@@ -1199,18 +1167,10 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 		);
 		expect(sideList).toContain("max-inline-size: calc(");
 		expect(sideList).toContain("--tabsdown-side-panel-min");
-		expect(sideList).toContain("align-items: var(--tabsdown-side-tab-alignment, stretch)");
-	}
-	for (const [alignment, value] of [
-		["start", "flex-start"],
-		["center", "center"],
-		["equal-width", "stretch"],
-	] as const) {
-		const sideAlignment = matchingRuleBodies(styles, `body.tabsdown-alignment-${alignment} .tabsdown--left`);
-		expect(sideAlignment).toContain(`--tabsdown-side-tab-alignment: ${value}`);
+		expect(sideList).toContain("align-items: stretch");
 	}
 	const weightId = settingId(styleSetting(styles, "title", "Selected tab font weight"));
-	for (const value of ["medium", "bold"]) {
+	for (const value of ["thinner", "default", "bolder"]) {
 		const selectors = [...styles.matchAll(/([^{}]+)\{[^{}]*font-weight:[^{}]*\}/g)]
 			.map((match) => match[1] ?? "")
 			.filter((selector) => selector.includes(`body.${weightId}-${value}`))
@@ -1224,7 +1184,6 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
 	expect(narrow).toMatch(/inline-size:\s*100%/);
 	expect(narrow).toMatch(/max-inline-size:\s*100%/);
-	expect(narrow).toContain("--tabsdown-side-tab-alignment: stretch");
 	expect(narrow).not.toContain(`var(--${sideSlider})`);
 });
 
@@ -1275,24 +1234,23 @@ test("a wrapped right-side tab list stays above its panels", () => {
 	expect(styles).not.toMatch(/\.tabsdown--right > \.tabsdown__tablist \{[^}]*order:/);
 });
 
-test("equal-width tabs do not stretch down a side list", () => {
+test("side tabs are equal width in wide and narrow layouts", () => {
 	const styles = readStyles();
-	// A grow factor along a column's main axis sizes height, not width, so every
-	// tab ended up as tall as the panel beside it.
-	const reset =
-		/body\.tabsdown-alignment-equal-width \.tabsdown--left > \.tabsdown__tablist > \.tabsdown__tab[\s\S]*?flex:\s*0 0 auto/.exec(
-			styles,
+	for (const position of ["left", "right"]) {
+		expect(
+			matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`),
+		).toContain("flex: 0 0 auto");
+		expect(
+			matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`),
+		).toContain("inline-size: 100%");
+		const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
+		const forced = matchingRuleBodies(
+			narrow,
+			`body .tabsdown.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab.tabsdown__tab`,
 		);
-	// Restored where the list is a row again. Both rules carry the same
-	// specificity, so this one only wins by coming later in the file.
-	const restore =
-		/@container \([^)]*\) \{[\s\S]*?body\.tabsdown-alignment-equal-width[\s\S]*?flex:\s*1 0 0[\s\S]*?min-inline-size:\s*max-content/.exec(
-			styles,
-		);
-
-	expect(reset).not.toBeNull();
-	expect(restore).not.toBeNull();
-	expect(restore!.index).toBeGreaterThan(reset!.index);
+		expect(forced).toContain("flex: 1 1 0");
+		expect(forced).toContain("inline-size: 0");
+	}
 });
 
 test("equal-width sizing follows the block's effective overflow", () => {

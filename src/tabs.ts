@@ -1,6 +1,7 @@
 import { renderLabel } from "./label";
 import { trackPanelHeight, type PanelHeightTracker } from "./panel-height";
 import { inlineLabelText, parseInlineLabel } from "./parser";
+import { trackSeparators } from "./separator";
 
 export interface TabSpec {
 	id: string;
@@ -222,6 +223,11 @@ export function mountTabs(
 		button.type = "button";
 		button.id = buttonId;
 		button.className = "tabsdown__tab";
+		const separator = ownerDocument.createElement("span");
+		separator.className = "tabsdown__separator";
+		separator.setAttribute("aria-hidden", "true");
+		separator.hidden = true;
+		button.append(separator);
 		const label = ownerDocument.createElement("span");
 		label.className = "tabsdown__tab-label";
 		renderLabel(label, tabLabels[index] ?? []);
@@ -274,6 +280,10 @@ export function mountTabs(
 
 	root.append(tabList, panelsEl);
 	container.append(root);
+	const separators = trackSeparators(
+		tabList,
+		tabs.map((tab) => tab.button),
+	);
 
 	let selection: string | null = null;
 	let notifying = false;
@@ -290,6 +300,7 @@ export function mountTabs(
 			tab.panel.hidden = !active;
 		}
 		root.classList.toggle("tabsdown--collapsed", selection === null);
+		separators.refresh();
 	};
 
 	// Committed before the callback runs, so a handler that calls back in sees
@@ -364,7 +375,7 @@ export function mountTabs(
 			if (!tab || tab.available === available) return;
 			tab.available = available;
 			if (available) {
-				tab.button.hidden = false;
+				applyState();
 				return;
 			}
 			// The button is about to disappear; leaving focus on it drops
@@ -393,6 +404,7 @@ export function mountTabs(
 			if (destroyed) return;
 			destroyed = true;
 			height.destroy();
+			separators.destroy();
 			tabList.removeEventListener("click", onClick);
 			for (const tab of tabs) {
 				mountedPanels.delete(tab.panel);

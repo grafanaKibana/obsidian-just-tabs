@@ -14,11 +14,11 @@ Reuse the Positions, Icons, and Labels sections below while changing settings; n
 | Check | Expected |
 | --- | --- |
 | Leave every Top/Bottom/Left/Right override on **Inherit defaults**, then change each global Personality, Palette, and Alignment value. | All four positions follow the globals; any `mountTabs` demo remains global-only. |
-| Try Button, Underline, Separator, and Rail globally, then reverse each with every position override. | Only that position changes. Separator has no selected chrome and appears only between visible tabs; Rail has one rounded track and selected segment in light and dark themes. |
+| Try Button, Underline, Separator, and Rail globally, then reverse each with every position override. | Only that position changes. Separator has short centered divider elements only between tabs on the same visual row/column, including wrapped rows; Rail has a padded rounded track, compact tab padding, and selected segment in light and dark themes. |
 | Try Underline placement Auto/Top/Right/Bottom/Left and thickness 1/2/8. | Auto is bottom for Top/Bottom, right for Left, and left for Right—even when a narrow side list becomes a row. Explicit placement wins without hover/selection layout shifts. |
-| Hover selected and unselected tabs, then try gap 0/48 in Scroll/Wrap, content spacing 0/12/48, and selected weight Theme default/Medium/Bold. | Idle text is muted; hover and selected text is normal except Button’s preserved selected contrast. Selected Underline hover keeps the strong indicator; only selected/expanded labels change weight. |
+| Hover selected and unselected tabs, then try gap 0/48 in Scroll/Wrap, content spacing 0/12/48, and selected weight Thinner/Default/Bolder. | Idle text is muted; hover and selected text is normal except Button’s preserved selected contrast. Selected Underline hover keeps the strong indicator; only selected/expanded labels change weight at 400/600/700. |
 | Change horizontal padding directly to 0/36/48 in Default and Compact. | Each slider change applies immediately without a separate toggle and overflow remains usable. |
-| Change side-list width directly to 192/256/320 on Left/Right and resize narrowly. | Each slider change applies immediately on wide lists; even with 48px horizontal padding, a 32px icon, and 16px icon spacing, labels retain usable space; narrow lists return to a full-width row and panels remain visible. |
+| Change side-list width directly to 192/256/320 on Left/Right, try every Alignment option, and resize narrowly. | Each slider change applies immediately on wide lists; tabs remain equal width regardless of Alignment; narrow lists return to an equal-width full-width row and panels remain visible. |
 | Set icon size 12/32 and spacing 0/16, using the Icons section. | Icon boxes and gaps change without moving plain-label tabs off baseline. |
 | In Nested blocks, switch Nested block style between Card and Flat while viewing section 9 with Primary and Secondary palettes. | Card shows a bordered nested surface; Flat shows tabs directly under their parent without a wrapper surface; nested controls remain subtly colored in both modes and at every depth. |
 | Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Equal width shares spare space without squeezing labels: Scroll scrolls and Wrap moves whole tabs to another row; panels never collapse to zero. |
@@ -198,7 +198,7 @@ tab: release-readiness-owner-handoff-checklist-without-any-natural-break-opportu
 This deliberately unbroken label must stay inside the note when Equal width and Wrap are enabled together.
 ```
 
-For the mounted API, repeat with group label `**Trace** details`, labels `**Strong**`, `*Em*`, `~~Delete~~`, and `` `Code` ``, then hide the first, middle, and last control. The group name must read “Trace details”; formatting descendants must activate their button; Separator must remain only between visible controls; `destroy()` must restore every panel.
+For the mounted API, repeat with group label `**Trace** details`, labels `**Strong**`, `*Em*`, `~~Delete~~`, and `` `Code` ``, then hide the first, middle, and last control. The group name must read “Trace details”; formatting descendants must activate their button; Separator must remain centered only between visible controls on the same visual line; `destroy()` must restore every panel.
 
 ## 6. Bodies
 

@@ -219,17 +219,17 @@ settings:
     title: Selected tab font weight
     type: class-select
     allowEmpty: false
-    default: tabsdown-selected-font-weight-theme-default
+    default: tabsdown-selected-font-weight-default
     options:
       -
-        label: Theme default
-        value: tabsdown-selected-font-weight-theme-default
+        label: Thinner
+        value: tabsdown-selected-font-weight-thinner
       -
-        label: Medium
-        value: tabsdown-selected-font-weight-medium
+        label: Default
+        value: tabsdown-selected-font-weight-default
       -
-        label: Bold
-        value: tabsdown-selected-font-weight-bold
+        label: Bolder
+        value: tabsdown-selected-font-weight-bolder
   -
     id: tabsdown-nested-blocks-heading
     title: Nested blocks
@@ -648,7 +648,7 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 		100% - var(--tabsdown-side-panel-min, 14rem) - var(--tabsdown-content-spacing, 0.75rem)
 	);
 	margin-block-end: 0;
-	align-items: var(--tabsdown-side-tab-alignment, stretch);
+	align-items: stretch;
 	overflow-x: hidden;
 	overflow-y: auto;
 }
@@ -674,6 +674,7 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 
 .tabsdown__tab {
 	flex: 0 0 auto;
+	position: relative;
 	box-sizing: border-box;
 	height: auto;
 	max-height: none;
@@ -727,6 +728,27 @@ body.tabsdown-theme-button-outline .tabsdown__tab:active {
 	overflow-wrap: anywhere;
 }
 
+.tabsdown__separator {
+	display: none;
+	position: absolute;
+	inline-size: 1px;
+	block-size: 0.7em;
+	block-size: 1cap;
+	background-color: var(--tabsdown-tab-border);
+	pointer-events: none;
+	transform: translate(-50%, -50%);
+}
+
+.tabsdown__separator--column {
+	inline-size: 0.7em;
+	inline-size: 1cap;
+	block-size: 1px;
+}
+
+.tabsdown__separator[hidden] {
+	display: none;
+}
+
 @media (hover: hover) {
 	.tabsdown__tab:hover {
 		border-color: var(--tabsdown-tab-hover-border);
@@ -745,6 +767,7 @@ body.tabsdown-theme-button-outline .tabsdown__tab:active {
 	border-color: var(--tabsdown-tab-selected-border);
 	background-color: var(--tabsdown-tab-selected-background);
 	color: var(--tabsdown-tab-selected-color);
+	font-weight: 600;
 }
 
 @media (hover: hover) {
@@ -1047,21 +1070,6 @@ body.tabsdown-alignment-equal-width .tabsdown:where(.tabsdown--inline-overflow.t
 	white-space: normal;
 }
 
-body.tabsdown-alignment-start .tabsdown--left,
-body.tabsdown-alignment-start .tabsdown--right {
-	--tabsdown-side-tab-alignment: flex-start;
-}
-
-body.tabsdown-alignment-center .tabsdown--left,
-body.tabsdown-alignment-center .tabsdown--right {
-	--tabsdown-side-tab-alignment: center;
-}
-
-body.tabsdown-alignment-equal-width .tabsdown--left,
-body.tabsdown-alignment-equal-width .tabsdown--right {
-	--tabsdown-side-tab-alignment: stretch;
-}
-
 body.tabsdown-personality-underline .tabsdown__tab {
 	border-color: transparent;
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
@@ -1108,15 +1116,14 @@ body.tabsdown-personality-separator .tabsdown__tab[aria-expanded="true"] {
 	color: var(--text-normal);
 }
 
-body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-personality-separator:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-underline):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-personality-separator:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-underline):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
-	border-inline-start-color: var(--tabsdown-tab-border);
-}
-
 body.tabsdown-personality-rail .tabsdown__tablist {
+	padding: 0.25rem;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--background-secondary);
+}
+
+body.tabsdown-personality-rail .tabsdown__tab {
+	padding-block: 0.25rem;
 }
 
 body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"],
@@ -1135,26 +1142,31 @@ body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"] {
 		color: var(--text-normal);
 	}
 
-	body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-	body.tabsdown-personality-separator:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-underline):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-	body.tabsdown-personality-separator:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-underline):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
-		border-inline-start-color: var(--tabsdown-tab-border);
-	}
-
 	body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"]:hover {
 		background-color: var(--background-primary);
 	}
 }
 
-body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-selected="true"],
-body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-expanded="true"] {
-	font-weight: var(--font-medium);
+body.tabsdown-selected-font-weight-thinner .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-thinner .tabsdown__tab[aria-expanded="true"] {
+	font-weight: 400;
 }
 
+body.tabsdown-selected-font-weight-bolder .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-bolder .tabsdown__tab[aria-expanded="true"],
 body.tabsdown-selected-font-weight-bold .tabsdown__tab[aria-selected="true"],
 body.tabsdown-selected-font-weight-bold .tabsdown__tab[aria-expanded="true"] {
-	font-weight: var(--font-bold, 700);
+	font-weight: 700;
+}
+
+body.tabsdown-selected-font-weight-default .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-default .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-selected-font-weight-theme-default .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-theme-default .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-selected="true"],
+body.tabsdown-selected-font-weight-medium .tabsdown__tab[aria-expanded="true"] {
+	font-weight: 600;
 }
 
 /* Top position overrides are complete resets so changing a global
@@ -1484,18 +1496,6 @@ body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline
 	white-space: normal;
 }
 
-body.tabsdown-left-alignment-start .tabsdown--left {
-	--tabsdown-side-tab-alignment: flex-start;
-}
-
-body.tabsdown-left-alignment-center .tabsdown--left {
-	--tabsdown-side-tab-alignment: center;
-}
-
-body.tabsdown-left-alignment-equal-width .tabsdown--left {
-	--tabsdown-side-tab-alignment: stretch;
-}
-
 body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab {
 	border-width: var(--border-width);
 	border-style: solid;
@@ -1655,18 +1655,6 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inli
 	white-space: normal;
 }
 
-body.tabsdown-right-alignment-start .tabsdown--right {
-	--tabsdown-side-tab-alignment: flex-start;
-}
-
-body.tabsdown-right-alignment-center .tabsdown--right {
-	--tabsdown-side-tab-alignment: center;
-}
-
-body.tabsdown-right-alignment-equal-width .tabsdown--right {
-	--tabsdown-side-tab-alignment: stretch;
-}
-
 body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 	border-width: var(--border-width);
 	border-style: solid;
@@ -1767,25 +1755,32 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	color: var(--text-normal);
 }
 
-body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
-	border-inline-start-color: var(--tabsdown-tab-border);
-}
-
-body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
-	border-inline-start-color: transparent;
-	border-block-start-color: var(--tabsdown-tab-border);
+body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-underline):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-underline):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]) {
+	display: block;
 }
 
 body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist,
 body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist,
 body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist,
 body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist {
+	padding: 0.25rem;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--background-secondary);
+}
+
+body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	padding-block: 0.25rem;
 }
 
 body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
@@ -1814,8 +1809,24 @@ body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist,
 body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist,
 body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist,
 body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist {
+	padding: var(--border-width);
 	border-radius: 0;
 	background-color: transparent;
+}
+
+body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	padding-block: var(--tabsdown-tab-padding-block);
 }
 
 @media (hover: hover) {
@@ -1832,16 +1843,6 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 		color: var(--text-normal);
 	}
 
-	body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-	body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
-		border-inline-start-color: var(--tabsdown-tab-border);
-	}
-
-	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
-		border-block-start-color: var(--tabsdown-tab-border);
-	}
-
 	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover,
 	body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
@@ -1854,19 +1855,12 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	}
 }
 
-/* A side list runs down the block axis. Never let inline equal-width controls
-   stretch its tabs along the block axis. */
-body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+/* Side tabs always share the full list width; alignment settings only position
+   the list itself. */
+.tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+.tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 	flex: 0 0 auto;
-	min-inline-size: var(--tabsdown-tab-min-size);
-	white-space: normal;
+	inline-size: 100%;
 }
 
 /* Too narrow for a side list: move the list above the panels and restore the
@@ -1883,68 +1877,16 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 		flex-direction: row;
 		inline-size: 100%;
 		max-inline-size: 100%;
-		--tabsdown-side-tab-alignment: stretch;
 		overflow-x: auto;
 		overflow-y: hidden;
 	}
 
-	body.tabsdown-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-		flex: 1 0 0;
-		min-inline-size: max-content;
-		white-space: nowrap;
-	}
-
-	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-		flex: 1 1 max-content;
+	body .tabsdown.tabsdown--left > .tabsdown__tablist > .tabsdown__tab.tabsdown__tab,
+	body .tabsdown.tabsdown--right > .tabsdown__tablist > .tabsdown__tab.tabsdown__tab {
+		flex: 1 1 0;
+		inline-size: 0;
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
-	}
-
-	body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-left-alignment-center .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-right-alignment-center .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-		flex: 0 0 auto;
-		min-inline-size: var(--tabsdown-tab-min-size);
-		white-space: normal;
-	}
-
-	body.tabsdown-left-alignment-equal-width .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-		flex: 1 0 0;
-		min-inline-size: max-content;
-		white-space: nowrap;
-	}
-
-	body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
-	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-		flex: 1 1 max-content;
-		min-inline-size: var(--tabsdown-tab-min-size);
-		white-space: normal;
-	}
-
-	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-	body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
-	body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
-		border-block-start-color: transparent;
-		border-inline-start-color: var(--tabsdown-tab-border);
-	}
-
-	@media (hover: hover) {
-		body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-		body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-		body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
-		body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
-			border-block-start-color: transparent;
-			border-inline-start-color: var(--tabsdown-tab-border);
-		}
 	}
 }
 

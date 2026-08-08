@@ -13,6 +13,10 @@ import {
 	type TabDefinition,
 	type TabsDiagnostic,
 } from "./parser";
+import {
+	trackSeparators,
+	type SeparatorTracker,
+} from "./separator";
 
 interface PanelState {
 	panelEl: HTMLElement;
@@ -62,6 +66,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	private readonly panels: PanelState[] = [];
 	private panelsEl?: HTMLElement;
 	private height?: PanelHeightTracker;
+	private separators?: SeparatorTracker;
 	private selectedIndex = 0;
 	private focusIndex = 0;
 	private disposed = false;
@@ -109,6 +114,9 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			const button = createElement(tabList, "button", "tabsdown__tab");
 			button.type = "button";
 			button.id = tabId;
+			const separator = createElement(button, "span", "tabsdown__separator");
+			separator.setAttribute("aria-hidden", "true");
+			separator.hidden = true;
 			if (tab.icon) {
 				const icon = createElement(button, "span", "tabsdown__tab-icon");
 				icon.setAttribute("aria-hidden", "true");
@@ -146,6 +154,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 		});
 
 		this.containerEl.append(tabList, panels);
+		this.separators = trackSeparators(tabList, this.buttons);
 		this.updateState();
 		this.ensureRendered(0);
 	}
@@ -181,6 +190,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 	onunload(): void {
 		this.disposed = true;
 		this.height?.destroy();
+		this.separators?.destroy();
 		for (const panel of this.panels) {
 			this.disposePanel(panel);
 		}
