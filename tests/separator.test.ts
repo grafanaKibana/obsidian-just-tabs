@@ -90,3 +90,39 @@ test("centers separators between visible tabs and follows ancestor style changes
 		resize.restore();
 	}
 });
+
+test("reconnects ancestor observations after a detached mount is attached", async () => {
+	const resize = stubResizeObserver();
+	try {
+		const container = document.createElement("div");
+		const list = container.appendChild(document.createElement("div"));
+		list.style.display = "flex";
+		const buttons = [0, 1].map(() => {
+			const button = list.appendChild(document.createElement("button"));
+			const separator = button.appendChild(document.createElement("span"));
+			separator.className = "tabsdown__separator";
+			separator.hidden = true;
+			return button;
+		});
+		const boxes = [rect(0, 0), rect(44, 0)];
+		buttons.forEach((button, index) => {
+			button.getBoundingClientRect = () => boxes[index] ?? rect(0, 0);
+		});
+
+		const tracker = trackSeparators(list, buttons);
+		const separator = buttons[1]!.querySelector<HTMLElement>(".tabsdown__separator")!;
+		expect(separator.style.left).toBe("-2px");
+
+		document.body.append(container);
+		await Promise.resolve();
+		boxes[1] = rect(60, 0);
+		document.body.classList.add("separator-layout-change");
+		await Promise.resolve();
+		expect(separator.style.left).toBe("-10px");
+
+		tracker.destroy();
+	} finally {
+		document.body.classList.remove("separator-layout-change");
+		resize.restore();
+	}
+});

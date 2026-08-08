@@ -22,7 +22,10 @@ export function trackSeparators(
 	let mutations: MutationObserver | undefined;
 
 	const refresh = (): void => {
-		const vertical = view?.getComputedStyle(tabList).flexDirection.startsWith("column") ?? false;
+		const vertical =
+			(typeof view?.getComputedStyle === "function" &&
+				view.getComputedStyle(tabList).flexDirection.startsWith("column")) ||
+			false;
 		let previous: DOMRect | undefined;
 		for (const button of buttons) {
 			const separator = button.querySelector<HTMLElement>(":scope > .tabsdown__separator");
@@ -57,13 +60,21 @@ export function trackSeparators(
 		for (const button of buttons) observer.observe(button);
 	}
 	if (view?.MutationObserver) {
-		mutations = new view.MutationObserver(refresh);
-		for (let element: Element | null = tabList; element; element = element.parentElement) {
-			mutations.observe(element, {
-				attributes: true,
-				attributeFilter: ["class", "style", "dir"],
-			});
-		}
+		const observeAncestors = (): void => {
+			mutations?.disconnect();
+			mutations?.observe(tabList.ownerDocument, { childList: true, subtree: true });
+			for (let element: Element | null = tabList; element; element = element.parentElement) {
+				mutations?.observe(element, {
+					attributes: true,
+					attributeFilter: ["class", "style", "dir"],
+				});
+			}
+		};
+		mutations = new view.MutationObserver(() => {
+			observeAncestors();
+			refresh();
+		});
+		observeAncestors();
 	}
 	refresh();
 
