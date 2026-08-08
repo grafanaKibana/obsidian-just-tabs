@@ -548,6 +548,16 @@ settings:
 	--tabsdown-animation-duration: var(--tabsdown-animation-speed, 160ms);
 	--tabsdown-tab-min-size: 44px;
 	--tabsdown-tab-min-block-size: var(--tabsdown-tab-min-size);
+	--tabsdown-equal-wrap-basis: min(
+		100%,
+		max(
+			var(--tabsdown-tab-min-size),
+			calc(
+				12ch + var(--tabsdown-tab-padding-inline) +
+					var(--tabsdown-tab-padding-inline)
+			)
+		)
+	);
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -1085,34 +1095,9 @@ body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__
 
 body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-alignment-equal-width .tabsdown:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: none;
+	flex: 1 1 var(--tabsdown-equal-wrap-basis);
 	min-inline-size: 0;
 	white-space: normal;
-}
-
-body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--mounted:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-body.tabsdown-alignment-equal-width .tabsdown--mounted:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
-body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-top-alignment-start):not(.tabsdown-top-alignment-center) .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-body.tabsdown-alignment-equal-width:not(.tabsdown-top-alignment-start):not(.tabsdown-top-alignment-center) .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
-body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-bottom-alignment-start):not(.tabsdown-bottom-alignment-center) .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-body.tabsdown-alignment-equal-width:not(.tabsdown-bottom-alignment-start):not(.tabsdown-bottom-alignment-center) .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
-	display: grid;
-	grid-template-columns: repeat(
-		auto-fit,
-		minmax(
-			min(
-				100%,
-				max(
-					var(--tabsdown-tab-min-size),
-					calc(
-						12ch + var(--tabsdown-tab-padding-inline) +
-							var(--tabsdown-tab-padding-inline)
-					)
-				)
-			),
-			1fr
-		)
-	);
 }
 
 body.tabsdown-personality-underline .tabsdown__tab {
@@ -1281,30 +1266,9 @@ body.tabsdown-top-alignment-equal-width .tabsdown--top > .tabsdown__tablist > .t
 
 body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: none;
+	flex: 1 1 var(--tabsdown-equal-wrap-basis);
 	min-inline-size: 0;
 	white-space: normal;
-}
-
-body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
-	display: grid;
-	grid-template-columns: repeat(
-		auto-fit,
-		minmax(
-			min(
-				100%,
-				max(
-					var(--tabsdown-tab-min-size),
-					calc(
-						12ch + var(--tabsdown-tab-padding-inline) +
-							var(--tabsdown-tab-padding-inline)
-					)
-				)
-			),
-			1fr
-		)
-	);
 }
 
 body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
@@ -1436,30 +1400,9 @@ body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom > .tabsdown__tablis
 
 body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: none;
+	flex: 1 1 var(--tabsdown-equal-wrap-basis);
 	min-inline-size: 0;
 	white-space: normal;
-}
-
-body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
-	display: grid;
-	grid-template-columns: repeat(
-		auto-fit,
-		minmax(
-			min(
-				100%,
-				max(
-					var(--tabsdown-tab-min-size),
-					calc(
-						12ch + var(--tabsdown-tab-padding-inline) +
-							var(--tabsdown-tab-padding-inline)
-					)
-				)
-			),
-			1fr
-		)
-	);
 }
 
 body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
@@ -2033,33 +1976,6 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 		white-space: normal;
 	}
 
-	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-	body.tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
-	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-	body.tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
-	body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
-	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
-	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
-		display: grid;
-		grid-template-columns: repeat(
-			auto-fit,
-			minmax(
-				min(
-					100%,
-					max(
-						var(--tabsdown-tab-min-size),
-						calc(
-							12ch + var(--tabsdown-tab-padding-inline) +
-								var(--tabsdown-tab-padding-inline)
-						)
-					)
-				),
-				1fr
-			)
-		);
-	}
-
 	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
 	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
@@ -2068,7 +1984,8 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-		inline-size: 100%;
+		flex: 1 1 var(--tabsdown-equal-wrap-basis);
+		inline-size: auto;
 		min-inline-size: 0;
 	}
 }

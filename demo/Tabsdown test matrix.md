@@ -21,7 +21,7 @@ Reuse the Positions, Icons, and Labels sections below while changing settings; n
 | Change side-list width directly to 192/256/320 on Left/Right, try every Alignment option, and resize narrowly. | Each slider change applies immediately on wide lists; tabs remain equal width regardless of Alignment; narrow lists return to an equal-width full-width row and panels remain visible. |
 | Set icon size 12/32 and spacing 0/16, using the Icons section. | Icon boxes and gaps change without moving plain-label tabs off baseline. |
 | In Nested blocks, switch Nested block style between Card and Flat while viewing section 9 with Primary and Secondary palettes. | Card shows a bordered nested surface; Flat shows tabs directly under their parent without a wrapper surface; nested surfaces remain subtle while Primary selected Separator text and Rail segments stay accented. |
-| Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Equal-width wrapped tabs use shared grid tracks, so every row has aligned columns and gaps; panels never collapse to zero. |
+| Use the long Labels block with Scroll, Wrap, Equal width, Left/Right, and narrow panes. | Complete equal-width rows align their columns and gaps; an incomplete final row expands evenly to fill the list; panels never collapse to zero. |
 | Toggle theme button outline and test mouse hover, keyboard focus, touch taps, reduced motion, light/dark themes, and rapid setting changes. | Theme shadow toggles without replacing the focus outline; hover never sticks on touch; motion and selected state remain correct. |
 
 ## 1. Positions

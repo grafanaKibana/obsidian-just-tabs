@@ -913,7 +913,9 @@ test("position Start and Center beat global Equal plus Wrap", () => {
 	const globalSelector =
 		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab";
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
-	expect(matchingRuleBodies(styles, globalSelector)).toContain("flex: none");
+	expect(matchingRuleBodies(styles, globalSelector)).toContain(
+		"flex: 1 1 var(--tabsdown-equal-wrap-basis)",
+	);
 
 	for (const position of ["top", "bottom", "left", "right"] as const) {
 		for (const alignment of ["start", "center"] as const) {
@@ -1289,18 +1291,21 @@ test("side tabs are equal width in wide and narrow layouts", () => {
 	);
 });
 
-test("equal-width sizing follows the block's effective overflow", () => {
+test("wrapped equal-width rows align and the final row fills the list", () => {
 	const styles = readStyles();
-	expect(styles).toContain("display: grid");
+	expect(styles).not.toContain("grid-template-columns");
 	expect(styles).toMatch(
 		/12ch \+ var\(--tabsdown-tab-padding-inline\) \+\s*var\(--tabsdown-tab-padding-inline\)/,
 	);
 	for (const position of ["top", "bottom"] as const) {
 		const selector = `body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`;
-		expect(matchingRuleBodies(styles, selector)).toContain("grid-template-columns:");
+		expect(matchingRuleBodies(styles, selector)).toContain(
+			"flex: 1 1 var(--tabsdown-equal-wrap-basis)",
+		);
 	}
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
 	expect(narrow).toContain("tabsdown-left-alignment-equal-width");
 	expect(narrow).toContain("tabsdown-right-alignment-equal-width");
-	expect(narrow).toContain("grid-template-columns:");
+	expect(narrow).toContain("flex: 1 1 var(--tabsdown-equal-wrap-basis)");
+	expect(narrow).toContain("inline-size: auto");
 });
