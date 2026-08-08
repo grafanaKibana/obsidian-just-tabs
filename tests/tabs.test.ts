@@ -90,6 +90,64 @@ afterEach(() => {
 });
 
 describe("selection", () => {
+	test("formats labels synchronously and derives the group name", () => {
+		const container = document.createElement("div");
+		const controller = mountTabs(container, {
+			label: "**Trace** details",
+			tabs: [
+				{
+					id: "trace",
+					label: "**Strong** *em* ~~old~~ `code` [link](url)",
+					panel: panel("Trace"),
+				},
+				{ id: "literal", label: "****", panel: panel("Literal") },
+			],
+		});
+		const labels = container.querySelectorAll<HTMLElement>(".tabsdown__tab-label");
+
+		expect(container.querySelector(".tabsdown__tablist")?.getAttribute("aria-label")).toBe("Trace details");
+		expect(labels[0]?.innerHTML).toBe(
+			"<strong>Strong</strong> <em>em</em> <del>old</del> <code>code</code> [link](url)",
+		);
+		expect(labels[0]?.querySelector("a, img, script")).toBeNull();
+		expect(labels[1]?.textContent).toBe("****");
+		expect(controller.selection).toBeNull();
+	});
+
+	test("keeps delimiter-only names nonblank and derived duplicates allowed", () => {
+		for (const groupLabel of ["****", "** **", "~~~~", "``"]) {
+			const container = document.createElement("div");
+			const controller = mountTabs(container, {
+				label: groupLabel,
+				tabs: [
+					{ id: "plain", label: "A", panel: panel("Plain") },
+					{ id: "formatted", label: "**A**", panel: panel("Formatted") },
+				],
+			});
+			expect(container.querySelector(".tabsdown__tablist")?.getAttribute("aria-label")).toBe(groupLabel);
+			expect(Array.from(container.querySelectorAll("button"), (button) => button.textContent)).toEqual(["A", "A"]);
+			controller.destroy();
+		}
+	});
+
+	test("activates API controls from every formatted descendant", () => {
+		const container = document.createElement("div");
+		const controller = mountTabs(container, {
+			label: "Formatted",
+			tabs: [
+				{ id: "strong", label: "**Strong**", panel: panel("Strong") },
+				{ id: "em", label: "*Em*", panel: panel("Em") },
+				{ id: "delete", label: "~~Delete~~", panel: panel("Delete") },
+				{ id: "code", label: "`Code`", panel: panel("Code") },
+			],
+		});
+
+		for (const [id, selector] of [["strong", "strong"], ["em", "em"], ["delete", "del"], ["code", "code"]] as const) {
+			container.querySelector<HTMLElement>(selector)?.click();
+			expect(controller.selection).toBe(id);
+		}
+	});
+
 	test("starts with nothing selected", () => {
 		const { container, controller } = setup();
 		const root = container.querySelector<HTMLElement>(".tabsdown--mounted");
@@ -235,14 +293,21 @@ describe("availability", () => {
 		const watch = popup.createElement("div");
 		popup.body.append(container);
 		const controller = mountTabs(container, {
-			label: "Trace and watch",
+			label: "**Trace** and watch",
 			selection: "watch",
 			tabs: [
-				{ id: "trace", label: "Trace", panel: trace },
-				{ id: "watch", label: "Watch", panel: watch },
+				{ id: "trace", label: "**Trace**", panel: trace },
+				{ id: "watch", label: "`Watch`", panel: watch },
 			],
 		});
 		const buttons = container.querySelectorAll<HTMLButtonElement>("button");
+		expect(container.querySelector(".tabsdown__tablist")?.getAttribute("aria-label")).toBe("Trace and watch");
+		const created = container.querySelectorAll(
+			".tabsdown--mounted, .tabsdown__tablist, button, .tabsdown__tab-label, strong, code",
+		);
+		for (const element of Array.from(created)) {
+			expect(element.ownerDocument).toBe(popup);
+		}
 		buttons[1]?.focus();
 
 		controller.setAvailable("watch", false);

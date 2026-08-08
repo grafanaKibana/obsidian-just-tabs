@@ -5,8 +5,14 @@ import {
 	MarkdownRenderer,
 	setIcon,
 } from "obsidian";
-import type { TabConfiguration, TabDefinition, TabsDiagnostic } from "./parser";
+import { renderLabel } from "./label";
 import { trackPanelHeight, type PanelHeightTracker } from "./panel-height";
+import {
+	parseInlineLabel,
+	type TabConfiguration,
+	type TabDefinition,
+	type TabsDiagnostic,
+} from "./parser";
 
 interface PanelState {
 	panelEl: HTMLElement;
@@ -82,7 +88,11 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			this.containerEl.classList.add(`tabsdown--${configuration}`);
 		}
 
-	const tabList = createElement(this.containerEl, "div", "tabsdown__tablist");
+		const tabList = createElement(
+			this.containerEl,
+			"div",
+			"tabsdown__tablist",
+		);
 		tabList.setAttribute("role", "tablist");
 		tabList.setAttribute("aria-label", "Tabbed content");
 
@@ -104,8 +114,8 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 				icon.setAttribute("aria-hidden", "true");
 				setIcon(icon, tab.icon);
 			}
-			createElement(button, "span", "tabsdown__tab-label").textContent =
-				tab.label;
+			const label = createElement(button, "span", "tabsdown__tab-label");
+			renderLabel(label, parseInlineLabel(tab.label));
 			button.setAttribute("role", "tab");
 			button.setAttribute("aria-controls", panelId);
 

@@ -41,6 +41,12 @@ settings:
       -
         label: Underline
         value: tabsdown-personality-underline
+      -
+        label: Separator
+        value: tabsdown-personality-separator
+      -
+        label: Rail
+        value: tabsdown-personality-rail
   -
     id: tabsdown-overflow
     title: Overflow behavior
@@ -108,6 +114,28 @@ settings:
     max: 8
     step: 1
     format: px
+  -
+    id: tabsdown-underline-placement
+    title: Underline placement
+    type: class-select
+    allowEmpty: false
+    default: tabsdown-underline-placement-auto
+    options:
+      -
+        label: Auto
+        value: tabsdown-underline-placement-auto
+      -
+        label: Top
+        value: tabsdown-underline-placement-top
+      -
+        label: Right
+        value: tabsdown-underline-placement-right
+      -
+        label: Bottom
+        value: tabsdown-underline-placement-bottom
+      -
+        label: Left
+        value: tabsdown-underline-placement-left
   -
     id: tabsdown-layout-heading
     title: Layout
@@ -250,6 +278,12 @@ settings:
       -
         label: Underline
         value: tabsdown-top-personality-underline
+      -
+        label: Separator
+        value: tabsdown-top-personality-separator
+      -
+        label: Rail
+        value: tabsdown-top-personality-rail
   -
     id: tabsdown-top-palette
     title: Palette
@@ -307,6 +341,12 @@ settings:
       -
         label: Underline
         value: tabsdown-bottom-personality-underline
+      -
+        label: Separator
+        value: tabsdown-bottom-personality-separator
+      -
+        label: Rail
+        value: tabsdown-bottom-personality-rail
   -
     id: tabsdown-bottom-palette
     title: Palette
@@ -364,6 +404,12 @@ settings:
       -
         label: Underline
         value: tabsdown-left-personality-underline
+      -
+        label: Separator
+        value: tabsdown-left-personality-separator
+      -
+        label: Rail
+        value: tabsdown-left-personality-rail
   -
     id: tabsdown-left-palette
     title: Palette
@@ -421,6 +467,12 @@ settings:
       -
         label: Underline
         value: tabsdown-right-personality-underline
+      -
+        label: Separator
+        value: tabsdown-right-personality-separator
+      -
+        label: Rail
+        value: tabsdown-right-personality-rail
   -
     id: tabsdown-right-palette
     title: Palette
@@ -485,7 +537,7 @@ settings:
 	--tabsdown-accent: var(--tabsdown-accent-override, var(--interactive-accent));
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-color: var(--text-muted);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
@@ -636,7 +688,7 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 	color: var(--tabsdown-tab-color);
 	font-family: var(--font-interface);
 	font-size: var(--font-ui-small);
-	font-weight: inherit;
+	font-weight: var(--font-normal, 400);
 	line-height: var(--line-height-tight);
 	text-align: center;
 	cursor: pointer;
@@ -679,6 +731,7 @@ body.tabsdown-theme-button-outline .tabsdown__tab:active {
 	.tabsdown__tab:hover {
 		border-color: var(--tabsdown-tab-hover-border);
 		background-color: var(--tabsdown-tab-hover-background);
+		color: var(--text-normal);
 		box-shadow: none;
 	}
 
@@ -757,6 +810,130 @@ body.tabsdown-animations-disabled .tabsdown__tab {
 @media (prefers-reduced-motion: reduce) {
 	.tabsdown {
 		--tabsdown-animation-duration: 0ms;
+	}
+}
+
+/* Underline placement is resolved from the authored position. The side widths
+   stay reserved in every state, so hover and selection never move a label. */
+.tabsdown {
+	--tabsdown-underline-block-start-width: var(--border-width);
+	--tabsdown-underline-inline-end-width: var(--border-width);
+	--tabsdown-underline-block-end-width: var(--tabsdown-underline-thickness, 2px);
+	--tabsdown-underline-inline-start-width: var(--border-width);
+	--tabsdown-underline-block-start-color: transparent;
+	--tabsdown-underline-inline-end-color: transparent;
+	--tabsdown-underline-block-end-color: var(--tabsdown-tab-selected-border);
+	--tabsdown-underline-inline-start-color: transparent;
+}
+
+body.tabsdown-underline-placement-auto .tabsdown--left,
+body.tabsdown-underline-placement-right .tabsdown {
+	--tabsdown-underline-block-start-width: var(--border-width);
+	--tabsdown-underline-inline-end-width: var(--tabsdown-underline-thickness, 2px);
+	--tabsdown-underline-block-end-width: var(--border-width);
+	--tabsdown-underline-inline-start-width: var(--border-width);
+	--tabsdown-underline-block-start-color: transparent;
+	--tabsdown-underline-inline-end-color: var(--tabsdown-tab-selected-border);
+	--tabsdown-underline-block-end-color: transparent;
+	--tabsdown-underline-inline-start-color: transparent;
+}
+
+body.tabsdown-underline-placement-auto .tabsdown--right,
+body.tabsdown-underline-placement-left .tabsdown {
+	--tabsdown-underline-block-start-width: var(--border-width);
+	--tabsdown-underline-inline-end-width: var(--border-width);
+	--tabsdown-underline-block-end-width: var(--border-width);
+	--tabsdown-underline-inline-start-width: var(--tabsdown-underline-thickness, 2px);
+	--tabsdown-underline-block-start-color: transparent;
+	--tabsdown-underline-inline-end-color: transparent;
+	--tabsdown-underline-block-end-color: transparent;
+	--tabsdown-underline-inline-start-color: var(--tabsdown-tab-selected-border);
+}
+
+body.tabsdown-underline-placement-top .tabsdown {
+	--tabsdown-underline-block-start-width: var(--tabsdown-underline-thickness, 2px);
+	--tabsdown-underline-inline-end-width: var(--border-width);
+	--tabsdown-underline-block-end-width: var(--border-width);
+	--tabsdown-underline-inline-start-width: var(--border-width);
+	--tabsdown-underline-block-start-color: var(--tabsdown-tab-selected-border);
+	--tabsdown-underline-inline-end-color: transparent;
+	--tabsdown-underline-block-end-color: transparent;
+	--tabsdown-underline-inline-start-color: transparent;
+}
+
+body.tabsdown-underline-placement-bottom .tabsdown {
+	--tabsdown-underline-block-start-width: var(--border-width);
+	--tabsdown-underline-inline-end-width: var(--border-width);
+	--tabsdown-underline-block-end-width: var(--tabsdown-underline-thickness, 2px);
+	--tabsdown-underline-inline-start-width: var(--border-width);
+	--tabsdown-underline-block-start-color: transparent;
+	--tabsdown-underline-inline-end-color: transparent;
+	--tabsdown-underline-block-end-color: var(--tabsdown-tab-selected-border);
+	--tabsdown-underline-inline-start-color: transparent;
+}
+
+body.tabsdown-personality-underline .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-block-start-width: var(--tabsdown-underline-block-start-width);
+	border-inline-end-width: var(--tabsdown-underline-inline-end-width);
+	border-block-end-width: var(--tabsdown-underline-block-end-width);
+	border-inline-start-width: var(--tabsdown-underline-inline-start-width);
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--text-muted);
+}
+
+body.tabsdown-personality-underline .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-block-start-color: var(--tabsdown-underline-block-start-color);
+	border-inline-end-color: var(--tabsdown-underline-inline-end-color);
+	border-block-end-color: var(--tabsdown-underline-block-end-color);
+	border-inline-start-color: var(--tabsdown-underline-inline-start-color);
+	background-color: transparent;
+	color: var(--text-normal);
+}
+
+@media (hover: hover) {
+	body.tabsdown-personality-underline .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover,
+	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
+		border-block-start-color: color-mix(in srgb, var(--tabsdown-underline-block-start-color) 55%, transparent);
+		border-inline-end-color: color-mix(in srgb, var(--tabsdown-underline-inline-end-color) 55%, transparent);
+		border-block-end-color: color-mix(in srgb, var(--tabsdown-underline-block-end-color) 55%, transparent);
+		border-inline-start-color: color-mix(in srgb, var(--tabsdown-underline-inline-start-color) 55%, transparent);
+		background-color: transparent;
+		color: var(--text-normal);
 	}
 }
 
@@ -899,7 +1076,7 @@ body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
 	border-block-end-color: var(--tabsdown-tab-selected-border);
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
 	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
+	color: var(--text-normal);
 }
 
 @media (hover: hover) {
@@ -912,7 +1089,61 @@ body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"] {
 
 	body.tabsdown-personality-underline .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-personality-underline .tabsdown__tab[aria-expanded="true"]:hover {
-		color: var(--tabsdown-tab-underline-color);
+		color: var(--text-normal);
+	}
+}
+
+body.tabsdown-personality-separator .tabsdown__tab,
+body.tabsdown-personality-rail .tabsdown__tab {
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--text-muted);
+}
+
+body.tabsdown-personality-separator .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-separator .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	background-color: transparent;
+	color: var(--text-normal);
+}
+
+body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-underline):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-underline):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
+	border-inline-start-color: var(--tabsdown-tab-border);
+}
+
+body.tabsdown-personality-rail .tabsdown__tablist {
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--background-secondary);
+}
+
+body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"],
+body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+}
+
+@media (hover: hover) {
+	body.tabsdown-personality-separator .tabsdown__tab:hover,
+	body.tabsdown-personality-rail .tabsdown__tab:hover {
+		border-color: transparent;
+		background-color: transparent;
+		color: var(--text-normal);
+	}
+
+	body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+	body.tabsdown-personality-separator:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-underline):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+	body.tabsdown-personality-separator:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-underline):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
+		border-inline-start-color: var(--tabsdown-tab-border);
+	}
+
+	body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"]:hover {
+		background-color: var(--background-primary);
 	}
 }
 
@@ -931,7 +1162,7 @@ body.tabsdown-selected-font-weight-bold .tabsdown__tab[aria-expanded="true"] {
 body.tabsdown-top-palette-primary .tabsdown--top {
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-color: var(--text-muted);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
@@ -1024,7 +1255,7 @@ body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .t
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
 	border-radius: 0;
 	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
+	color: var(--text-normal);
 }
 
 @media (hover: hover) {
@@ -1033,7 +1264,7 @@ body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .t
 		border-color: var(--tabsdown-tab-hover-border);
 		border-radius: var(--tabsdown-radius, var(--radius-s));
 		background-color: var(--tabsdown-tab-hover-background);
-		color: var(--tabsdown-tab-color);
+		color: var(--text-normal);
 	}
 
 	body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
@@ -1054,7 +1285,7 @@ body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .t
 	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
 		background-color: transparent;
-		color: var(--tabsdown-tab-underline-color);
+		color: var(--text-normal);
 	}
 }
 
@@ -1063,7 +1294,7 @@ body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist > .t
 body.tabsdown-bottom-palette-primary .tabsdown--bottom {
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-color: var(--text-muted);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
@@ -1156,7 +1387,7 @@ body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablis
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
 	border-radius: 0;
 	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
+	color: var(--text-normal);
 }
 
 @media (hover: hover) {
@@ -1165,7 +1396,7 @@ body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablis
 		border-color: var(--tabsdown-tab-hover-border);
 		border-radius: var(--tabsdown-radius, var(--radius-s));
 		background-color: var(--tabsdown-tab-hover-background);
-		color: var(--tabsdown-tab-color);
+		color: var(--text-normal);
 	}
 
 	body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
@@ -1186,7 +1417,7 @@ body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablis
 	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
 		background-color: transparent;
-		color: var(--tabsdown-tab-underline-color);
+		color: var(--text-normal);
 	}
 }
 
@@ -1195,7 +1426,7 @@ body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablis
 body.tabsdown-left-palette-primary .tabsdown--left {
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-color: var(--text-muted);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
@@ -1300,7 +1531,7 @@ body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > 
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
 	border-radius: 0;
 	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
+	color: var(--text-normal);
 }
 
 @media (hover: hover) {
@@ -1309,7 +1540,7 @@ body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > 
 		border-color: var(--tabsdown-tab-hover-border);
 		border-radius: var(--tabsdown-radius, var(--radius-s));
 		background-color: var(--tabsdown-tab-hover-background);
-		color: var(--tabsdown-tab-color);
+		color: var(--text-normal);
 	}
 
 	body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
@@ -1330,7 +1561,7 @@ body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > 
 	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
 		background-color: transparent;
-		color: var(--tabsdown-tab-underline-color);
+		color: var(--text-normal);
 	}
 }
 
@@ -1339,7 +1570,7 @@ body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist > 
 body.tabsdown-right-palette-primary .tabsdown--right {
 	--tabsdown-tab-background: var(--interactive-normal);
 	--tabsdown-tab-border: var(--background-modifier-border);
-	--tabsdown-tab-color: var(--text-normal);
+	--tabsdown-tab-color: var(--text-muted);
 	--tabsdown-tab-hover-background: var(--interactive-hover);
 	--tabsdown-tab-hover-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-background: var(--tabsdown-accent);
@@ -1471,7 +1702,7 @@ body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist 
 	border-block-end-width: var(--tabsdown-underline-thickness, 2px);
 	border-radius: 0;
 	background-color: transparent;
-	color: var(--tabsdown-tab-underline-color);
+	color: var(--text-normal);
 }
 
 @media (hover: hover) {
@@ -1480,7 +1711,7 @@ body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist 
 		border-color: var(--tabsdown-tab-hover-border);
 		border-radius: var(--tabsdown-radius, var(--radius-s));
 		background-color: var(--tabsdown-tab-hover-background);
-		color: var(--tabsdown-tab-color);
+		color: var(--text-normal);
 	}
 
 	body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
@@ -1501,7 +1732,125 @@ body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist 
 	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
 		background-color: transparent;
-		color: var(--tabsdown-tab-underline-color);
+		color: var(--text-normal);
+	}
+}
+
+/* Separator and Rail position overrides share one complete reset. */
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
+body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-style: solid;
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--text-muted);
+}
+
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--text-normal);
+}
+
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
+	border-inline-start-color: var(--tabsdown-tab-border);
+}
+
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
+	border-inline-start-color: transparent;
+	border-block-start-color: var(--tabsdown-tab-border);
+}
+
+body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist,
+body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist,
+body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist,
+body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist {
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--background-secondary);
+}
+
+body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"],
+body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
+body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
+	border-color: transparent;
+	border-radius: var(--tabsdown-radius, var(--radius-s));
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+}
+
+body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist,
+body.tabsdown-top-personality-underline .tabsdown--top > .tabsdown__tablist,
+body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist,
+body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist,
+body.tabsdown-bottom-personality-underline .tabsdown--bottom > .tabsdown__tablist,
+body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist,
+body.tabsdown-left-personality-button .tabsdown--left > .tabsdown__tablist,
+body.tabsdown-left-personality-underline .tabsdown--left > .tabsdown__tablist,
+body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist,
+body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist,
+body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist,
+body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist {
+	border-radius: 0;
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:hover,
+	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:hover {
+		border-color: transparent;
+		background-color: transparent;
+		color: var(--text-normal);
+	}
+
+	body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+	body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
+		border-inline-start-color: var(--tabsdown-tab-border);
+	}
+
+	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
+		border-block-start-color: var(--tabsdown-tab-border);
+	}
+
+	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover,
+	body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover,
+	body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover,
+	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
+		background-color: var(--background-primary);
 	}
 }
 
@@ -1579,6 +1928,14 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
 	}
+
+	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+	body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]),
+	body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]) {
+		border-block-start-color: transparent;
+		border-inline-start-color: var(--tabsdown-tab-border);
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1588,5 +1945,67 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 
 	.tabsdown__tab {
 		transition: none;
+	}
+}
+
+/* Close the cascade after position overrides. */
+:is(
+	body.tabsdown-personality-underline .tabsdown--mounted,
+	body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top,
+	body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom,
+	body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left,
+	body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right,
+	body.tabsdown-top-personality-underline .tabsdown--top,
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom,
+	body.tabsdown-left-personality-underline .tabsdown--left,
+	body.tabsdown-right-personality-underline .tabsdown--right
+) > .tabsdown__tablist > .tabsdown__tab {
+	border-width: var(--border-width);
+	border-block-start-width: var(--tabsdown-underline-block-start-width);
+	border-inline-end-width: var(--tabsdown-underline-inline-end-width);
+	border-block-end-width: var(--tabsdown-underline-block-end-width);
+	border-inline-start-width: var(--tabsdown-underline-inline-start-width);
+	border-color: transparent;
+	border-radius: 0;
+	background-color: transparent;
+	color: var(--text-muted);
+}
+
+:is(
+	body.tabsdown-personality-underline .tabsdown--mounted,
+	body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top,
+	body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom,
+	body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left,
+	body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right,
+	body.tabsdown-top-personality-underline .tabsdown--top,
+	body.tabsdown-bottom-personality-underline .tabsdown--bottom,
+	body.tabsdown-left-personality-underline .tabsdown--left,
+	body.tabsdown-right-personality-underline .tabsdown--right
+) > .tabsdown__tablist > .tabsdown__tab:is([aria-selected="true"], [aria-expanded="true"]) {
+	border-block-start-color: var(--tabsdown-underline-block-start-color);
+	border-inline-end-color: var(--tabsdown-underline-inline-end-color);
+	border-block-end-color: var(--tabsdown-underline-block-end-color);
+	border-inline-start-color: var(--tabsdown-underline-inline-start-color);
+	background-color: transparent;
+	color: var(--text-normal);
+}
+
+@media (hover: hover) {
+	:is(
+		body.tabsdown-personality-underline .tabsdown--mounted,
+		body.tabsdown-personality-underline:not(.tabsdown-top-personality-button):not(.tabsdown-top-personality-separator):not(.tabsdown-top-personality-rail) .tabsdown--top,
+		body.tabsdown-personality-underline:not(.tabsdown-bottom-personality-button):not(.tabsdown-bottom-personality-separator):not(.tabsdown-bottom-personality-rail) .tabsdown--bottom,
+		body.tabsdown-personality-underline:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-separator):not(.tabsdown-left-personality-rail) .tabsdown--left,
+		body.tabsdown-personality-underline:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-separator):not(.tabsdown-right-personality-rail) .tabsdown--right,
+		body.tabsdown-top-personality-underline .tabsdown--top,
+		body.tabsdown-bottom-personality-underline .tabsdown--bottom,
+		body.tabsdown-left-personality-underline .tabsdown--left,
+		body.tabsdown-right-personality-underline .tabsdown--right
+	) > .tabsdown__tablist > .tabsdown__tab:not([aria-selected="true"]):not([aria-expanded="true"]):hover {
+		border-block-start-color: color-mix(in srgb, var(--tabsdown-underline-block-start-color) 55%, transparent);
+		border-inline-end-color: color-mix(in srgb, var(--tabsdown-underline-inline-end-color) 55%, transparent);
+		border-block-end-color: color-mix(in srgb, var(--tabsdown-underline-block-end-color) 55%, transparent);
+		border-inline-start-color: color-mix(in srgb, var(--tabsdown-underline-inline-start-color) 55%, transparent);
+		color: var(--text-normal);
 	}
 }

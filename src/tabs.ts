@@ -1,4 +1,6 @@
+import { renderLabel } from "./label";
 import { trackPanelHeight, type PanelHeightTracker } from "./panel-height";
+import { inlineLabelText, parseInlineLabel } from "./parser";
 
 export interface TabSpec {
 	id: string;
@@ -87,6 +89,8 @@ export function mountTabs(
 	container: HTMLElement,
 	options: MountTabsOptions,
 ): TabsController {
+	const groupLabel = parseInlineLabel(options.label);
+	const tabLabels = options.tabs.map((tab) => parseInlineLabel(tab.label));
 	if (options.tabs.length === 0) {
 		throw new Error("Tabsdown: mountTabs needs at least one tab.");
 	}
@@ -193,7 +197,7 @@ export function mountTabs(
 	const tabList = ownerDocument.createElement("div");
 	tabList.className = "tabsdown__tablist";
 	tabList.setAttribute("role", "group");
-	tabList.setAttribute("aria-label", options.label);
+	tabList.setAttribute("aria-label", inlineLabelText(groupLabel));
 
 	const panelsEl = ownerDocument.createElement("div");
 	panelsEl.className = "tabsdown__panels";
@@ -220,7 +224,7 @@ export function mountTabs(
 		button.className = "tabsdown__tab";
 		const label = ownerDocument.createElement("span");
 		label.className = "tabsdown__tab-label";
-		label.textContent = tab.label;
+		renderLabel(label, tabLabels[index] ?? []);
 		button.append(label);
 		tabList.append(button);
 
