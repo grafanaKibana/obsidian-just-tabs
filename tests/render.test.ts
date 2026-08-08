@@ -1283,8 +1283,8 @@ test("side tabs are equal width in wide and narrow layouts", () => {
 test("equal-width sizing follows the block's effective overflow", () => {
 	const styles = readStyles();
 	expect(styles).toContain("display: grid");
-	expect(styles).toContain(
-		"minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)",
+	expect(styles).toMatch(
+		/12ch \+ var\(--tabsdown-tab-padding-inline\) \+\s*var\(--tabsdown-tab-padding-inline\)/,
 	);
 	for (const position of ["top", "bottom"] as const) {
 		const selector = `body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`;

@@ -1095,7 +1095,19 @@ body.tabsdown-alignment-equal-width:not(.tabsdown-bottom-alignment-start):not(.t
 	display: grid;
 	grid-template-columns: repeat(
 		auto-fit,
-		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+		minmax(
+			min(
+				100%,
+				max(
+					var(--tabsdown-tab-min-size),
+					calc(
+						12ch + var(--tabsdown-tab-padding-inline) +
+							var(--tabsdown-tab-padding-inline)
+					)
+				)
+			),
+			1fr
+		)
 	);
 }
 
@@ -1275,7 +1287,19 @@ body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-o
 	display: grid;
 	grid-template-columns: repeat(
 		auto-fit,
-		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+		minmax(
+			min(
+				100%,
+				max(
+					var(--tabsdown-tab-min-size),
+					calc(
+						12ch + var(--tabsdown-tab-padding-inline) +
+							var(--tabsdown-tab-padding-inline)
+					)
+				)
+			),
+			1fr
+		)
 	);
 }
 
@@ -1418,7 +1442,19 @@ body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--in
 	display: grid;
 	grid-template-columns: repeat(
 		auto-fit,
-		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+		minmax(
+			min(
+				100%,
+				max(
+					var(--tabsdown-tab-min-size),
+					calc(
+						12ch + var(--tabsdown-tab-padding-inline) +
+							var(--tabsdown-tab-padding-inline)
+					)
+				)
+			),
+			1fr
+		)
 	);
 }
 
@@ -1979,7 +2015,19 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 		display: grid;
 		grid-template-columns: repeat(
 			auto-fit,
-			minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+			minmax(
+				min(
+					100%,
+					max(
+						var(--tabsdown-tab-min-size),
+						calc(
+							12ch + var(--tabsdown-tab-padding-inline) +
+								var(--tabsdown-tab-padding-inline)
+						)
+					)
+				),
+				1fr
+			)
 		);
 	}
 
