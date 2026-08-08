@@ -62,6 +62,18 @@ function isEscaped(source: string, index: number): boolean {
 	return slashes % 2 === 1;
 }
 
+function overlapsDelimiterRun(
+	source: string,
+	delimiter: (typeof inlineDelimiters)[number],
+	index: number,
+): boolean {
+	const marker = delimiter[0];
+	return (
+		source[index - 1] === marker ||
+		source[index + delimiter.length] === marker
+	);
+}
+
 function findClosingDelimiter(
 	source: string,
 	delimiter: (typeof inlineDelimiters)[number],
@@ -69,12 +81,7 @@ function findClosingDelimiter(
 ): number {
 	for (let index = start; index <= source.length - delimiter.length; index += 1) {
 		if (isEscaped(source, index) || !source.startsWith(delimiter, index)) continue;
-		if (
-			delimiter === "*" &&
-			(source[index - 1] === "*" || source[index + 1] === "*")
-		) {
-			continue;
-		}
+		if (overlapsDelimiterRun(source, delimiter, index)) continue;
 		return index;
 	}
 	return -1;
@@ -111,7 +118,7 @@ export function parseInlineLabel(source: string): InlineLabelToken[] {
 
 		const delimiter = inlineDelimiters.find((candidate) => {
 			if (!source.startsWith(candidate, index)) return false;
-			return candidate !== "*" || source[index + 1] !== "*";
+			return !overlapsDelimiterRun(source, candidate, index);
 		});
 		if (!delimiter) {
 			text += source[index] ?? "";

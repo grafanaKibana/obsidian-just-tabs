@@ -1936,6 +1936,16 @@ body.tabsdown-right-alignment-equal-width .tabsdown--right > .tabsdown__tablist 
 		border-block-start-color: transparent;
 		border-inline-start-color: var(--tabsdown-tab-border);
 	}
+
+	@media (hover: hover) {
+		body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+		body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+		body.tabsdown-personality-separator:not(.tabsdown-left-personality-button):not(.tabsdown-left-personality-underline):not(.tabsdown-left-personality-rail) .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover,
+		body.tabsdown-personality-separator:not(.tabsdown-right-personality-button):not(.tabsdown-right-personality-underline):not(.tabsdown-right-personality-rail) .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover {
+			border-block-start-color: transparent;
+			border-inline-start-color: var(--tabsdown-tab-border);
+		}
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

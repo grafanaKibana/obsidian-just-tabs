@@ -1076,6 +1076,16 @@ test("keeps separator adjacency visible-only and rotates it in narrow side lists
 	expect(narrow).toContain("tabsdown-left-personality-separator");
 	expect(narrow).toContain("border-block-start-color: transparent");
 	expect(narrow).toContain("border-inline-start-color: var(--tabsdown-tab-border)");
+	for (const selector of [
+		"body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover",
+		"body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:not([hidden]) ~ .tabsdown__tab:not([hidden]):hover",
+	]) {
+		const hover = matchingRuleBodies(narrow, selector);
+		expect(hover, selector).toContain("border-block-start-color: transparent");
+		expect(hover, selector).toContain(
+			"border-inline-start-color: var(--tabsdown-tab-border)",
+		);
+	}
 });
 
 test("computed global personalities yield to every explicit position override", () => {
