@@ -114,6 +114,7 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 			const button = createElement(tabList, "button", "tabsdown__tab");
 			button.type = "button";
 			button.id = tabId;
+			const labelTokens = parseInlineLabel(tab.label);
 			const separator = createElement(button, "span", "tabsdown__separator");
 			separator.setAttribute("aria-hidden", "true");
 			separator.hidden = true;
@@ -123,7 +124,11 @@ export class TabBlockRenderChild extends MarkdownRenderChild {
 				setIcon(icon, tab.icon);
 			}
 			const label = createElement(button, "span", "tabsdown__tab-label");
-			renderLabel(label, parseInlineLabel(tab.label));
+			renderLabel(label, labelTokens);
+			const reserve = createElement(button, "span", "tabsdown__tab-reserve");
+			reserve.setAttribute("aria-hidden", "true");
+			if (tab.icon) reserve.classList.add("tabsdown__tab-reserve--icon");
+			renderLabel(reserve, labelTokens);
 			button.setAttribute("role", "tab");
 			button.setAttribute("aria-controls", panelId);
 

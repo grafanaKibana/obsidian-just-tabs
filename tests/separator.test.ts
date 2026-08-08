@@ -55,6 +55,9 @@ test("centers separators between visible tabs and follows ancestor style changes
 		]);
 		expect(separators[1]?.style.left).toBe("-2px");
 		expect(separators[1]?.style.top).toBe("16px");
+		expect(separators[1]?.style.getPropertyValue("--tabsdown-separator-length")).toBe(
+			"25.6px",
+		);
 
 		boxes.splice(0, 2, rect(80, 0, 30), rect(20, 0, 40));
 		tracker.refresh();
@@ -76,6 +79,9 @@ test("centers separators between visible tabs and follows ancestor style changes
 		expect(separators[3]?.classList.contains("tabsdown__separator--column")).toBe(true);
 		expect(separators[3]?.style.left).toBe("20px");
 		expect(separators[3]?.style.top).toBe("-2px");
+		expect(separators[3]?.style.getPropertyValue("--tabsdown-separator-length")).toBe(
+			"32px",
+		);
 
 		tracker.destroy();
 		expect(resize.observed()).toHaveLength(0);

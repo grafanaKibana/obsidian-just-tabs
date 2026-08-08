@@ -232,6 +232,11 @@ export function mountTabs(
 		label.className = "tabsdown__tab-label";
 		renderLabel(label, tabLabels[index] ?? []);
 		button.append(label);
+		const reserve = ownerDocument.createElement("span");
+		reserve.className = "tabsdown__tab-reserve";
+		reserve.setAttribute("aria-hidden", "true");
+		renderLabel(reserve, tabLabels[index] ?? []);
+		button.append(reserve);
 		tabList.append(button);
 
 		const restore = new Map<string, string | null>(

@@ -534,7 +534,9 @@ describe("tab interaction", () => {
 		const unsafe = buttons[2];
 		if (!unsafe) throw new Error("Expected third tab.");
 
-		expect(unsafe.textContent).toBe("<img src=x onerror=alert(1)>");
+		expect(unsafe.querySelector(".tabsdown__tab-label")?.textContent).toBe(
+			"<img src=x onerror=alert(1)>",
+		);
 		expect(unsafe.querySelector("img")).toBeNull();
 		expect(unsafe.id).not.toContain("img");
 		expect(
@@ -579,7 +581,9 @@ test("applies the final position and layout configuration without showing it in 
 	expect(container.classList.contains("tabsdown--inline-overflow")).toBe(true);
 	expect(container.classList.contains("tabsdown--left")).toBe(false);
 	expect(container.classList.contains("tabsdown--multi")).toBe(false);
-	expect(container.querySelector('[role="tab"]')?.textContent).toBe("Python");
+	expect(
+		container.querySelector('[role="tab"] .tabsdown__tab-label')?.textContent,
+	).toBe("Python");
 });
 
 test("alternates nested tint parity at every depth", () => {
@@ -628,7 +632,7 @@ test("renders a tab icon beside the label and hides it from assistive tech", () 
 
 	expect(setIcon).toHaveBeenCalledWith(icon, "code");
 	expect(icon?.getAttribute("aria-hidden")).toBe("true");
-	expect(buttons[0]?.textContent).toBe("Python");
+	expect(buttons[0]?.querySelector(".tabsdown__tab-label")?.textContent).toBe("Python");
 	expect(buttons[1]?.querySelector(".tabsdown__tab-icon")).toBeNull();
 });
 
@@ -657,6 +661,12 @@ test("renders only the bounded inline label elements beside icons", () => {
 	);
 	expect(labels[0]?.querySelector("a, img, script")).toBeNull();
 	expect(labels[1]?.textContent).toBe("****");
+	const reserve = labels[0]?.closest("button")?.querySelector<HTMLElement>(
+		".tabsdown__tab-reserve",
+	);
+	expect(reserve?.innerHTML).toBe(labels[0]?.innerHTML);
+	expect(reserve?.getAttribute("aria-hidden")).toBe("true");
+	expect(reserve?.classList.contains("tabsdown__tab-reserve--icon")).toBe(true);
 	expect(container.querySelector(".tabsdown__tab-icon")?.getAttribute("aria-hidden")).toBe("true");
 });
 
@@ -826,9 +836,15 @@ test("offers flat nested blocks while keeping nested controls subtle", () => {
 		"--tabsdown-tab-color: var(--text-muted)",
 		"--tabsdown-tab-selected-background: color-mix(",
 		"--tabsdown-tab-selected-color: var(--text-normal)",
-		"--tabsdown-tab-underline-color: var(--text-normal)",
 	]) {
 		expect(subtle).toContain(variable);
+	}
+	for (const paletteVariable of [
+		"--tabsdown-tab-underline-color",
+		"--tabsdown-rail-selected-background",
+	]) {
+		expect(subtle).not.toContain(paletteVariable);
+		expect(deeper).not.toContain(paletteVariable);
 	}
 	expect(styles.indexOf("body .tabsdown--nested-odd")).toBeGreaterThan(
 		styles.indexOf("body.tabsdown-right-palette-secondary"),
@@ -897,9 +913,7 @@ test("position Start and Center beat global Equal plus Wrap", () => {
 	const globalSelector =
 		"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab";
 	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
-	expect(matchingRuleBodies(styles, globalSelector)).toContain(
-		"flex: 1 1 max-content",
-	);
+	expect(matchingRuleBodies(styles, globalSelector)).toContain("flex: none");
 
 	for (const position of ["top", "bottom", "left", "right"] as const) {
 		for (const alignment of ["start", "center"] as const) {
@@ -987,8 +1001,10 @@ test("fully resets position personality, palette, and alignment", () => {
 		const rail = matchingRuleBodies(styles, `body.tabsdown-${position}-personality-rail`);
 		expect(rail).toContain("border-color: transparent");
 		expect(rail).toContain("background-color: var(--background-secondary)");
-		expect(rail).toContain("background-color: var(--background-primary)");
-		expect(rail).toContain("color: var(--text-normal)");
+		expect(rail).toContain("background-color: var(--tabsdown-rail-selected-background)");
+		expect(rail).toContain("color: var(--tabsdown-tab-selected-color)");
+		expect(rail).toContain("padding: 0.375rem");
+		expect(rail).toContain("padding-block: 0.125rem");
 
 		for (const palette of ["primary", "secondary"]) {
 			const body = matchingRuleBodies(styles, `body.tabsdown-${position}-palette-${palette}`);
@@ -1002,6 +1018,7 @@ test("fully resets position personality, palette, and alignment", () => {
 				"--tabsdown-tab-selected-border:",
 				"--tabsdown-tab-selected-color:",
 				"--tabsdown-tab-underline-color:",
+				"--tabsdown-rail-selected-background:",
 			]) {
 				expect(body, `${position} ${palette} ${variable}`).toContain(variable);
 			}
@@ -1054,9 +1071,18 @@ test("renders separators as centered, non-layout elements", () => {
 	const separator = matchingRuleBodies(styles, ".tabsdown__separator");
 	expect(separator).toContain("position: absolute");
 	expect(separator).toContain("inline-size: 1px");
-	expect(separator).toContain("block-size: 1cap");
+	expect(separator).toContain("block-size: var(--tabsdown-separator-length, 80%)");
+	expect(separator).toContain("inline-size: var(--tabsdown-separator-length, 80%)");
 	expect(separator).toContain("pointer-events: none");
 	expect(styles).not.toContain("~ .tabsdown__tab");
+});
+
+test("reserves bolder formatted label metrics without changing selected tab width", () => {
+	const reserve = matchingRuleBodies(readStyles(), ".tabsdown__tab-reserve");
+	expect(reserve).toContain("font-weight: 700");
+	expect(reserve).toContain("visibility: hidden");
+	expect(readStyles()).toContain(".tabsdown__tab-reserve--icon");
+	expect(readStyles()).toContain("@media (any-pointer: coarse)");
 });
 
 test("computed global personalities yield to every explicit position override", () => {
@@ -1219,7 +1245,8 @@ test("a narrow block moves its side tab list off the panels' line", () => {
 	// the query has to measure the block, not the viewport, so a note docked in a
 	// sidebar recovers too.
 	expect(styles).toMatch(/^\.tabsdown \{[^}]*container-type:\s*inline-size/m);
-	expect(styles).not.toMatch(/\.tabsdown--(left|right)[^{]*\{[^}]*grid-template-columns/);
+	const sideLayout = /^\.tabsdown--left,\s*\n\.tabsdown--right \{([^}]*)\}/m.exec(styles)?.[1] ?? "";
+	expect(sideLayout).not.toContain("grid-template-columns");
 	expect(query).toMatch(/flex-basis:\s*100%/);
 	expect(query).toMatch(/flex-direction:\s*row/);
 });
@@ -1255,28 +1282,16 @@ test("side tabs are equal width in wide and narrow layouts", () => {
 
 test("equal-width sizing follows the block's effective overflow", () => {
 	const styles = readStyles();
-	const cases: readonly (readonly [string, string, string, string])[] = [
-		[
-			"body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width",
-			".tabsdown:where(:not(.tabsdown--inline-overflow))",
-			"body.tabsdown-alignment-equal-width",
-			".tabsdown:where(.tabsdown--inline-overflow.tabsdown--multi)",
-		],
-		...(["top", "bottom", "left", "right"] as const).map(
-			(position) => [
-				`body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`,
-				`.tabsdown--${position}:where(:not(.tabsdown--inline-overflow))`,
-				`body.tabsdown-${position}-alignment-equal-width`,
-				`.tabsdown--${position}:where(.tabsdown--inline-overflow.tabsdown--multi)`,
-			] as const,
-		),
-	];
-	for (const [globalScope, globalTarget, inlineScope, inlineTarget] of cases) {
-		expect(matchingSelectors(styles, globalScope), globalScope).toContain(globalTarget);
-		expect(matchingSelectors(styles, inlineScope), inlineScope).toContain(inlineTarget);
-		const inlineBody = matchingRuleBodies(styles, inlineTarget);
-		expect(inlineBody, inlineTarget).toContain("flex: 1 1 max-content");
-		expect(inlineBody, inlineTarget).toContain("min-inline-size: var(--tabsdown-tab-min-size)");
-		expect(inlineBody, inlineTarget).toContain("white-space: normal");
+	expect(styles).toContain("display: grid");
+	expect(styles).toContain(
+		"minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)",
+	);
+	for (const position of ["top", "bottom"] as const) {
+		const selector = `body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`;
+		expect(matchingRuleBodies(styles, selector)).toContain("grid-template-columns:");
 	}
+	const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
+	expect(narrow).toContain("tabsdown-left-alignment-equal-width");
+	expect(narrow).toContain("tabsdown-right-alignment-equal-width");
+	expect(narrow).toContain("grid-template-columns:");
 });

@@ -32,6 +32,10 @@ export function trackSeparators(
 			const startsLine = previous === undefined || !sameLane(previous, current, vertical);
 			separator.hidden = startsLine;
 			separator.classList.toggle("tabsdown__separator--column", vertical);
+			separator.style.setProperty(
+				"--tabsdown-separator-length",
+				`${(vertical ? current.width : current.height) * 0.8}px`,
+			);
 			if (!startsLine && previous) {
 				if (vertical) {
 					separator.style.left = `${current.width / 2}px`;

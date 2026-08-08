@@ -544,8 +544,10 @@ settings:
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
 	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-rail-selected-background: var(--tabsdown-accent);
 	--tabsdown-animation-duration: var(--tabsdown-animation-speed, 160ms);
 	--tabsdown-tab-min-size: 44px;
+	--tabsdown-tab-min-block-size: var(--tabsdown-tab-min-size);
 
 	box-sizing: border-box;
 	max-inline-size: 100%;
@@ -675,12 +677,13 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 .tabsdown__tab {
 	flex: 0 0 auto;
 	position: relative;
+	display: block;
 	box-sizing: border-box;
 	height: auto;
 	max-height: none;
 	max-inline-size: 100%;
 	min-inline-size: var(--tabsdown-tab-min-size);
-	min-block-size: var(--tabsdown-tab-min-size);
+	min-block-size: var(--tabsdown-tab-min-block-size);
 	padding: var(--tabsdown-tab-padding-block)
 		var(--tabsdown-tab-padding-inline);
 	border: var(--border-width) solid var(--tabsdown-tab-border);
@@ -697,6 +700,20 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 		background-color var(--anim-duration-fast) var(--anim-motion-swing),
 		border-color var(--anim-duration-fast) var(--anim-motion-swing),
 		color var(--anim-duration-fast) var(--anim-motion-swing);
+}
+
+.tabsdown__tab-reserve {
+	display: block;
+	block-size: 0;
+	overflow: hidden;
+	font-weight: 700;
+	visibility: hidden;
+}
+
+.tabsdown__tab-reserve--icon {
+	padding-inline-start: calc(
+		var(--tabsdown-icon-size, 1em) + var(--tabsdown-icon-spacing, 0.35em)
+	);
 }
 
 /* Themes draw button chrome as an inset ring in --input-shadow, which core
@@ -732,16 +749,14 @@ body.tabsdown-theme-button-outline .tabsdown__tab:active {
 	display: none;
 	position: absolute;
 	inline-size: 1px;
-	block-size: 0.7em;
-	block-size: 1cap;
+	block-size: var(--tabsdown-separator-length, 80%);
 	background-color: var(--tabsdown-tab-border);
 	pointer-events: none;
 	transform: translate(-50%, -50%);
 }
 
 .tabsdown__separator--column {
-	inline-size: 0.7em;
-	inline-size: 1cap;
+	inline-size: var(--tabsdown-separator-length, 80%);
 	block-size: 1px;
 }
 
@@ -1031,6 +1046,7 @@ body.tabsdown-palette-secondary .tabsdown {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
 body.tabsdown-alignment-start .tabsdown > .tabsdown__tablist {
@@ -1065,9 +1081,22 @@ body.tabsdown-alignment-equal-width .tabsdown > .tabsdown__tablist > .tabsdown__
 
 body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-alignment-equal-width .tabsdown:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: 1 1 max-content;
-	min-inline-size: var(--tabsdown-tab-min-size);
+	flex: none;
+	min-inline-size: 0;
 	white-space: normal;
+}
+
+body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width .tabsdown--mounted:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+body.tabsdown-alignment-equal-width .tabsdown--mounted:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
+body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-top-alignment-start):not(.tabsdown-top-alignment-center) .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+body.tabsdown-alignment-equal-width:not(.tabsdown-top-alignment-start):not(.tabsdown-top-alignment-center) .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
+body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-bottom-alignment-start):not(.tabsdown-bottom-alignment-center) .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+body.tabsdown-alignment-equal-width:not(.tabsdown-bottom-alignment-start):not(.tabsdown-bottom-alignment-center) .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
+	display: grid;
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+	);
 }
 
 body.tabsdown-personality-underline .tabsdown__tab {
@@ -1113,25 +1142,26 @@ body.tabsdown-personality-separator .tabsdown__tab[aria-selected="true"],
 body.tabsdown-personality-separator .tabsdown__tab[aria-expanded="true"] {
 	border-color: transparent;
 	background-color: transparent;
-	color: var(--text-normal);
+	color: var(--tabsdown-tab-underline-color);
 }
 
 body.tabsdown-personality-rail .tabsdown__tablist {
-	padding: 0.25rem;
+	--tabsdown-tab-min-block-size: 36px;
+	padding: 0.375rem;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--background-secondary);
 }
 
 body.tabsdown-personality-rail .tabsdown__tab {
-	padding-block: 0.25rem;
+	padding-block: 0.125rem;
 }
 
 body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"],
 body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"] {
 	border-color: transparent;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
-	background-color: var(--background-primary);
-	color: var(--text-normal);
+	background-color: var(--tabsdown-rail-selected-background);
+	color: var(--tabsdown-tab-selected-color);
 }
 
 @media (hover: hover) {
@@ -1144,7 +1174,13 @@ body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"] {
 
 	body.tabsdown-personality-rail .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-personality-rail .tabsdown__tab[aria-expanded="true"]:hover {
-		background-color: var(--background-primary);
+		background-color: var(--tabsdown-rail-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-personality-separator .tabsdown__tab[aria-selected="true"]:hover,
+	body.tabsdown-personality-separator .tabsdown__tab[aria-expanded="true"]:hover {
+		color: var(--tabsdown-tab-underline-color);
 	}
 }
 
@@ -1181,6 +1217,7 @@ body.tabsdown-top-palette-primary .tabsdown--top {
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
 	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-rail-selected-background: var(--tabsdown-accent);
 }
 
 body.tabsdown-top-palette-secondary .tabsdown--top {
@@ -1193,6 +1230,7 @@ body.tabsdown-top-palette-secondary .tabsdown--top {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
 body.tabsdown-top-alignment-start .tabsdown--top > .tabsdown__tablist {
@@ -1227,9 +1265,18 @@ body.tabsdown-top-alignment-equal-width .tabsdown--top > .tabsdown__tablist > .t
 
 body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: 1 1 max-content;
-	min-inline-size: var(--tabsdown-tab-min-size);
+	flex: none;
+	min-inline-size: 0;
 	white-space: normal;
+}
+
+body.tabsdown-overflow-wrap.tabsdown-top-alignment-equal-width .tabsdown--top:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+body.tabsdown-top-alignment-equal-width .tabsdown--top:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
+	display: grid;
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+	);
 }
 
 body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist > .tabsdown__tab {
@@ -1313,6 +1360,7 @@ body.tabsdown-bottom-palette-primary .tabsdown--bottom {
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
 	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-rail-selected-background: var(--tabsdown-accent);
 }
 
 body.tabsdown-bottom-palette-secondary .tabsdown--bottom {
@@ -1325,6 +1373,7 @@ body.tabsdown-bottom-palette-secondary .tabsdown--bottom {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
 body.tabsdown-bottom-alignment-start .tabsdown--bottom > .tabsdown__tablist {
@@ -1359,9 +1408,18 @@ body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom > .tabsdown__tablis
 
 body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
-	flex: 1 1 max-content;
-	min-inline-size: var(--tabsdown-tab-min-size);
+	flex: none;
+	min-inline-size: 0;
 	white-space: normal;
+}
+
+body.tabsdown-overflow-wrap.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+body.tabsdown-bottom-alignment-equal-width .tabsdown--bottom:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
+	display: grid;
+	grid-template-columns: repeat(
+		auto-fit,
+		minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+	);
 }
 
 body.tabsdown-bottom-personality-button .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab {
@@ -1445,6 +1503,7 @@ body.tabsdown-left-palette-primary .tabsdown--left {
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
 	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-rail-selected-background: var(--tabsdown-accent);
 }
 
 body.tabsdown-left-palette-secondary .tabsdown--left {
@@ -1457,6 +1516,7 @@ body.tabsdown-left-palette-secondary .tabsdown--left {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
 body.tabsdown-left-alignment-start .tabsdown--left > .tabsdown__tablist {
@@ -1577,6 +1637,7 @@ body.tabsdown-right-palette-primary .tabsdown--right {
 	--tabsdown-tab-selected-border: var(--tabsdown-accent);
 	--tabsdown-tab-selected-color: var(--text-on-accent);
 	--tabsdown-tab-underline-color: var(--tabsdown-accent);
+	--tabsdown-rail-selected-background: var(--tabsdown-accent);
 }
 
 body.tabsdown-right-palette-secondary .tabsdown--right {
@@ -1589,11 +1650,11 @@ body.tabsdown-right-palette-secondary .tabsdown--right {
 	--tabsdown-tab-selected-border: var(--background-modifier-border-hover);
 	--tabsdown-tab-selected-color: var(--text-normal);
 	--tabsdown-tab-underline-color: var(--text-normal);
+	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
-/* Nested controls stay quieter than their parent, regardless of the global or
-   position palette. Keep this after the palette overrides so it wins equally
-   specific selectors without affecting layout or touch targets. */
+/* Nested surfaces stay quieter than their parent. Palette-owned accents remain
+   inherited for Separator and Rail selection. */
 body .tabsdown--nested-odd.tabsdown {
 	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 6%, transparent);
 	--tabsdown-tab-border: color-mix(in srgb, var(--text-normal) 12%, transparent);
@@ -1603,7 +1664,6 @@ body .tabsdown--nested-odd.tabsdown {
 	--tabsdown-tab-selected-background: color-mix(in srgb, var(--text-normal) 14%, transparent);
 	--tabsdown-tab-selected-border: color-mix(in srgb, var(--text-normal) 24%, transparent);
 	--tabsdown-tab-selected-color: var(--text-normal);
-	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
 body .tabsdown--nested-even.tabsdown {
@@ -1615,7 +1675,6 @@ body .tabsdown--nested-even.tabsdown {
 	--tabsdown-tab-selected-background: color-mix(in srgb, var(--text-normal) 18%, transparent);
 	--tabsdown-tab-selected-border: color-mix(in srgb, var(--text-normal) 24%, transparent);
 	--tabsdown-tab-selected-color: var(--text-normal);
-	--tabsdown-tab-underline-color: var(--text-normal);
 }
 
 body.tabsdown-right-alignment-start .tabsdown--right > .tabsdown__tablist {
@@ -1752,7 +1811,7 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	border-color: transparent;
 	border-radius: 0;
 	background-color: transparent;
-	color: var(--text-normal);
+	color: var(--tabsdown-tab-underline-color);
 }
 
 body.tabsdown-personality-separator .tabsdown--mounted > .tabsdown__tablist > .tabsdown__tab > .tabsdown__separator:not([hidden]),
@@ -1771,7 +1830,8 @@ body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist,
 body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist,
 body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist,
 body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist {
-	padding: 0.25rem;
+	--tabsdown-tab-min-block-size: 36px;
+	padding: 0.375rem;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
 	background-color: var(--background-secondary);
 }
@@ -1780,7 +1840,7 @@ body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdo
 body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab,
 body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
-	padding-block: 0.25rem;
+	padding-block: 0.125rem;
 }
 
 body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"],
@@ -1793,8 +1853,8 @@ body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .ta
 body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"] {
 	border-color: transparent;
 	border-radius: var(--tabsdown-radius, var(--radius-s));
-	background-color: var(--background-primary);
-	color: var(--text-normal);
+	background-color: var(--tabsdown-rail-selected-background);
+	color: var(--tabsdown-tab-selected-color);
 }
 
 body.tabsdown-top-personality-button .tabsdown--top > .tabsdown__tablist,
@@ -1809,6 +1869,7 @@ body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist,
 body.tabsdown-right-personality-button .tabsdown--right > .tabsdown__tablist,
 body.tabsdown-right-personality-underline .tabsdown--right > .tabsdown__tablist,
 body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist {
+	--tabsdown-tab-min-block-size: var(--tabsdown-tab-min-size);
 	padding: var(--border-width);
 	border-radius: 0;
 	background-color: transparent;
@@ -1851,7 +1912,25 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover,
 	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-selected="true"]:hover,
 	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist > .tabsdown__tab[aria-expanded="true"]:hover {
-		background-color: var(--background-primary);
+		background-color: var(--tabsdown-rail-selected-background);
+		color: var(--tabsdown-tab-selected-color);
+	}
+
+	body.tabsdown-top-personality-separator .tabsdown--top > .tabsdown__tablist > .tabsdown__tab:is([aria-selected="true"], [aria-expanded="true"]):hover,
+	body.tabsdown-bottom-personality-separator .tabsdown--bottom > .tabsdown__tablist > .tabsdown__tab:is([aria-selected="true"], [aria-expanded="true"]):hover,
+	body.tabsdown-left-personality-separator .tabsdown--left > .tabsdown__tablist > .tabsdown__tab:is([aria-selected="true"], [aria-expanded="true"]):hover,
+	body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist > .tabsdown__tab:is([aria-selected="true"], [aria-expanded="true"]):hover {
+		color: var(--tabsdown-tab-underline-color);
+	}
+}
+
+@media (any-pointer: coarse) {
+	body.tabsdown-personality-rail .tabsdown__tablist,
+	body.tabsdown-top-personality-rail .tabsdown--top > .tabsdown__tablist,
+	body.tabsdown-bottom-personality-rail .tabsdown--bottom > .tabsdown__tablist,
+	body.tabsdown-left-personality-rail .tabsdown--left > .tabsdown__tablist,
+	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist {
+		--tabsdown-tab-min-block-size: 44px;
 	}
 }
 
@@ -1887,6 +1966,33 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 		inline-size: 0;
 		min-inline-size: var(--tabsdown-tab-min-size);
 		white-space: normal;
+	}
+
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+	body.tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+	body.tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
+	body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist,
+	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist,
+	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist {
+		display: grid;
+		grid-template-columns: repeat(
+			auto-fit,
+			minmax(min(100%, max(var(--tabsdown-tab-min-size), 12ch)), 1fr)
+		);
+	}
+
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-alignment-equal-width:not(.tabsdown-left-alignment-start):not(.tabsdown-left-alignment-center) .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
+	body:where(.tabsdown-overflow-wrap).tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-alignment-equal-width:not(.tabsdown-right-alignment-start):not(.tabsdown-right-alignment-center) .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-overflow-wrap.tabsdown-left-alignment-equal-width .tabsdown--left:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-left-alignment-equal-width .tabsdown--left:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-overflow-wrap.tabsdown-right-alignment-equal-width .tabsdown--right:where(:not(.tabsdown--inline-overflow)) > .tabsdown__tablist > .tabsdown__tab,
+	body.tabsdown-right-alignment-equal-width .tabsdown--right:where(.tabsdown--inline-overflow.tabsdown--multi) > .tabsdown__tablist > .tabsdown__tab {
+		inline-size: 100%;
+		min-inline-size: 0;
 	}
 }
 

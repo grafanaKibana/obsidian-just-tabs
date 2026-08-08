@@ -111,6 +111,11 @@ describe("selection", () => {
 		);
 		expect(labels[0]?.querySelector("a, img, script")).toBeNull();
 		expect(labels[1]?.textContent).toBe("****");
+		const reserve = labels[0]?.closest("button")?.querySelector<HTMLElement>(
+			".tabsdown__tab-reserve",
+		);
+		expect(reserve?.innerHTML).toBe(labels[0]?.innerHTML);
+		expect(reserve?.getAttribute("aria-hidden")).toBe("true");
 		expect(controller.selection).toBeNull();
 	});
 
@@ -125,7 +130,12 @@ describe("selection", () => {
 				],
 			});
 			expect(container.querySelector(".tabsdown__tablist")?.getAttribute("aria-label")).toBe(groupLabel);
-			expect(Array.from(container.querySelectorAll("button"), (button) => button.textContent)).toEqual(["A", "A"]);
+			expect(
+				Array.from(
+					container.querySelectorAll(".tabsdown__tab-label"),
+					(label) => label.textContent,
+				),
+			).toEqual(["A", "A"]);
 			controller.destroy();
 		}
 	});
