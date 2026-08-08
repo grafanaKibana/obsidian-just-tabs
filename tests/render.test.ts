@@ -1295,7 +1295,10 @@ test("wrapped equal-width rows align and the final row fills the list", () => {
 	const styles = readStyles();
 	expect(styles).not.toContain("grid-template-columns");
 	expect(styles).toMatch(
-		/12ch \+ var\(--tabsdown-tab-padding-inline\) \+\s*var\(--tabsdown-tab-padding-inline\)/,
+		/6em \+ var\(--tabsdown-tab-padding-inline\) \+\s*var\(--tabsdown-tab-padding-inline\)/,
+	);
+	expect(styles).not.toMatch(
+		/ch \+ var\(--tabsdown-tab-padding-inline\)/,
 	);
 	for (const position of ["top", "bottom"] as const) {
 		const selector = `body.tabsdown-overflow-wrap.tabsdown-${position}-alignment-equal-width`;
