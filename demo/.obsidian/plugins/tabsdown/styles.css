@@ -1653,9 +1653,8 @@ body.tabsdown-right-palette-secondary .tabsdown--right {
 	--tabsdown-rail-selected-background: var(--background-primary);
 }
 
-/* Nested controls stay quieter than their parent, regardless of the global or
-   position palette. Keep this after the palette overrides so it wins equally
-   specific selectors without affecting layout or touch targets. */
+/* Nested surfaces stay quieter than their parent. Palette-owned accents remain
+   inherited for Separator and Rail selection. */
 body .tabsdown--nested-odd.tabsdown {
 	--tabsdown-tab-background: color-mix(in srgb, var(--text-normal) 6%, transparent);
 	--tabsdown-tab-border: color-mix(in srgb, var(--text-normal) 12%, transparent);
