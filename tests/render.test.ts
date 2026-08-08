@@ -1174,6 +1174,7 @@ test("wires appearance controls without breaking touch, labels, or spacing", () 
 	expect(styles).not.toContain("--tabsdown-effective-gap");
 	expect(styles).not.toContain("body.tabsdown-overflow-scroll .tabsdown--multi > .tabsdown__tablist");
 	expect(styles).toMatch(/\.tabsdown__tab \{[^}]*max-inline-size:\s*100%/);
+	expect(styles).toMatch(/\.tabsdown__tab\[hidden\] \{[^}]*display:\s*none/);
 	expect(styles).toMatch(/\.tabsdown__tab-label \{[^}]*min-inline-size:\s*0[^}]*overflow-wrap:\s*anywhere/);
 	expect(styles).not.toMatch(/\.tabsdown__tab-label \{[^}]*(text-overflow:\s*ellipsis|white-space:\s*nowrap)/);
 	expect(styles).toMatch(/\.tabsdown__tab-icon \{[^}]*--icon-size:\s*var\([^,]+,\s*1em\)/);
@@ -1269,7 +1270,7 @@ test("side tabs are equal width in wide and narrow layouts", () => {
 		).toContain("flex: 0 0 auto");
 		expect(
 			matchingRuleBodies(styles, `.tabsdown--${position} > .tabsdown__tablist > .tabsdown__tab`),
-		).toContain("inline-size: 100%");
+		).toContain("min-inline-size: 0");
 		const narrow = styles.slice(styles.indexOf("@container (max-width: 28rem)"));
 		const forced = matchingRuleBodies(
 			narrow,
@@ -1278,6 +1279,14 @@ test("side tabs are equal width in wide and narrow layouts", () => {
 		expect(forced).toContain("flex: 1 1 0");
 		expect(forced).toContain("inline-size: 0");
 	}
+	const coarse = styles.slice(
+		styles.indexOf("@media (any-pointer: coarse)"),
+		styles.indexOf("@container (max-width: 28rem)"),
+	);
+	expect(coarse).toContain(".tabsdown-top-personality-button");
+	expect(coarse).toContain(
+		"--tabsdown-tab-min-block-size: var(--tabsdown-tab-min-size)",
+	);
 });
 
 test("equal-width sizing follows the block's effective overflow", () => {

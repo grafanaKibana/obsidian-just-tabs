@@ -77,6 +77,13 @@ describe("parseInlineLabel", () => {
 			{ type: "emphasis", text: "valid" },
 		]);
 	});
+
+	test("keeps long unmatched escape runs linear", () => {
+		const source = `*${"\\".repeat(20_000)}`;
+		expect(parseInlineLabel(source)).toEqual([
+			{ type: "text", text: `*${"\\".repeat(10_000)}` },
+		]);
+	});
 });
 
 describe("parseTabs", () => {

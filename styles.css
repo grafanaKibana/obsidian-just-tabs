@@ -702,6 +702,10 @@ body.tabsdown-nested-style-flat .tabsdown .tabsdown {
 		color var(--anim-duration-fast) var(--anim-motion-swing);
 }
 
+.tabsdown__tab[hidden] {
+	display: none;
+}
+
 .tabsdown__tab-reserve {
 	display: block;
 	block-size: 0;
@@ -1968,6 +1972,29 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 	body.tabsdown-right-personality-rail .tabsdown--right > .tabsdown__tablist {
 		--tabsdown-tab-min-block-size: 44px;
 	}
+
+	body:is(
+		.tabsdown-top-personality-button,
+		.tabsdown-top-personality-underline,
+		.tabsdown-top-personality-separator
+	) .tabsdown--top > .tabsdown__tablist,
+	body:is(
+		.tabsdown-bottom-personality-button,
+		.tabsdown-bottom-personality-underline,
+		.tabsdown-bottom-personality-separator
+	) .tabsdown--bottom > .tabsdown__tablist,
+	body:is(
+		.tabsdown-left-personality-button,
+		.tabsdown-left-personality-underline,
+		.tabsdown-left-personality-separator
+	) .tabsdown--left > .tabsdown__tablist,
+	body:is(
+		.tabsdown-right-personality-button,
+		.tabsdown-right-personality-underline,
+		.tabsdown-right-personality-separator
+	) .tabsdown--right > .tabsdown__tablist {
+		--tabsdown-tab-min-block-size: var(--tabsdown-tab-min-size);
+	}
 }
 
 /* Side tabs always share the full list width; alignment settings only position
@@ -1976,6 +2003,8 @@ body.tabsdown-right-personality-separator .tabsdown--right > .tabsdown__tablist 
 .tabsdown--right > .tabsdown__tablist > .tabsdown__tab {
 	flex: 0 0 auto;
 	inline-size: 100%;
+	min-inline-size: 0;
+	white-space: normal;
 }
 
 /* Too narrow for a side list: move the list above the panels and restore the

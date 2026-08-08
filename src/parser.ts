@@ -80,7 +80,7 @@ function findClosingDelimiter(
 	start: number,
 ): number {
 	for (let index = start; index <= source.length - delimiter.length; index += 1) {
-		if (isEscaped(source, index) || !source.startsWith(delimiter, index)) continue;
+		if (!source.startsWith(delimiter, index) || isEscaped(source, index)) continue;
 		if (overlapsDelimiterRun(source, delimiter, index)) continue;
 		return index;
 	}
@@ -89,8 +89,10 @@ function findClosingDelimiter(
 
 function containsInlineDelimiter(source: string): boolean {
 	for (let index = 0; index < source.length; index += 1) {
-		if (isEscaped(source, index)) continue;
-		if (inlineDelimiters.some((delimiter) => source.startsWith(delimiter, index))) {
+		if (
+			inlineDelimiters.some((delimiter) => source.startsWith(delimiter, index)) &&
+			!isEscaped(source, index)
+		) {
 			return true;
 		}
 	}
